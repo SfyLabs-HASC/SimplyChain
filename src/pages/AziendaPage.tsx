@@ -851,7 +851,7 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
             onClick={handleRefresh}
             disabled={isRefreshing || refreshCounter === 0}
           >
-            <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEgNFY5SDZNMjMgMjBWMTVIMThNMjAgMTBDMTkuNzQgNi42OSAxNy4zNCA0IDEyIDRDOC42OCA0IDUuNjYgNi4wNSA0IDE5VjIwQzYuMzIgMTcuOTUgOS4zNCAyMCAxMiAyMEMxNi42NiAyMCAxOS4yNiAxNyAyMCAxMFoiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS13aWR0aD0iMiIgZmlsbD0ibm9uZSIvPgo8L3N2Zz4K" alt="refresh" className="refresh-icon" style={{width: '20px', height: '20px'}} />
+            <img src="/src/assets/refresh-icon.png" alt="refresh" className="refresh-icon" style={{width: '20px', height: '20px'}} />
             {refreshCounter > 0 && (
               <div className="refresh-counter">+{refreshCounter}</div>
             )}
