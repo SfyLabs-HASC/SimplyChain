@@ -96,32 +96,29 @@ const AziendaPageStyles = () => (
       }
       
       .dashboard-icon {
-        font-size: 1.5rem;
-        width: 40px;
-        height: 40px;
+        font-size: 1.8rem;
+        width: 50px;
+        height: 50px;
         display: flex;
         align-items: center;
         justify-content: center;
-        border-radius: 50%;
-        background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
       }
       
       .status-icon {
-        font-size: 1.5rem;
-        width: 40px;
-        height: 40px;
+        font-size: 1.8rem;
+        width: 50px;
+        height: 50px;
         display: flex;
         align-items: center;
         justify-content: center;
-        border-radius: 50%;
       }
       
-      .status-active {
-        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      .status-active-text {
+        color: #10b981;
       }
       
-      .status-inactive {
-        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+      .status-inactive-text {
+        color: #f59e0b;
       }
       
       .inscriptions-section-header {
@@ -173,24 +170,13 @@ const AziendaPageStyles = () => (
         transform: none;
       }
       
-      .refresh-button.spinning {
-        animation: refreshSpin 1.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
-      }
-      
-      @keyframes refreshSpin {
-        0% { transform: rotate(0deg) scale(1); }
-        50% { transform: rotate(180deg) scale(1.1); }
-        100% { transform: rotate(360deg) scale(1); }
-      }
-      
       .refresh-icon {
         color: white;
-        font-size: 1.2rem;
+        font-size: 1.5rem;
       }
       
       .refresh-counter {
-        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-        color: white;
+        color: #10b981;
         border-radius: 50%;
         width: 20px;
         height: 20px;
@@ -202,7 +188,6 @@ const AziendaPageStyles = () => (
         position: absolute;
         top: -5px;
         right: -5px;
-        border: 2px solid #0f0f0f;
       }
       
       .full-page-loading {
@@ -720,8 +705,8 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [refreshCounter, setRefreshCounter] = useState(0);
   const [showFullPageLoading, setShowFullPageLoading] = useState(false);
-  const [cachedBatches, setCachedBatches] = useState<Batch[] | null>(null);
   const [firstLoad, setFirstLoad] = useState(true);
+  const [currentCompanyData, setCurrentCompanyData] = useState<CompanyData>(companyData);
 
   // Hook per leggere i dati dal contratto
   const { data: contractData, refetch: refetchContractData } = useReadContract({
@@ -754,7 +739,6 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
       const sortedBatches = readyBatches.sort((a, b) => parseInt(b.batchId) - parseInt(a.batchId));
       
       setBatches(sortedBatches);
-      setCachedBatches(sortedBatches);
       setRefreshCounter(0); // Reset counter dopo il refresh
       
     } catch (error: any) {
@@ -769,7 +753,42 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
 
   const handleRefresh = async () => {
     if (!account) return;
-    await loadBatches(false);
+    
+    setShowFullPageLoading(true);
+    
+    try {
+      // 1. Controlla i crediti on-chain
+      const refetchedData = await refetchContractData();
+      if (refetchedData.data) {
+        const [, onChainCredits] = refetchedData.data;
+        const creditsNumber = Number(onChainCredits);
+        
+        // 2. Aggiorna Firebase con i crediti corretti
+        await fetch('/api/activate-company', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'setCredits',
+            walletAddress: account.address,
+            credits: creditsNumber,
+          }),
+        });
+        
+        // 3. Aggiorna i dati locali
+        setCurrentCompanyData(prev => ({
+          ...prev,
+          credits: creditsNumber
+        }));
+      }
+      
+      // 4. Ricarica le iscrizioni
+      await loadBatches(false);
+      
+    } catch (error: any) {
+      setErrorBatches(error.message || "Errore durante l'aggiornamento.");
+    } finally {
+      setShowFullPageLoading(false);
+    }
   };
 
   const incrementRefreshCounter = () => {
@@ -777,15 +796,10 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
   };
 
   useEffect(() => {
-    if (cachedBatches && !firstLoad) {
-      // Se abbiamo dati in cache e non è il primo caricamento, usali
-      setBatches(cachedBatches);
-      setIsLoadingBatches(false);
-    } else if (account) {
-      // Primo caricamento o cache vuota
+    if (account && firstLoad) {
       loadBatches(true);
     }
-  }, [account]);
+  }, [account, firstLoad]);
 
   // Calcola il numero di iscrizione incrementale per ogni batch
   const getBatchDisplayNumber = (batchId: string) => {
@@ -797,25 +811,31 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
   return (
     <>
       {showFullPageLoading && (
-        <FullPageLoading message="Caricamento delle tue iscrizioni..." />
+        <FullPageLoading message="Aggiornamento dati in corso..." />
       )}
       
       <div className="dashboard-header-card">
         <div>
           <div className="dashboard-title-section">
-            <h2 className="dashboard-title">{companyData.companyName}</h2>
+            <h2 className="dashboard-title">{currentCompanyData.companyName}</h2>
           </div>
           <div className="dashboard-info">
             <div className="dashboard-info-item">
-              <div className="dashboard-icon">💰</div>
-              <span>Crediti Rimanenti: <strong>{companyData.credits}</strong></span>
+              <div className="dashboard-icon">
+                <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEyIDJMMTMuMDkgOC4yNkwyMCA5TDEzLjA5IDE1Ljc0TDEyIDIyTDEwLjkxIDE1Ljc0TDQgOUwxMC45MSA4LjI2TDEyIDJaIiBzdHJva2U9ImdvbGQiIHN0cm9rZS13aWR0aD0iMiIgZmlsbD0iZ29sZCIvPgo8L3N2Zz4K" alt="crediti" style={{width: '100%', height: '100%'}} />
+              </div>
+              <span>Crediti Rimanenti: <strong>{currentCompanyData.credits}</strong></span>
             </div>
             <div className="dashboard-info-item">
-              <div className={`status-icon ${companyData.status === 'active' ? 'status-active' : 'status-inactive'}`}>
-                {companyData.status === 'active' ? '🔓' : '🔒'}
+              <div className="status-icon">
+                {currentCompanyData.status === 'active' ? (
+                  <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTYgMTBWOEM2IDUuNzkgNy43OSA0IDEwIDRDMTIuMjEgNCA0IDUuNzkgMTQgOFYxMEgxNkMxNy4xIDEwIDE4IDEwLjkgMTggMTJWMjBDMTggMjEuMSAxNy4xIDIyIDE2IDIySDhDNi45IDIyIDYgMjEuMSA2IDIwVjEyQzYgMTAuOSA2LjkgMTAgOCAxMEg2WiIgc3Ryb2tlPSIjMTBiOTgxIiBzdHJva2Utd2lkdGg9IjIiIGZpbGw9IiMxMGI5ODEiLz4KPC9zdmc+Cg==" alt="unlocked" style={{width: '100%', height: '100%'}} />
+                ) : (
+                  <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEyIDJDMTMuMSAyIDE0IDIuOSAxNCA0VjZIMTZDMTcuMSA2IDE4IDYuOSAxOCA4VjIwQzE4IDIxLjEgMTcuMSAyMiAxNiAyMkg4QzYuOSAyMiA2IDIxLjEgNiAyMFY4QzYgNi45IDYuOSA2IDggNkgxMFY0QzEwIDIuOSAxMC45IDIgMTIgMlpNMTIgNEMxMS40NSA0IDExIDQuNDUgMTEgNVY2SDEzVjVDMTMgNC40NSAxMi41NSA0IDEyIDRaIiBzdHJva2U9IiNmNTllMGIiIHN0cm9rZS13aWR0aD0iMiIgZmlsbD0iI2Y1OWUwYiIvPgo8L3N2Zz4K" alt="locked" style={{width: '100%', height: '100%'}} />
+                )}
               </div>
-              <span>Stato: <strong className={companyData.status === 'active' ? 'status-active' : 'status-inactive'}>
-                {companyData.status === 'active' ? 'ATTIVO' : 'NON ATTIVO'}
+              <span>Stato: <strong className={currentCompanyData.status === 'active' ? 'status-active-text' : 'status-inactive-text'}>
+                {currentCompanyData.status === 'active' ? 'ATTIVO' : 'NON ATTIVO'}
               </strong></span>
             </div>
           </div>
@@ -827,11 +847,11 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
         <h3 className="inscriptions-section-title">Le mie Iscrizioni su Blockchain</h3>
         <div className="refresh-section">
           <button 
-            className={`refresh-button ${isRefreshing ? 'spinning' : ''}`}
+            className="refresh-button"
             onClick={handleRefresh}
             disabled={isRefreshing || refreshCounter === 0}
           >
-            <span className="refresh-icon">🔄</span>
+            <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEgNFY5SDZNMjMgMjBWMTVIMThNMjAgMTBDMTkuNzQgNi42OSAxNy4zNCA0IDEyIDRDOC42OCA0IDUuNjYgNi4wNSA0IDE5VjIwQzYuMzIgMTcuOTUgOS4zNCAyMCAxMiAyMEMxNi42NiAyMCAxOS4yNiAxNyAyMCAxMFoiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS13aWR0aD0iMiIgZmlsbD0ibm9uZSIvPgo8L3N2Zz4K" alt="refresh" className="refresh-icon" style={{width: '20px', height: '20px'}} />
             {refreshCounter > 0 && (
               <div className="refresh-counter">+{refreshCounter}</div>
             )}
@@ -933,14 +953,21 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
             setIsModalOpen(false);
             incrementRefreshCounter();
           }}
+          onCreditsUpdate={(newCredits: number) => {
+            setCurrentCompanyData(prev => ({ ...prev, credits: newCredits }));
+          }}
         />
       )}
     </>
   );
 };
 
-// Componente modale per nuova iscrizione (basato sul file allegato)
-const NewInscriptionModal: React.FC<{ onClose: () => void; onSuccess: () => void }> = ({ onClose, onSuccess }) => {
+// Componente modale per nuova iscrizione
+const NewInscriptionModal: React.FC<{ 
+  onClose: () => void; 
+  onSuccess: () => void;
+  onCreditsUpdate: (credits: number) => void;
+}> = ({ onClose, onSuccess, onCreditsUpdate }) => {
   const account = useActiveAccount();
   const { mutate: sendTransaction, isPending } = useSendTransaction();
   
@@ -1011,8 +1038,33 @@ const NewInscriptionModal: React.FC<{ onClose: () => void; onSuccess: () => void
     });
 
     sendTransaction(transaction, {
-      onSuccess: async () => {
+      onSuccess: async (result) => {
         setTxResult({ status: "success", message: "Iscrizione creata! Aggiorno i dati..." });
+        
+        // Aggiorna i crediti localmente dopo la transazione
+        if (account?.address) {
+          try {
+            // Fetch dei crediti aggiornati dal contratto
+            const response = await fetch(`/api/get-company-status?walletAddress=${account.address}`);
+            if (response.ok) {
+              const data = await response.json();
+              onCreditsUpdate(data.credits);
+              
+              // Aggiorna anche Firebase con i nuovi crediti
+              await fetch('/api/activate-company', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  action: 'setCredits',
+                  walletAddress: account.address,
+                  credits: data.credits,
+                }),
+              });
+            }
+          } catch (error) {
+            console.error("Errore durante l'aggiornamento dei crediti:", error);
+          }
+        }
         
         setTimeout(() => {
           onSuccess();
