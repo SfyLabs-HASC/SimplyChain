@@ -80,89 +80,159 @@ const AziendaPageStyles = () => (
         margin: 0;
       }
       
-      .refresh-button {
-        background: none;
-        border: 1px solid #3b82f6;
-        border-radius: 50%;
+      .dashboard-info {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+      }
+      
+      .dashboard-info-item {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        color: #ffffff;
+        font-size: 1.1rem;
+        font-weight: 600;
+      }
+      
+      .dashboard-icon {
+        font-size: 1.5rem;
         width: 40px;
         height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+      }
+      
+      .status-icon {
+        font-size: 1.5rem;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+      }
+      
+      .status-active {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      }
+      
+      .status-inactive {
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+      }
+      
+      .inscriptions-section-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 1rem;
+        flex-wrap: wrap;
+        gap: 1rem;
+      }
+      
+      .inscriptions-section-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #ffffff;
+        margin: 0;
+      }
+      
+      .refresh-section {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+      
+      .refresh-button {
+        background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+        border: none;
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
         display: flex;
         align-items: center;
         justify-content: center;
         cursor: pointer;
         transition: all 0.3s ease;
         position: relative;
+        box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
       }
       
       .refresh-button:hover {
-        background-color: rgba(59, 130, 246, 0.1);
-        border-color: #60a5fa;
+        background: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+      }
+      
+      .refresh-button:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
       }
       
       .refresh-button.spinning {
-        animation: spin 1s linear infinite;
+        animation: refreshSpin 1.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
       }
       
-      @keyframes spin {
-        from { transform: rotate(0deg); }
-        to { transform: rotate(360deg); }
+      @keyframes refreshSpin {
+        0% { transform: rotate(0deg) scale(1); }
+        50% { transform: rotate(180deg) scale(1.1); }
+        100% { transform: rotate(360deg) scale(1); }
       }
       
       .refresh-icon {
-        color: #3b82f6;
-        font-size: 1rem;
-      }
-      
-      .tooltip {
-        position: absolute;
-        bottom: -35px;
-        left: 50%;
-        transform: translateX(-50%);
-        background-color: #374151;
         color: white;
-        padding: 0.5rem;
-        border-radius: 0.375rem;
-        font-size: 0.75rem;
-        white-space: nowrap;
-        opacity: 0;
-        pointer-events: none;
-        transition: opacity 0.2s;
-        z-index: 10;
+        font-size: 1.2rem;
       }
       
-      .refresh-button:hover .tooltip {
-        opacity: 1;
-      }
-      
-      .dashboard-info {
-        display: flex;
-        flex-direction: column;
-        gap: 0.75rem;
-      }
-      
-      .dashboard-info-item {
+      .refresh-counter {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: white;
+        border-radius: 50%;
+        width: 20px;
+        height: 20px;
         display: flex;
         align-items: center;
-        gap: 0.75rem;
-        color: #a0a0a0;
-        font-size: 0.9rem;
+        justify-content: center;
+        font-size: 0.7rem;
+        font-weight: bold;
+        position: absolute;
+        top: -5px;
+        right: -5px;
+        border: 2px solid #0f0f0f;
       }
       
-      .dashboard-info-item strong {
-        color: #ffffff;
-        font-weight: 600;
+      .full-page-loading {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0, 0, 0, 0.9);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+        color: white;
       }
       
-      .status-icon {
-        font-size: 1rem;
+      .loading-spinner {
+        width: 60px;
+        height: 60px;
+        border: 4px solid #333;
+        border-top: 4px solid #3b82f6;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-bottom: 1rem;
       }
       
-      .status-active {
-        color: #10b981;
-      }
-      
-      .status-inactive {
-        color: #f59e0b;
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
       }
       
       .web3-button { 
@@ -194,14 +264,6 @@ const AziendaPageStyles = () => (
       .web3-button.secondary:hover {
         background: linear-gradient(135deg, #4b5563 0%, #374151 100%);
         box-shadow: 0 6px 20px rgba(107, 114, 128, 0.4);
-      }
-      
-      .inscriptions-section-title {
-        font-size: 1.1rem;
-        font-weight: 600;
-        color: #ffffff;
-        margin-bottom: 1rem;
-        padding-left: 0.5rem;
       }
       
       .inscriptions-grid { 
@@ -260,6 +322,20 @@ const AziendaPageStyles = () => (
         color: #3b82f6;
       }
       
+      .inscription-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 1px solid #333;
+      }
+      
+      .steps-count {
+        font-size: 0.8rem;
+        color: #a0a0a0;
+      }
+      
       .status-open {
         color: #10b981;
         font-weight: 600;
@@ -271,9 +347,6 @@ const AziendaPageStyles = () => (
       }
       
       .add-step-button {
-        position: absolute;
-        bottom: 1rem;
-        right: 1rem;
         background: linear-gradient(135deg, #10b981 0%, #059669 100%);
         color: white;
         border: none;
@@ -290,9 +363,6 @@ const AziendaPageStyles = () => (
       }
       
       .closed-lock-icon {
-        position: absolute;
-        bottom: 1rem;
-        right: 1rem;
         color: #6b7280;
         font-size: 1.2rem;
       }
@@ -629,6 +699,16 @@ const ImageModal: React.FC<{ imageUrl: string; onClose: () => void }> = ({ image
   );
 };
 
+// Componente per il loading a pagina piena
+const FullPageLoading: React.FC<{ message: string }> = ({ message }) => {
+  return (
+    <div className="full-page-loading">
+      <div className="loading-spinner"></div>
+      <p>{message}</p>
+    </div>
+  );
+};
+
 // Componente per la Dashboard
 const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
   const account = useActiveAccount();
@@ -638,6 +718,10 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [refreshCounter, setRefreshCounter] = useState(0);
+  const [showFullPageLoading, setShowFullPageLoading] = useState(false);
+  const [cachedBatches, setCachedBatches] = useState<Batch[] | null>(null);
+  const [firstLoad, setFirstLoad] = useState(true);
 
   // Hook per leggere i dati dal contratto
   const { data: contractData, refetch: refetchContractData } = useReadContract({
@@ -647,10 +731,18 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
     queryOptions: { enabled: !!account },
   });
 
-  const loadBatches = async () => {
+  const loadBatches = async (isFirstLoad = false) => {
     if (!account) return;
+    
+    if (isFirstLoad) {
+      setShowFullPageLoading(true);
+    } else {
+      setIsRefreshing(true);
+    }
+    
     setIsLoadingBatches(true);
     setErrorBatches(null);
+    
     try {
       const response = await fetch(`/api/get-contract-events?userAddress=${account.address}`);
       if (!response.ok) {
@@ -659,53 +751,40 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
       }
       const data = await response.json();
       const readyBatches: Batch[] = data.events || [];
-      setBatches(readyBatches.sort((a, b) => parseInt(b.batchId) - parseInt(a.batchId)));
+      const sortedBatches = readyBatches.sort((a, b) => parseInt(b.batchId) - parseInt(a.batchId));
+      
+      setBatches(sortedBatches);
+      setCachedBatches(sortedBatches);
+      setRefreshCounter(0); // Reset counter dopo il refresh
+      
     } catch (error: any) {
       setErrorBatches(error.message || "Errore sconosciuto.");
     } finally {
       setIsLoadingBatches(false);
+      setIsRefreshing(false);
+      setShowFullPageLoading(false);
+      setFirstLoad(false);
     }
   };
 
   const handleRefresh = async () => {
-    if (!account || !contractData) return;
-    
-    setIsRefreshing(true);
-    try {
-      // Ricarica i dati dal contratto
-      await refetchContractData();
-      
-      // Confronta i crediti dal contratto con quelli del database
-      const contractCredits = Number(contractData[1]);
-      const dbCredits = companyData.credits;
-      
-      if (contractCredits !== dbCredits) {
-        // I crediti sono diversi, ricarica le iscrizioni tramite Insight
-        await loadBatches();
-        
-        // Aggiorna anche il database Firebase con i nuovi crediti
-        await fetch('/api/activate-company', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            action: 'setCredits',
-            walletAddress: account.address,
-            credits: contractCredits,
-          }),
-        });
-        
-        // Ricarica la pagina per aggiornare i dati della dashboard
-        window.location.reload();
-      }
-    } catch (error) {
-      console.error("Errore durante il refresh:", error);
-    } finally {
-      setIsRefreshing(false);
-    }
+    if (!account) return;
+    await loadBatches(false);
+  };
+
+  const incrementRefreshCounter = () => {
+    setRefreshCounter(prev => prev + 1);
   };
 
   useEffect(() => {
-    loadBatches();
+    if (cachedBatches && !firstLoad) {
+      // Se abbiamo dati in cache e non è il primo caricamento, usali
+      setBatches(cachedBatches);
+      setIsLoadingBatches(false);
+    } else if (account) {
+      // Primo caricamento o cache vuota
+      loadBatches(true);
+    }
   }, [account]);
 
   // Calcola il numero di iscrizione incrementale per ogni batch
@@ -717,28 +796,24 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
 
   return (
     <>
+      {showFullPageLoading && (
+        <FullPageLoading message="Caricamento delle tue iscrizioni..." />
+      )}
+      
       <div className="dashboard-header-card">
         <div>
           <div className="dashboard-title-section">
             <h2 className="dashboard-title">{companyData.companyName}</h2>
-            <button 
-              className={`refresh-button ${isRefreshing ? 'spinning' : ''}`}
-              onClick={handleRefresh}
-              disabled={isRefreshing}
-            >
-              <span className="refresh-icon">🔄</span>
-              <div className="tooltip">Aggiorna Iscrizioni</div>
-            </button>
           </div>
           <div className="dashboard-info">
             <div className="dashboard-info-item">
-              <span>💰</span>
+              <div className="dashboard-icon">💰</div>
               <span>Crediti Rimanenti: <strong>{companyData.credits}</strong></span>
             </div>
             <div className="dashboard-info-item">
-              <span className={`status-icon ${companyData.status === 'active' ? 'status-active' : 'status-inactive'}`}>
+              <div className={`status-icon ${companyData.status === 'active' ? 'status-active' : 'status-inactive'}`}>
                 {companyData.status === 'active' ? '🔓' : '🔒'}
-              </span>
+              </div>
               <span>Stato: <strong className={companyData.status === 'active' ? 'status-active' : 'status-inactive'}>
                 {companyData.status === 'active' ? 'ATTIVO' : 'NON ATTIVO'}
               </strong></span>
@@ -748,9 +823,23 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
         <button onClick={() => setIsModalOpen(true)} className="web3-button">+ Inizializza Nuova Iscrizione</button>
       </div>
       
-      <h3 className="inscriptions-section-title">Le mie Iscrizioni su Blockchain</h3>
+      <div className="inscriptions-section-header">
+        <h3 className="inscriptions-section-title">Le mie Iscrizioni su Blockchain</h3>
+        <div className="refresh-section">
+          <button 
+            className={`refresh-button ${isRefreshing ? 'spinning' : ''}`}
+            onClick={handleRefresh}
+            disabled={isRefreshing || refreshCounter === 0}
+          >
+            <span className="refresh-icon">🔄</span>
+            {refreshCounter > 0 && (
+              <div className="refresh-counter">+{refreshCounter}</div>
+            )}
+          </button>
+        </div>
+      </div>
       
-      {isLoadingBatches ? (
+      {isLoadingBatches && !showFullPageLoading ? (
         <div className="loading-error-container"><p>Caricamento delle tue iscrizioni...</p></div>
       ) : errorBatches ? (
         <div className="loading-error-container"><p style={{ color: 'red' }}>{errorBatches}</p></div>
@@ -760,8 +849,9 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
             batches.map((batch) => (
               <div key={batch.batchId} className="inscription-card">
                 <h3>#{getBatchDisplayNumber(batch.batchId)} - {batch.name}</h3>
-                <p><strong>Descrizione:</strong> {truncateText(batch.description, window.innerWidth < 768 ? 80 : 100)}</p>
-                <p><strong>Data:</strong> {formatItalianDate(batch.date)} | <strong>Luogo:</strong> {batch.location}</p>
+                <p><strong>Descrizione:</strong> {batch.description ? truncateText(batch.description, window.innerWidth < 768 ? 80 : 100) : "N/D"}</p>
+                <p><strong>Data:</strong> {formatItalianDate(batch.date)}</p>
+                <p><strong>Luogo:</strong> {batch.location || "N/D"}</p>
                 <p><strong>Stato:</strong> 
                   <span className={batch.isClosed ? 'status-closed' : 'status-open'}>
                     {batch.isClosed ? ' Chiuso' : ' Aperto'}
@@ -796,19 +886,24 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
                     {batch.steps.map(step => (
                       <div key={step.stepIndex} className="step-item">
                          <p><strong>{step.eventName}</strong> (Step #{step.stepIndex})</p>
-                         <p>Desc: {truncateText(step.description, 50)}</p>
-                         <p>Data: {formatItalianDate(step.date)} | Luogo: {step.location}</p>
+                         <p>Desc: {step.description ? truncateText(step.description, 50) : "N/D"}</p>
+                         <p>Data: {formatItalianDate(step.date)} | Luogo: {step.location || "N/D"}</p>
                       </div>
                     ))}
                   </div>
                 )}
 
-                {/* Pulsante Aggiungi Step per iscrizioni aperte, lucchetto per quelle chiuse */}
-                {!batch.isClosed ? (
-                  <button className="add-step-button">Aggiungi Step</button>
-                ) : (
-                  <span className="closed-lock-icon">🔒</span>
-                )}
+                <div className="inscription-footer">
+                  <div className="steps-count">
+                    {batch.steps ? `${batch.steps.length} steps` : "0 steps"}
+                  </div>
+                  {/* Pulsante Aggiungi Step per iscrizioni aperte, lucchetto per quelle chiuse */}
+                  {!batch.isClosed ? (
+                    <button className="add-step-button">Aggiungi Step</button>
+                  ) : (
+                    <span className="closed-lock-icon">🔒</span>
+                  )}
+                </div>
               </div>
             ))
           ) : (
@@ -836,7 +931,7 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
           onClose={() => setIsModalOpen(false)}
           onSuccess={() => {
             setIsModalOpen(false);
-            loadBatches();
+            incrementRefreshCounter();
           }}
         />
       )}
@@ -886,11 +981,6 @@ const NewInscriptionModal: React.FC<{ onClose: () => void; onSuccess: () => void
       return;
     }
 
-    if (!account?.address) {
-      setTxResult({ status: "error", message: "Wallet non connesso." });
-      return;
-    }
-
     setLoadingMessage("Preparazione transazione...");
     let imageIpfsHash = "N/A";
     
@@ -913,54 +1003,30 @@ const NewInscriptionModal: React.FC<{ onClose: () => void; onSuccess: () => void
       }
     }
 
-    try {
-      setLoadingMessage("Transazione in corso...");
-      const transaction = prepareContractCall({
-        contract,
-        method: "function initializeBatch(string,string,string,string,string)",
-        params: [formData.name, formData.description || "", formData.date || "", formData.location || "", imageIpfsHash],
-      });
+    setLoadingMessage("Transazione in corso...");
+    const transaction = prepareContractCall({
+      contract,
+      method: "function initializeBatch(string,string,string,string,string)",
+      params: [formData.name, formData.description || "", formData.date || "", formData.location || "", imageIpfsHash],
+    });
 
-      sendTransaction(transaction, {
-        onSuccess: async (result) => {
-          console.log("Transazione completata:", result);
-          setTxResult({ status: "success", message: "Iscrizione creata! Aggiorno i dati..." });
-          
-          // Aggiorna i crediti su Firebase e ricarica i dati
-          setTimeout(async () => {
-            try {
-              // Ricarica i dati per aggiornare la lista delle iscrizioni
-              await fetch(`/api/get-contract-events?userAddress=${account.address}`);
-              onSuccess();
-              setLoadingMessage("");
-            } catch (error) {
-              console.error("Errore durante l'aggiornamento:", error);
-              onSuccess(); // Procedi comunque
-              setLoadingMessage("");
-            }
-          }, 2000);
-        },
-        onError: (err) => {
-          console.error("Errore transazione:", err);
-          let errorMessage = "Errore nella transazione.";
-          
-          if (err.message.toLowerCase().includes("insufficient funds")) {
-            errorMessage = "Crediti Insufficienti";
-          } else if (err.message.toLowerCase().includes("execution reverted")) {
-            errorMessage = "Transazione rifiutata dal contratto";
-          } else if (err.message.toLowerCase().includes("user rejected")) {
-            errorMessage = "Transazione annullata dall'utente";
-          }
-          
-          setTxResult({ status: "error", message: errorMessage });
+    sendTransaction(transaction, {
+      onSuccess: async () => {
+        setTxResult({ status: "success", message: "Iscrizione creata! Aggiorno i dati..." });
+        
+        setTimeout(() => {
+          onSuccess();
           setLoadingMessage("");
-        },
-      });
-    } catch (error) {
-      console.error("Errore preparazione transazione:", error);
-      setTxResult({ status: "error", message: "Errore nella preparazione della transazione." });
-      setLoadingMessage("");
-    }
+        }, 2000);
+      },
+      onError: (err) => {
+        setTxResult({ 
+          status: "error", 
+          message: err.message.toLowerCase().includes("insufficient funds") ? "Crediti Insufficienti" : "Errore nella transazione." 
+        });
+        setLoadingMessage("");
+      },
+    });
   };
 
   const isProcessing = loadingMessage !== "" || isPending;
@@ -1253,19 +1319,9 @@ const AziendaPage: React.FC = () => {
           <p>Connetti il tuo wallet per accedere.</p>
           <ConnectButton 
             client={client} 
-            wallets={[
-              inAppWallet({
-                auth: {
-                  options: ["email", "google", "apple", "facebook"],
-                },
-              }),
-            ]}
+            wallets={[inAppWallet()]}
             chain={polygon}
-            accountAbstraction={{ 
-              chain: polygon, 
-              sponsorGas: true,
-              factoryAddress: "0x9Bb60d360932171292Ad2b80839080fb6F5aBD97", // thirdweb default factory
-            }}
+            accountAbstraction={{ chain: polygon, sponsorGas: true }}
           />
         </div>
       </div>
@@ -1277,22 +1333,11 @@ const AziendaPage: React.FC = () => {
       <AziendaPageStyles />
       <div className="app-container-full">
         <header className="main-header-bar">
-          <h1 className="header-title">EasyChain</h1>
+          <h1 className="header-title">EasyChain - Area Privata</h1>
           <ConnectButton 
             client={client}
-            wallets={[
-              inAppWallet({
-                auth: {
-                  options: ["email", "google", "apple", "facebook"],
-                },
-              }),
-            ]}
             chain={polygon}
-            accountAbstraction={{ 
-              chain: polygon, 
-              sponsorGas: true,
-              factoryAddress: "0x9Bb60d360932171292Ad2b80839080fb6F5aBD97",
-            }}
+            accountAbstraction={{ chain: polygon, sponsorGas: true }}
           />
         </header>
         <main>
