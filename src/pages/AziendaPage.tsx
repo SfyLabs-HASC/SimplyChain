@@ -886,6 +886,11 @@ const NewInscriptionModal: React.FC<{ onClose: () => void; onSuccess: () => void
       return;
     }
 
+    if (!account?.address) {
+      setTxResult({ status: "error", message: "Wallet non connesso." });
+      return;
+    }
+
     setLoadingMessage("Preparazione transazione...");
     let imageIpfsHash = "N/A";
     
@@ -908,38 +913,54 @@ const NewInscriptionModal: React.FC<{ onClose: () => void; onSuccess: () => void
       }
     }
 
-    setLoadingMessage("Transazione in corso...");
-    const transaction = prepareContractCall({
-      contract,
-      method: "function initializeBatch(string,string,string,string,string)",
-      params: [formData.name, formData.description, formData.date, formData.location, imageIpfsHash],
-    });
+    try {
+      setLoadingMessage("Transazione in corso...");
+      const transaction = prepareContractCall({
+        contract,
+        method: "function initializeBatch(string,string,string,string,string)",
+        params: [formData.name, formData.description || "", formData.date || "", formData.location || "", imageIpfsHash],
+      });
 
-    sendTransaction(transaction, {
-      onSuccess: async () => {
-        setTxResult({ status: "success", message: "Iscrizione creata! Aggiorno i dati..." });
-        
-        // Aggiorna i crediti su Firebase
-        if (account?.address) {
-          try {
-            // Qui dovremmo anche aggiornare i crediti, ma per ora lasciamo al refresh
-            setTimeout(() => {
+      sendTransaction(transaction, {
+        onSuccess: async (result) => {
+          console.log("Transazione completata:", result);
+          setTxResult({ status: "success", message: "Iscrizione creata! Aggiorno i dati..." });
+          
+          // Aggiorna i crediti su Firebase e ricarica i dati
+          setTimeout(async () => {
+            try {
+              // Ricarica i dati per aggiornare la lista delle iscrizioni
+              await fetch(`/api/get-contract-events?userAddress=${account.address}`);
               onSuccess();
               setLoadingMessage("");
-            }, 2000);
-          } catch (error) {
-            console.error("Errore durante l'aggiornamento:", error);
+            } catch (error) {
+              console.error("Errore durante l'aggiornamento:", error);
+              onSuccess(); // Procedi comunque
+              setLoadingMessage("");
+            }
+          }, 2000);
+        },
+        onError: (err) => {
+          console.error("Errore transazione:", err);
+          let errorMessage = "Errore nella transazione.";
+          
+          if (err.message.toLowerCase().includes("insufficient funds")) {
+            errorMessage = "Crediti Insufficienti";
+          } else if (err.message.toLowerCase().includes("execution reverted")) {
+            errorMessage = "Transazione rifiutata dal contratto";
+          } else if (err.message.toLowerCase().includes("user rejected")) {
+            errorMessage = "Transazione annullata dall'utente";
           }
-        }
-      },
-      onError: (err) => {
-        setTxResult({ 
-          status: "error", 
-          message: err.message.toLowerCase().includes("insufficient funds") ? "Crediti Insufficienti" : "Errore nella transazione." 
-        });
-        setLoadingMessage("");
-      },
-    });
+          
+          setTxResult({ status: "error", message: errorMessage });
+          setLoadingMessage("");
+        },
+      });
+    } catch (error) {
+      console.error("Errore preparazione transazione:", error);
+      setTxResult({ status: "error", message: "Errore nella preparazione della transazione." });
+      setLoadingMessage("");
+    }
   };
 
   const isProcessing = loadingMessage !== "" || isPending;
@@ -1232,9 +1253,19 @@ const AziendaPage: React.FC = () => {
           <p>Connetti il tuo wallet per accedere.</p>
           <ConnectButton 
             client={client} 
-            wallets={[inAppWallet()]}
+            wallets={[
+              inAppWallet({
+                auth: {
+                  options: ["email", "google", "apple", "facebook"],
+                },
+              }),
+            ]}
             chain={polygon}
-            accountAbstraction={{ chain: polygon, sponsorGas: true }}
+            accountAbstraction={{ 
+              chain: polygon, 
+              sponsorGas: true,
+              factoryAddress: "0x9Bb60d360932171292Ad2b80839080fb6F5aBD97", // thirdweb default factory
+            }}
           />
         </div>
       </div>
@@ -1249,8 +1280,19 @@ const AziendaPage: React.FC = () => {
           <h1 className="header-title">EasyChain</h1>
           <ConnectButton 
             client={client}
+            wallets={[
+              inAppWallet({
+                auth: {
+                  options: ["email", "google", "apple", "facebook"],
+                },
+              }),
+            ]}
             chain={polygon}
-            accountAbstraction={{ chain: polygon, sponsorGas: true }}
+            accountAbstraction={{ 
+              chain: polygon, 
+              sponsorGas: true,
+              factoryAddress: "0x9Bb60d360932171292Ad2b80839080fb6F5aBD97",
+            }}
           />
         </header>
         <main>
