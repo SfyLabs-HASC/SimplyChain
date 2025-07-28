@@ -822,16 +822,16 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
           <div className="dashboard-info">
             <div className="dashboard-info-item">
               <div className="dashboard-icon">
-                <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEyIDJMMTMuMDkgOC4yNkwyMCA5TDEzLjA5IDE1Ljc0TDEyIDIyTDEwLjkxIDE1Ljc0TDQgOUwxMC45MSA4LjI2TDEyIDJaIiBzdHJva2U9ImdvbGQiIHN0cm9rZS13aWR0aD0iMiIgZmlsbD0iZ29sZCIvPgo8L3N2Zz4K" alt="crediti" style={{width: '100%', height: '100%'}} />
+                <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTcgNkMzIDYgMyA5IDMgOVM3IDE0IDEyIDE0UzIxIDkgMjEgOVM2IDE3IDcgNloiIGZpbGw9IndoaXRlIiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjEiLz4KPHA+KCEgZHJhdyBtb25leSBiYWcgY29yZCAvIGNsb3NpbmcgLS0+Cjxwb2x5Z29uIHBvaW50cz0iNyw2IDksNiA5LDQgNyw0IiBmaWxsPSJ3aGl0ZSIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLXdpZHRoPSIxIi8+Cjx0ZXh0IHg9IjEyIiB5PSIxMCIgZm9udC1mYW1pbHk9IkFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjgiIGZpbGw9IndoaXRlIj4kPC90ZXh0Pgo8L3N2Zz4K" alt="crediti" style={{width: '100%', height: '100%'}} />
               </div>
               <span>Crediti Rimanenti: <strong>{currentCompanyData.credits}</strong></span>
             </div>
             <div className="dashboard-info-item">
               <div className="status-icon">
                 {currentCompanyData.status === 'active' ? (
-                  <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTYgMTBWOEM2IDUuNzkgNy43OSA0IDEwIDRDMTIuMjEgNCA0IDUuNzkgMTQgOFYxMEgxNkMxNy4xIDEwIDE4IDEwLjkgMTggMTJWMjBDMTggMjEuMSAxNy4xIDIyIDE2IDIySDhDNi45IDIyIDYgMjEuMSA2IDIwVjEyQzYgMTAuOSA2LjkgMTAgOCAxMEg2WiIgc3Ryb2tlPSIjMTBiOTgxIiBzdHJva2Utd2lkdGg9IjIiIGZpbGw9IiMxMGI5ODEiLz4KPC9zdmc+Cg==" alt="unlocked" style={{width: '100%', height: '100%'}} />
+                  <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPCEtLSBPcGVuIGxvY2sgLS0+CjxyZWN0IHg9IjUiIHk9IjExIiB3aWR0aD0iMTQiIGhlaWdodD0iMTAiIHJ4PSIyIiBmaWxsPSJ3aGl0ZSIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLXdpZHRoPSIyIi8+CjxwYXRoIGQ9Im05IDExVjdBMyAzIDAgMCAxIDE1IDdWOCIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLXdpZHRoPSIyIiBmaWxsPSJub25lIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz4KPGNpcmNsZSBjeD0iMTIiIGN5PSIxNiIgcj0iMSIgZmlsbD0iIzIyMjIyMiIvPgo8L3N2Zz4K" alt="unlocked" style={{width: '100%', height: '100%'}} />
                 ) : (
-                  <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEyIDJDMTMuMSAyIDE0IDIuOSAxNCA0VjZIMTZDMTcuMSA2IDE4IDYuOSAxOCA4VjIwQzE4IDIxLjEgMTcuMSAyMiAxNiAyMkg4QzYuOSAyMiA2IDIxLjEgNiAyMFY4QzYgNi45IDYuOSA2IDggNkgxMFY0QzEwIDIuOSAxMC45IDIgMTIgMlpNMTIgNEMxMS40NSA0IDExIDQuNDUgMTEgNVY2SDEzVjVDMTMgNC40NSAxMi41NSA0IDEyIDRaIiBzdHJva2U9IiNmNTllMGIiIHN0cm9rZS13aWR0aD0iMiIgZmlsbD0iI2Y1OWUwYiIvPgo8L3N2Zz4K" alt="locked" style={{width: '100%', height: '100%'}} />
+                  <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPCEtLSBDbG9zZWQgbG9jayAtLT4KPHJlY3QgeD0iNSIgeT0iMTEiIHdpZHRoPSIxNCIgaGVpZ2h0PSIxMCIgcng9IjIiIGZpbGw9IndoaXRlIiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjIiLz4KPHBhdGggZD0ibTkgMTFWN0EzIDMgMCAwIDEgMTUgN1YxMSIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLXdpZHRoPSIyIiBmaWxsPSJub25lIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz4KPGNpcmNsZSBjeD0iMTIiIGN5PSIxNiIgcj0iMSIgZmlsbD0iIzIyMjIyMiIvPgo8L3N2Zz4K" alt="locked" style={{width: '100%', height: '100%'}} />
                 )}
               </div>
               <span>Stato: <strong className={currentCompanyData.status === 'active' ? 'status-active-text' : 'status-inactive-text'}>
@@ -851,7 +851,7 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
             onClick={handleRefresh}
             disabled={isRefreshing || refreshCounter === 0}
           >
-            <img src="/src/assets/refresh-icon.png" alt="refresh" className="refresh-icon" style={{width: '20px', height: '20px'}} />
+            <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPCEtLSBSZWZyZXNoIGNpcmN1bGFyIGFycm93cyAtLT4KPHBhdGggZD0iTTMgMTJBOSA5IDAgMCAxIDEyIDNWMUwxNiA1TDEyIDlWN0E3IDcgMCAwIDAgNSAxMkgzWiIgZmlsbD0id2hpdGUiLz4KPHBhdGggZD0iTTIxIDEyQTkgOSAwIDAgMSAxMiAyMVYyM0w4IDE5TDEyIDE1VjE3QTcgNyAwIDAgMCAxOSAxMkgyMVoiIGZpbGw9IndoaXRlIi8+Cjwvc3ZnPgo=" alt="refresh" className="refresh-icon" style={{width: '20px', height: '20px'}} />
             {refreshCounter > 0 && (
               <div className="refresh-counter">+{refreshCounter}</div>
             )}
