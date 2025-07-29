@@ -1,4 +1,3 @@
-
 // FILE: src/pages/AziendaPage.tsx
 // DESCRIZIONE: Versione aggiornata che utilizza Firebase per i dati azienda,
 // implementa il sistema di refresh on-chain e gestisce le iscrizioni con numerazione incrementale.
@@ -24,7 +23,7 @@ const AziendaPageStyles = () => (
         min-height: 100vh;
         background-color: #0f0f0f;
       }
-      
+
       .main-header-bar { 
         display: flex; 
         flex-direction: column;
@@ -35,14 +34,14 @@ const AziendaPageStyles = () => (
         border-radius: 0.75rem;
         border: 1px solid #333;
       }
-      
+
       .header-title { 
         font-size: 1.5rem; 
         font-weight: bold; 
         color: #ffffff;
         text-align: center;
       }
-      
+
       .login-container, .centered-container { 
         display: flex; 
         flex-direction: column; 
@@ -52,7 +51,7 @@ const AziendaPageStyles = () => (
         text-align: center;
         padding: 1rem;
       }
-      
+
       .dashboard-header-card { 
         background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
         color: #ffffff; 
@@ -65,27 +64,27 @@ const AziendaPageStyles = () => (
         flex-direction: column;
         gap: 1rem;
       }
-      
+
       .dashboard-title-section {
         display: flex;
         align-items: center;
         gap: 1rem;
         flex-wrap: wrap;
       }
-      
+
       .dashboard-title { 
         font-size: 1.5rem; 
         font-weight: 700;
         color: #ffffff;
         margin: 0;
       }
-      
+
       .dashboard-info {
         display: flex;
         flex-direction: column;
         gap: 1rem;
       }
-      
+
       .dashboard-info-item {
         display: flex;
         align-items: center;
@@ -94,7 +93,7 @@ const AziendaPageStyles = () => (
         font-size: 1.1rem;
         font-weight: 600;
       }
-      
+
       .dashboard-icon {
         font-size: 1.8rem;
         width: 50px;
@@ -103,7 +102,7 @@ const AziendaPageStyles = () => (
         align-items: center;
         justify-content: center;
       }
-      
+
       .status-icon {
         font-size: 1.8rem;
         width: 50px;
@@ -112,15 +111,15 @@ const AziendaPageStyles = () => (
         align-items: center;
         justify-content: center;
       }
-      
+
       .status-active-text {
         color: #10b981;
       }
-      
+
       .status-inactive-text {
         color: #f59e0b;
       }
-      
+
       .inscriptions-section-header {
         display: flex;
         align-items: center;
@@ -129,20 +128,20 @@ const AziendaPageStyles = () => (
         flex-wrap: wrap;
         gap: 1rem;
       }
-      
+
       .inscriptions-section-title {
         font-size: 1.1rem;
         font-weight: 600;
         color: #ffffff;
         margin: 0;
       }
-      
+
       .refresh-section {
         display: flex;
         align-items: center;
         gap: 0.5rem;
       }
-      
+
       .refresh-button {
         background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
         border: none;
@@ -157,24 +156,24 @@ const AziendaPageStyles = () => (
         position: relative;
         box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
       }
-      
+
       .refresh-button:hover {
         background: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%);
         transform: translateY(-2px);
         box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
       }
-      
+
       .refresh-button:disabled {
         opacity: 0.6;
         cursor: not-allowed;
         transform: none;
       }
-      
+
       .refresh-icon {
         color: white;
         font-size: 1.5rem;
       }
-      
+
       .refresh-counter {
         color: #10b981;
         border-radius: 50%;
@@ -189,7 +188,7 @@ const AziendaPageStyles = () => (
         top: -5px;
         right: -5px;
       }
-      
+
       .full-page-loading {
         position: fixed;
         top: 0;
@@ -204,7 +203,7 @@ const AziendaPageStyles = () => (
         z-index: 1000;
         color: white;
       }
-      
+
       .loading-spinner {
         width: 60px;
         height: 60px;
@@ -214,12 +213,12 @@ const AziendaPageStyles = () => (
         animation: spin 1s linear infinite;
         margin-bottom: 1rem;
       }
-      
+
       @keyframes spin {
         0% { transform: rotate(0deg); }
         100% { transform: rotate(360deg); }
       }
-      
+
       .web3-button { 
         background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
         color: white; 
@@ -234,29 +233,29 @@ const AziendaPageStyles = () => (
         text-align: center;
         box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
       }
-      
+
       .web3-button:hover { 
         background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
         transform: translateY(-2px);
         box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
       }
-      
+
       .web3-button.secondary {
         background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
         box-shadow: 0 4px 15px rgba(107, 114, 128, 0.3);
       }
-      
+
       .web3-button.secondary:hover {
         background: linear-gradient(135deg, #4b5563 0%, #374151 100%);
         box-shadow: 0 6px 20px rgba(107, 114, 128, 0.4);
       }
-      
+
       .inscriptions-grid { 
         display: flex;
         flex-direction: column;
         gap: 1rem;
       }
-      
+
       .inscription-card { 
         background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
         border-radius: 1rem; 
@@ -266,13 +265,13 @@ const AziendaPageStyles = () => (
         transition: all 0.3s ease;
         position: relative;
       }
-      
+
       .inscription-card:hover {
         transform: translateY(-2px);
         box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
         border-color: #3b82f6;
       }
-      
+
       .inscription-card h3 { 
         font-size: 1.1rem; 
         font-weight: 600; 
@@ -282,7 +281,7 @@ const AziendaPageStyles = () => (
         padding-bottom: 0.75rem;
         word-wrap: break-word; 
       }
-      
+
       .inscription-card p { 
         margin: 0.75rem 0; 
         color: #a0a0a0; 
@@ -290,23 +289,23 @@ const AziendaPageStyles = () => (
         line-height: 1.5;
         word-wrap: break-word; 
       }
-      
+
       .inscription-card strong { 
         color: #ffffff; 
         font-weight: 600;
       }
-      
+
       .inscription-card a { 
         color: #60a5fa; 
         text-decoration: none; 
         font-weight: 500;
         transition: color 0.2s ease;
       }
-      
+
       .inscription-card a:hover {
         color: #3b82f6;
       }
-      
+
       .inscription-footer {
         display: flex;
         justify-content: space-between;
@@ -315,22 +314,22 @@ const AziendaPageStyles = () => (
         padding-top: 1rem;
         border-top: 1px solid #333;
       }
-      
+
       .steps-count {
         font-size: 0.8rem;
         color: #a0a0a0;
       }
-      
+
       .status-open {
         color: #10b981;
         font-weight: 600;
       }
-      
+
       .status-closed {
         color: #ef4444;
         font-weight: 600;
       }
-      
+
       .add-step-button {
         background: linear-gradient(135deg, #10b981 0%, #059669 100%);
         color: white;
@@ -341,17 +340,17 @@ const AziendaPageStyles = () => (
         cursor: pointer;
         transition: all 0.3s ease;
       }
-      
+
       .add-step-button:hover {
         background: linear-gradient(135deg, #059669 0%, #047857 100%);
         transform: translateY(-1px);
       }
-      
+
       .closed-lock-icon {
         color: #6b7280;
         font-size: 1.2rem;
       }
-      
+
       .loading-error-container { 
         text-align: center; 
         padding: 2rem 1rem; 
@@ -360,20 +359,20 @@ const AziendaPageStyles = () => (
         border: 1px solid #333;
         color: #a0a0a0;
       }
-      
+
       .steps-container { 
         margin-top: 1rem; 
         border-top: 1px solid #333; 
         padding-top: 1rem; 
       }
-      
+
       .steps-container h4 { 
         margin: 0 0 0.75rem 0; 
         font-size: 0.9rem; 
         font-weight: 600;
         color: #ffffff;
       }
-      
+
       .step-item { 
         font-size: 0.8rem; 
         padding: 0.75rem 0 0.75rem 1rem;
@@ -382,12 +381,12 @@ const AziendaPageStyles = () => (
         background-color: rgba(59, 130, 246, 0.05);
         border-radius: 0 0.5rem 0.5rem 0;
       }
-      
+
       .step-item p {
         margin: 0.25rem 0;
         color: #a0a0a0;
       }
-      
+
       .empty-state {
         text-align: center;
         padding: 3rem 1rem;
@@ -411,7 +410,7 @@ const AziendaPageStyles = () => (
         z-index: 1000;
         padding: 1rem;
       }
-      
+
       .modal-content {
         background-color: #1a1a1a;
         border-radius: 1rem;
@@ -422,22 +421,22 @@ const AziendaPageStyles = () => (
         overflow-y: auto;
         color: #ffffff;
       }
-      
+
       .modal-header {
         padding: 1.5rem;
         border-bottom: 1px solid #333;
       }
-      
+
       .modal-header h2 {
         margin: 0;
         font-size: 1.25rem;
         font-weight: 600;
       }
-      
+
       .modal-body {
         padding: 1.5rem;
       }
-      
+
       .modal-footer {
         padding: 1.5rem;
         border-top: 1px solid #333;
@@ -445,18 +444,18 @@ const AziendaPageStyles = () => (
         justify-content: space-between;
         gap: 1rem;
       }
-      
+
       .form-group {
         margin-bottom: 1rem;
       }
-      
+
       .form-group label {
         display: block;
         margin-bottom: 0.5rem;
         font-weight: 500;
         color: #f8f9fa;
       }
-      
+
       .form-input {
         width: 100%;
         padding: 0.75rem;
@@ -466,19 +465,19 @@ const AziendaPageStyles = () => (
         color: #f8f9fa;
         font-size: 0.9rem;
       }
-      
+
       .form-input:focus {
         outline: none;
         border-color: #3b82f6;
         box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25);
       }
-      
+
       .char-counter {
         font-size: 0.75rem;
         color: #6c757d;
         margin-top: 0.25rem;
       }
-      
+
       .recap-summary {
         text-align: left;
         padding: 1rem;
@@ -487,16 +486,16 @@ const AziendaPageStyles = () => (
         border-radius: 0.5rem;
         margin-bottom: 1rem;
       }
-      
+
       .recap-summary p {
         margin: 0.5rem 0;
         word-break: break-word;
       }
-      
+
       .recap-summary p strong {
         color: #f8f9fa;
       }
-      
+
       .file-name-preview {
         color: #3b82f6;
         font-size: 0.85rem;
@@ -517,20 +516,20 @@ const AziendaPageStyles = () => (
         z-index: 1001;
         padding: 2rem;
       }
-      
+
       .image-modal-content {
         max-width: 90%;
         max-height: 90%;
         border-radius: 0.5rem;
         overflow: hidden;
       }
-      
+
       .image-modal-content img {
         width: 100%;
         height: 100%;
         object-fit: contain;
       }
-      
+
       .image-modal-close {
         position: absolute;
         top: 1rem;
@@ -545,55 +544,155 @@ const AziendaPageStyles = () => (
         font-size: 1.5rem;
       }
 
+      /* Filtri per le iscrizioni */
+      .inscriptions-filters {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+        padding: 1rem;
+        background-color: #1a1a1a;
+        border-radius: 0.75rem;
+        border: 1px solid #333;
+      }
+
+      .filter-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        min-width: 200px;
+        flex: 1;
+      }
+
+      .filter-label {
+        font-size: 0.9rem;
+        font-weight: 500;
+        color: #ffffff;
+      }
+
+      .filter-input {
+        padding: 0.75rem;
+        border: 1px solid #333;
+        border-radius: 0.5rem;
+        background-color: #2a2a2a;
+        color: #ffffff;
+        font-size: 0.9rem;
+      }
+
+      .filter-input:focus {
+        outline: none;
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25);
+      }
+
+      /* Paginazione */
+      .pagination-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 0.5rem;
+        margin-top: 2rem;
+        padding: 1rem;
+      }
+
+      .pagination-button {
+        background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+        color: white;
+        border: none;
+        border-radius: 0.5rem;
+        padding: 0.75rem 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 0.9rem;
+      }
+
+      .pagination-button:hover:not(:disabled) {
+        background: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%);
+        transform: translateY(-1px);
+      }
+
+      .pagination-button:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      .pagination-number {
+        background-color: transparent;
+        color: #ffffff;
+        border: 1px solid #333;
+        border-radius: 0.5rem;
+        padding: 0.75rem 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 0.9rem;
+      }
+
+      .pagination-number:hover {
+        background-color: #333;
+      }
+
+      .pagination-number.active {
+        background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+        color: white;
+        border-color: #6366f1;
+      }
+
+      .pagination-info {
+        color: #a0a0a0;
+        font-size: 0.9rem;
+        margin: 0 1rem;
+      }
+
       /* Tablet styles */
       @media (min-width: 768px) {
         .app-container-full { 
           padding: 2rem; 
         }
-        
+
         .main-header-bar { 
           flex-direction: row;
           justify-content: space-between;
           align-items: center;
           padding: 1.5rem;
         }
-        
+
         .header-title { 
           font-size: 1.75rem;
           text-align: left;
         }
-        
+
         .dashboard-header-card { 
           flex-direction: row;
           justify-content: space-between;
           align-items: flex-start;
           padding: 2rem;
         }
-        
+
         .dashboard-title { 
           font-size: 1.75rem;
         }
-        
+
         .dashboard-info {
           flex-direction: row;
           gap: 2rem;
         }
-        
+
         .web3-button {
           width: auto;
           min-width: 200px;
         }
-        
+
         .inscriptions-grid { 
           display: grid;
           grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
           gap: 1.5rem;
         }
-        
+
         .inscription-card h3 { 
           font-size: 1.25rem;
         }
-        
+
         .loading-error-container { 
           padding: 3rem; 
         }
@@ -606,16 +705,16 @@ const AziendaPageStyles = () => (
           margin: 0 auto;
           padding: 2rem;
         }
-        
+
         .inscriptions-grid { 
           grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
           gap: 2rem;
         }
-        
+
         .inscription-card { 
           padding: 2rem; 
         }
-        
+
         .dashboard-header-card { 
           padding: 2.5rem;
         }
@@ -708,6 +807,15 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
   const [firstLoad, setFirstLoad] = useState(true);
   const [currentCompanyData, setCurrentCompanyData] = useState<CompanyData>(companyData);
 
+  // State per i filtri
+  const [nameFilter, setNameFilter] = useState("");
+  const [locationFilter, setLocationFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState<"Aperto" | "Chiuso" | "">("");
+
+  // State per la paginazione
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 30;
+
   // Hook per leggere i dati dal contratto
   const { data: contractData, refetch: refetchContractData } = useReadContract({
     contract,
@@ -718,16 +826,16 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
 
   const loadBatches = async (isFirstLoad = false) => {
     if (!account) return;
-    
+
     if (isFirstLoad) {
       setShowFullPageLoading(true);
     } else {
       setIsRefreshing(true);
     }
-    
+
     setIsLoadingBatches(true);
     setErrorBatches(null);
-    
+
     try {
       const response = await fetch(`/api/get-contract-events?userAddress=${account.address}`);
       if (!response.ok) {
@@ -737,10 +845,10 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
       const data = await response.json();
       const readyBatches: Batch[] = data.events || [];
       const sortedBatches = readyBatches.sort((a, b) => parseInt(b.batchId) - parseInt(a.batchId));
-      
+
       setBatches(sortedBatches);
       setRefreshCounter(0); // Reset counter dopo il refresh
-      
+      setCurrentPage(1); // Reset alla prima pagina
     } catch (error: any) {
       setErrorBatches(error.message || "Errore sconosciuto.");
     } finally {
@@ -753,16 +861,16 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
 
   const handleRefresh = async () => {
     if (!account) return;
-    
+
     setShowFullPageLoading(true);
-    
+
     try {
       // 1. Controlla i crediti on-chain
       const refetchedData = await refetchContractData();
       if (refetchedData.data) {
         const [, onChainCredits] = refetchedData.data;
         const creditsNumber = Number(onChainCredits);
-        
+
         // 2. Aggiorna Firebase con i crediti corretti
         await fetch('/api/activate-company', {
           method: 'POST',
@@ -773,17 +881,17 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
             credits: creditsNumber,
           }),
         });
-        
+
         // 3. Aggiorna i dati locali
         setCurrentCompanyData(prev => ({
           ...prev,
           credits: creditsNumber
         }));
       }
-      
+
       // 4. Ricarica le iscrizioni
       await loadBatches(false);
-      
+
     } catch (error: any) {
       setErrorBatches(error.message || "Errore durante l'aggiornamento.");
     } finally {
@@ -808,12 +916,46 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
     return index + 1;
   };
 
+  // Funzioni per la paginazione
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+
+  // Filtra i batch basati sui criteri di ricerca
+  const filteredBatches = batches.filter(batch => {
+    const nameMatch = batch.name.toLowerCase().includes(nameFilter.toLowerCase());
+    const locationMatch = batch.location?.toLowerCase().includes(locationFilter.toLowerCase());
+    let statusMatch = true;
+    if (statusFilter === "Aperto") {
+      statusMatch = !batch.isClosed;
+    } else if (statusFilter === "Chiuso") {
+      statusMatch = batch.isClosed;
+    }
+    return nameMatch && locationMatch && statusMatch;
+  });
+
+  const currentItems = filteredBatches.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(filteredBatches.length / itemsPerPage);
+
+  const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
+
+  const handlePreviousPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
+
+  const handleNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
+
   return (
     <>
       {showFullPageLoading && (
         <FullPageLoading message="Aggiornamento dati in corso..." />
       )}
-      
+
       <div className="dashboard-header-card">
         <div>
           <div className="dashboard-title-section">
@@ -821,19 +963,9 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
           </div>
           <div className="dashboard-info">
             <div className="dashboard-info-item">
-              <div className="dashboard-icon">
-                <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTcgNkMzIDYgMyA5IDMgOVM3IDE0IDEyIDE0UzIxIDkgMjEgOVM2IDE3IDcgNloiIGZpbGw9IndoaXRlIiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjEiLz4KPHA+KCEgZHJhdyBtb25leSBiYWcgY29yZCAvIGNsb3NpbmcgLS0+Cjxwb2x5Z29uIHBvaW50cz0iNyw2IDksNiA5LDQgNyw0IiBmaWxsPSJ3aGl0ZSIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLXdpZHRoPSIxIi8+Cjx0ZXh0IHg9IjEyIiB5PSIxMCIgZm9udC1mYW1pbHk9IkFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjgiIGZpbGw9IndoaXRlIj4kPC90ZXh0Pgo8L3N2Zz4K" alt="crediti" style={{width: '100%', height: '100%'}} />
-              </div>
               <span>Crediti Rimanenti: <strong>{currentCompanyData.credits}</strong></span>
             </div>
             <div className="dashboard-info-item">
-              <div className="status-icon">
-                {currentCompanyData.status === 'active' ? (
-                  <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPCEtLSBPcGVuIGxvY2sgLS0+CjxyZWN0IHg9IjUiIHk9IjExIiB3aWR0aD0iMTQiIGhlaWdodD0iMTAiIHJ4PSIyIiBmaWxsPSJ3aGl0ZSIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLXdpZHRoPSIyIi8+CjxwYXRoIGQ9Im05IDExVjdBMyAzIDAgMCAxIDE1IDdWOCIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLXdpZHRoPSIyIiBmaWxsPSJub25lIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz4KPGNpcmNsZSBjeD0iMTIiIGN5PSIxNiIgcj0iMSIgZmlsbD0iIzIyMjIyMiIvPgo8L3N2Zz4K" alt="unlocked" style={{width: '100%', height: '100%'}} />
-                ) : (
-                  <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPCEtLSBDbG9zZWQgbG9jayAtLT4KPHJlY3QgeD0iNSIgeT0iMTEiIHdpZHRoPSIxNCIgaGVpZ2h0PSIxMCIgcng9IjIiIGZpbGw9IndoaXRlIiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjIiLz4KPHBhdGggZD0ibTkgMTFWN0EzIDMgMCAwIDEgMTUgN1YxMSIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLXdpZHRoPSIyIiBmaWxsPSJub25lIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz4KPGNpcmNsZSBjeD0iMTIiIGN5PSIxNiIgcj0iMSIgZmlsbD0iIzIyMjIyMiIvPgo8L3N2Zz4K" alt="locked" style={{width: '100%', height: '100%'}} />
-                )}
-              </div>
               <span>Stato: <strong className={currentCompanyData.status === 'active' ? 'status-active-text' : 'status-inactive-text'}>
                 {currentCompanyData.status === 'active' ? 'ATTIVO' : 'NON ATTIVO'}
               </strong></span>
@@ -842,7 +974,7 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
         </div>
         <button onClick={() => setIsModalOpen(true)} className="web3-button">+ Inizializza Nuova Iscrizione</button>
       </div>
-      
+
       <div className="inscriptions-section-header">
         <h3 className="inscriptions-section-title">Le mie Iscrizioni su Blockchain</h3>
         <div className="refresh-section">
@@ -858,83 +990,152 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
           </button>
         </div>
       </div>
-      
+
+      <div className="inscriptions-filters">
+        <div className="filter-group">
+          <label className="filter-label">Nome</label>
+          <input
+            type="text"
+            className="filter-input"
+            value={nameFilter}
+            onChange={(e) => setNameFilter(e.target.value)}
+          />
+        </div>
+        <div className="filter-group">
+          <label className="filter-label">Luogo</label>
+          <input
+            type="text"
+            className="filter-input"
+            value={locationFilter}
+            onChange={(e) => setLocationFilter(e.target.value)}
+          />
+        </div>
+        <div className="filter-group">
+          <label className="filter-label">Stato</label>
+          <select
+            className="filter-input"
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value as "Aperto" | "Chiuso" | "")}
+          >
+            <option value="">Tutti</option>
+            <option value="Aperto">Aperto</option>
+            <option value="Chiuso">Chiuso</option>
+          </select>
+        </div>
+      </div>
+
       {isLoadingBatches && !showFullPageLoading ? (
         <div className="loading-error-container"><p>Caricamento delle tue iscrizioni...</p></div>
       ) : errorBatches ? (
         <div className="loading-error-container"><p style={{ color: 'red' }}>{errorBatches}</p></div>
       ) : (
-        <div className="inscriptions-grid">
-          {batches.length > 0 ? (
-            batches.map((batch) => (
-              <div key={batch.batchId} className="inscription-card">
-                <h3>#{getBatchDisplayNumber(batch.batchId)} - {batch.name}</h3>
-                <p><strong>Descrizione:</strong> {batch.description ? truncateText(batch.description, window.innerWidth < 768 ? 80 : 100) : "N/D"}</p>
-                <p><strong>Data:</strong> {formatItalianDate(batch.date)}</p>
-                <p><strong>Luogo:</strong> {batch.location || "N/D"}</p>
-                <p><strong>Stato:</strong> 
-                  <span className={batch.isClosed ? 'status-closed' : 'status-open'}>
-                    {batch.isClosed ? ' Chiuso' : ' Aperto'}
-                  </span>
-                </p>
-                {batch.imageIpfsHash && batch.imageIpfsHash !== "N/A" && (
-                  <p><strong>Immagine:</strong> 
+        <>
+          <div className="inscriptions-grid">
+            {currentItems.length > 0 ? (
+              currentItems.map((batch) => (
+                <div key={batch.batchId} className="inscription-card">
+                  <h3>#{getBatchDisplayNumber(batch.batchId)} - {batch.name}</h3>
+                  <p><strong>Descrizione:</strong> {batch.description ? truncateText(batch.description, window.innerWidth < 768 ? 80 : 100) : "N/D"}</p>
+                  <p><strong>Data:</strong> {formatItalianDate(batch.date)}</p>
+                  <p><strong>Luogo:</strong> {batch.location || "N/D"}</p>
+                  <p><strong>Stato:</strong> 
+                    <span className={batch.isClosed ? 'status-closed' : 'status-open'}>
+                      {batch.isClosed ? ' Chiuso' : ' Aperto'}
+                    </span>
+                  </p>
+                  {batch.imageIpfsHash && batch.imageIpfsHash !== "N/A" && (
+                    <p>
+                      <a 
+                        href="#" 
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setSelectedImage(`https://musical-emerald-partridge.myfilebase.com/ipfs/${batch.imageIpfsHash}`);
+                        }}
+                      >
+                        Apri L'immagine
+                      </a>
+                    </p>
+                  )}
+                  <p><strong>Tx Hash:</strong> 
                     <a 
-                      href="#" 
-                      onClick={(e) => {
-                        e.preventDefault();
-                        setSelectedImage(`https://musical-emerald-partridge.myfilebase.com/ipfs/${batch.imageIpfsHash}`);
-                      }}
+                      href={`https://polygonscan.com/inputdatadecoder?tx=${batch.transactionHash}`} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
                     >
-                      Apri l'immagine
+                      {truncateText(batch.transactionHash, 15)}
                     </a>
                   </p>
-                )}
-                <p><strong>Tx Hash:</strong> 
-                  <a 
-                    href={`https://polygonscan.com/inputdatadecoder?tx=${batch.transactionHash}`} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                  >
-                    {truncateText(batch.transactionHash, 15)}
-                  </a>
-                </p>
-                
-                {batch.steps && batch.steps.length > 0 && (
-                  <div className="steps-container">
-                    <h4>Steps:</h4>
-                    {batch.steps.map(step => (
-                      <div key={step.stepIndex} className="step-item">
-                         <p><strong>{step.eventName}</strong> (Step #{step.stepIndex})</p>
-                         <p>Desc: {step.description ? truncateText(step.description, 50) : "N/D"}</p>
-                         <p>Data: {formatItalianDate(step.date)} | Luogo: {step.location || "N/D"}</p>
-                      </div>
-                    ))}
-                  </div>
-                )}
 
-                <div className="inscription-footer">
-                  <div className="steps-count">
-                    {batch.steps ? `${batch.steps.length} steps` : "0 steps"}
-                  </div>
-                  {/* Pulsante Aggiungi Step per iscrizioni aperte, lucchetto per quelle chiuse */}
-                  {!batch.isClosed ? (
-                    <button className="add-step-button">Aggiungi Step</button>
-                  ) : (
-                    <span className="closed-lock-icon">🔒</span>
+                  {batch.steps && batch.steps.length > 0 && (
+                    <div className="steps-container">
+                      <h4>Steps:</h4>
+                      {batch.steps.map(step => (
+                        <div key={step.stepIndex} className="step-item">
+                          <p><strong>{step.eventName}</strong> (Step #{step.stepIndex})</p>
+                          <p>Desc: {step.description ? truncateText(step.description, 50) : "N/D"}</p>
+                          <p>Data: {formatItalianDate(step.date)} | Luogo: {step.location || "N/D"}</p>
+                        </div>
+                      ))}
+                    </div>
                   )}
+
+                  <div className="inscription-footer">
+                    <div className="steps-count">
+                      {batch.steps ? `${batch.steps.length} steps` : "0 steps"}
+                    </div>
+                    {/* Pulsante Aggiungi Step per iscrizioni aperte, lucchetto per quelle chiuse */}
+                    {!batch.isClosed ? (
+                      <button className="add-step-button">Aggiungi Step</button>
+                    ) : (
+                      <span className="closed-lock-icon">🔒</span>
+                    )}
+                  </div>
                 </div>
+              ))
+            ) : (
+              <div className="empty-state">
+                <p>Non hai ancora inizializzato nessuna iscrizione con questo account.</p>
+                <p style={{ fontSize: '0.8rem', marginTop: '0.5rem', opacity: 0.7 }}>
+                  Clicca su "Inizializza Nuova Iscrizione" per iniziare
+                </p>
               </div>
-            ))
-          ) : (
-            <div className="empty-state">
-              <p>Non hai ancora inizializzato nessuna iscrizione con questo account.</p>
-              <p style={{ fontSize: '0.8rem', marginTop: '0.5rem', opacity: 0.7 }}>
-                Clicca su "Inizializza Nuova Iscrizione" per iniziare
-              </p>
+            )}
+          </div>
+
+          {/* Paginazione */}
+          {filteredBatches.length > itemsPerPage && (
+            <div className="pagination-container">
+              <button
+                className="pagination-button"
+                onClick={handlePreviousPage}
+                disabled={currentPage === 1}
+              >
+                &lt;
+              </button>
+
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map(number => (
+                <button
+                  key={number}
+                  className={`pagination-number ${currentPage === number ? 'active' : ''}`}
+                  onClick={() => paginate(number)}
+                >
+                  {number}
+                </button>
+              ))}
+
+              <button
+                className="pagination-button"
+                onClick={handleNextPage}
+                disabled={currentPage === totalPages}
+              >
+                &gt;
+              </button>
+              <span className="pagination-info">
+                Pagina {currentPage} di {totalPages}
+              </span>
             </div>
           )}
-        </div>
+        </>
       )}
 
       {/* Modale per visualizzare immagini */}
@@ -970,7 +1171,7 @@ const NewInscriptionModal: React.FC<{
 }> = ({ onClose, onSuccess, onCreditsUpdate }) => {
   const account = useActiveAccount();
   const { mutate: sendTransaction, isPending } = useSendTransaction();
-  
+
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState({
     name: "",
@@ -1010,17 +1211,17 @@ const NewInscriptionModal: React.FC<{
 
     setLoadingMessage("Preparazione transazione...");
     let imageIpfsHash = "N/A";
-    
+
     if (selectedFile) {
       try {
         const uploadFormData = new FormData();
         uploadFormData.append('file', selectedFile);
-        
+
         const uploadResponse = await fetch('/api/upload', {
           method: 'POST',
           body: uploadFormData,
         });
-        
+
         if (uploadResponse.ok) {
           const uploadResult = await uploadResponse.json();
           imageIpfsHash = uploadResult.cid;
@@ -1040,7 +1241,7 @@ const NewInscriptionModal: React.FC<{
     sendTransaction(transaction, {
       onSuccess: async (result) => {
         setTxResult({ status: "success", message: "Iscrizione creata! Aggiorno i dati..." });
-        
+
         // Aggiorna i crediti localmente dopo la transazione
         if (account?.address) {
           try {
@@ -1049,7 +1250,7 @@ const NewInscriptionModal: React.FC<{
             if (response.ok) {
               const data = await response.json();
               onCreditsUpdate(data.credits);
-              
+
               // Aggiorna anche Firebase con i nuovi crediti
               await fetch('/api/activate-company', {
                 method: 'POST',
@@ -1065,7 +1266,7 @@ const NewInscriptionModal: React.FC<{
             console.error("Errore durante l'aggiornamento dei crediti:", error);
           }
         }
-        
+
         setTimeout(() => {
           onSuccess();
           setLoadingMessage("");
@@ -1274,7 +1475,7 @@ const NewInscriptionModal: React.FC<{
           onClose={() => {}} 
         />
       )}
-      
+
       {txResult && (
         <TransactionStatusModal 
           status={txResult.status} 
@@ -1292,7 +1493,7 @@ const NewInscriptionModal: React.FC<{
 // Componente Principale "Controllore"
 const AziendaPage: React.FC = () => {
   const account = useActiveAccount();
-  
+
   const [companyStatus, setCompanyStatus] = useState<{
     isLoading: boolean;
     isActive: boolean;
@@ -1354,7 +1555,7 @@ const AziendaPage: React.FC = () => {
     if (companyStatus.isActive && companyStatus.data) {
       return <Dashboard companyData={companyStatus.data} />;
     }
-    
+
     if (account) {
       return <RegistrationForm walletAddress={account.address} />;
     }
