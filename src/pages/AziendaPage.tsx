@@ -1,11 +1,10 @@
 // FILE: src/pages/AziendaPage.tsx
 // DESCRIZIONE: Versione aggiornata che utilizza Firebase per i dati azienda,
-// implementa il sistema di refresh on-chain, gestisce le iscrizioni con numerazione incrementale,
-// e introduce la possibilità di aggiungere "steps" e finalizzare le iscrizioni.
+// implementa il sistema di refresh on-chain e gestisce le iscrizioni con numerazione incrementale.
 
 import React, { useState, useEffect } from "react";
 import { ConnectButton, useActiveAccount, useReadContract, useSendTransaction } from "thirdweb/react";
-import { createThirdwebClient, getContract, prepareContractCall, toBigInt } from "thirdweb";
+import { createThirdwebClient, getContract, prepareContractCall } from "thirdweb";
 import { polygon } from "thirdweb/chains";
 import { inAppWallet } from "thirdweb/wallets";
 import { supplyChainABI as abi } from "../abi/contractABI";
@@ -240,11 +239,6 @@ const AziendaPageStyles = () => (
         transform: translateY(-2px);
         box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
       }
-      
-      .web3-button:disabled {
-        opacity: 0.6;
-        cursor: not-allowed;
-      }
 
       .web3-button.secondary {
         background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
@@ -255,17 +249,6 @@ const AziendaPageStyles = () => (
         background: linear-gradient(135deg, #4b5563 0%, #374151 100%);
         box-shadow: 0 6px 20px rgba(107, 114, 128, 0.4);
       }
-
-      .web3-button.danger {
-          background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-          box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
-      }
-
-      .web3-button.danger:hover:not(:disabled) {
-          background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
-          box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
-      }
-
 
       .inscriptions-grid { 
         display: flex;
@@ -331,12 +314,6 @@ const AziendaPageStyles = () => (
         padding-top: 1rem;
         border-top: 1px solid #333;
       }
-      
-      .inscription-footer-actions {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.5rem;
-      }
 
       .steps-count {
         font-size: 0.8rem;
@@ -368,7 +345,7 @@ const AziendaPageStyles = () => (
         background: linear-gradient(135deg, #059669 0%, #047857 100%);
         transform: translateY(-1px);
       }
-      
+
       .finalize-button {
         background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
         color: white;
@@ -379,12 +356,11 @@ const AziendaPageStyles = () => (
         cursor: pointer;
         transition: all 0.3s ease;
       }
-      
+
       .finalize-button:hover {
         background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
         transform: translateY(-1px);
       }
-
 
       .closed-lock-icon {
         color: #6b7280;
@@ -833,13 +809,428 @@ const FullPageLoading: React.FC<{ message: string }> = ({ message }) => {
   );
 };
 
-// Componente modale per aggiungere uno step
+// Componente per la Dashboard
+const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
+  const account = useActiveAccount();
+  const [batches, setBatches] = useState<Batch[]>([]);
+  const [isLoadingBatches, setIsLoadingBatches] = useState(true);
+  const [errorBatches, setErrorBatches] = useState<string | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [refreshCounter, setRefreshCounter] = useState(0);
+  const [showFullPageLoading, setShowFullPageLoading] = useState(false);
+  const [firstLoad, setFirstLoad] = useState(true);
+  const [currentCompanyData, setCurrentCompanyData] = useState<CompanyData>(companyData);
+  const [selectedBatchForStep, setSelectedBatchForStep] = useState<Batch | null>(null);
+  const [selectedBatchForFinalize, setSelectedBatchForFinalize] = useState<Batch | null>(null);
+
+  // State per i filtri
+  const [nameFilter, setNameFilter] = useState("");
+  const [locationFilter, setLocationFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState<"Aperto" | "Chiuso" | "">("");
+
+  // State per la paginazione
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 30;
+
+  // Hook per leggere i dati dal contratto
+  const { data: contractData, refetch: refetchContractData } = useReadContract({
+    contract,
+    method: "function getContributorInfo(address) view returns (string, uint256, bool)",
+    params: account ? [account.address] : undefined,
+    queryOptions: { enabled: !!account },
+  });
+
+  const loadBatches = async (isFirstLoad = false) => {
+    if (!account) return;
+
+    if (isFirstLoad) {
+      setShowFullPageLoading(true);
+    } else {
+      setIsRefreshing(true);
+    }
+
+    setIsLoadingBatches(true);
+    setErrorBatches(null);
+
+    try {
+      const response = await fetch(`/api/get-contract-events?userAddress=${account.address}`);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || `Errore dal server: ${response.status}`);
+      }
+      const data = await response.json();
+      const readyBatches: Batch[] = data.events || [];
+      const sortedBatches = readyBatches.sort((a, b) => parseInt(b.batchId) - parseInt(a.batchId));
+
+      setBatches(sortedBatches);
+      setRefreshCounter(0); // Reset counter dopo il refresh
+      setCurrentPage(1); // Reset alla prima pagina
+    } catch (error: any) {
+      setErrorBatches(error.message || "Errore sconosciuto.");
+    } finally {
+      setIsLoadingBatches(false);
+      setIsRefreshing(false);
+      setShowFullPageLoading(false);
+      setFirstLoad(false);
+    }
+  };
+
+  const handleRefresh = async () => {
+    if (!account) return;
+
+    setShowFullPageLoading(true);
+
+    try {
+      // 1. Controlla i crediti on-chain
+      const refetchedData = await refetchContractData();
+      if (refetchedData.data) {
+        const [, onChainCredits] = refetchedData.data;
+        const creditsNumber = Number(onChainCredits);
+
+        // 2. Aggiorna Firebase con i crediti corretti
+        await fetch('/api/activate-company', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'setCredits',
+            walletAddress: account.address,
+            credits: creditsNumber,
+          }),
+        });
+
+        // 3. Aggiorna i dati locali
+        setCurrentCompanyData(prev => ({
+          ...prev,
+          credits: creditsNumber
+        }));
+      }
+
+      // 4. Ricarica le iscrizioni
+      await loadBatches(false);
+
+    } catch (error: any) {
+      setErrorBatches(error.message || "Errore durante l'aggiornamento.");
+    } finally {
+      setShowFullPageLoading(false);
+    }
+  };
+
+  const incrementRefreshCounter = () => {
+    setRefreshCounter(prev => prev + 1);
+  };
+
+  useEffect(() => {
+    if (account && firstLoad) {
+      loadBatches(true);
+    }
+  }, [account, firstLoad]);
+
+  // Calcola il numero di iscrizione incrementale per ogni batch
+  const getBatchDisplayNumber = (batchId: string) => {
+    const sortedBatches = [...batches].sort((a, b) => parseInt(a.batchId) - parseInt(b.batchId));
+    const index = sortedBatches.findIndex(batch => batch.batchId === batchId);
+    return index + 1;
+  };
+
+  // Funzioni per la paginazione
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+
+  // Filtra i batch basati sui criteri di ricerca
+  const filteredBatches = batches.filter(batch => {
+    const nameMatch = batch.name.toLowerCase().includes(nameFilter.toLowerCase());
+    const locationMatch = batch.location?.toLowerCase().includes(locationFilter.toLowerCase());
+    let statusMatch = true;
+    if (statusFilter === "Aperto") {
+      statusMatch = !batch.isClosed;
+    } else if (statusFilter === "Chiuso") {
+      statusMatch = batch.isClosed;
+    }
+    return nameMatch && locationMatch && statusMatch;
+  });
+
+  const currentItems = filteredBatches.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(filteredBatches.length / itemsPerPage);
+
+  const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
+
+  const handlePreviousPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
+
+  const handleNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
+
+  return (
+    <>
+      {showFullPageLoading && (
+        <FullPageLoading message="Aggiornamento dati in corso..." />
+      )}
+
+      <div className="dashboard-header-card">
+        <div>
+          <div className="dashboard-title-section">
+            <h2 className="dashboard-title">{currentCompanyData.companyName}</h2>
+          </div>
+          <div className="dashboard-info">
+            <div className="dashboard-info-item">
+              <span>Crediti Rimanenti: <strong>{currentCompanyData.credits}</strong></span>
+            </div>
+            <div className="dashboard-info-item">
+              <span>Stato: <strong className={currentCompanyData.status === 'active' ? 'status-active-text' : 'status-inactive-text'}>
+                {currentCompanyData.status === 'active' ? 'ATTIVO' : 'NON ATTIVO'}
+              </strong></span>
+            </div>
+          </div>
+        </div>
+        <button onClick={() => setIsModalOpen(true)} className="web3-button">+ Inizializza Nuova Iscrizione</button>
+      </div>
+
+      <div className="inscriptions-section-header">
+        <h3 className="inscriptions-section-title">Le mie Iscrizioni su Blockchain</h3>
+        <div className="refresh-section">
+          <button 
+            className="refresh-button"
+            onClick={handleRefresh}
+            disabled={isRefreshing || refreshCounter === 0}
+          >
+            <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPCEtLSBSZWZyZXNoIGNpcmN1bGFyIGFycm93cyAtLT4KPHBhdGggZD0iTTMgMTJBOSA5IDAgMCAxIDEyIDNWMUwxNiA1TDEyIDlWN0E3IDcgMCAwIDAgNSAxMkgzWiIgZmlsbD0id2hpdGUiLz4KPHBhdGggZD0iTTIxIDEyQTkgOSAwIDAgMSAxMiAyMVYyM0w4IDE5TDEyIDE1VjE3QTcgNyAwIDAgMCAxOSAxMkgyMVoiIGZpbGw9IndoaXRlIi8+Cjwvc3ZnPgo=" alt="refresh" className="refresh-icon" style={{width: '20px', height: '20px'}} />
+            {refreshCounter > 0 && (
+              <div className="refresh-counter">+{refreshCounter}</div>
+            )}
+          </button>
+        </div>
+      </div>
+
+      <div className="inscriptions-filters">
+        <div className="filter-group">
+          <label className="filter-label">Nome</label>
+          <input
+            type="text"
+            className="filter-input"
+            value={nameFilter}
+            onChange={(e) => setNameFilter(e.target.value)}
+          />
+        </div>
+        <div className="filter-group">
+          <label className="filter-label">Luogo</label>
+          <input
+            type="text"
+            className="filter-input"
+            value={locationFilter}
+            onChange={(e) => setLocationFilter(e.target.value)}
+          />
+        </div>
+        <div className="filter-group">
+          <label className="filter-label">Stato</label>
+          <select
+            className="filter-input"
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value as "Aperto" | "Chiuso" | "")}
+          >
+            <option value="">Tutti</option>
+            <option value="Aperto">Aperto</option>
+            <option value="Chiuso">Chiuso</option>
+          </select>
+        </div>
+      </div>
+
+      {isLoadingBatches && !showFullPageLoading ? (
+        <div className="loading-error-container"><p>Caricamento delle tue iscrizioni...</p></div>
+      ) : errorBatches ? (
+        <div className="loading-error-container"><p style={{ color: 'red' }}>{errorBatches}</p></div>
+      ) : (
+        <>
+          <div className="inscriptions-grid">
+            {currentItems.length > 0 ? (
+              currentItems.map((batch) => (
+                <div key={batch.batchId} className="inscription-card">
+                  <h3>#{getBatchDisplayNumber(batch.batchId)} - {batch.name}</h3>
+                  <p><strong>Descrizione:</strong> {batch.description ? truncateText(batch.description, window.innerWidth < 768 ? 80 : 100) : "N/D"}</p>
+                  <p><strong>Data:</strong> {formatItalianDate(batch.date)}</p>
+                  <p><strong>Luogo:</strong> {batch.location || "N/D"}</p>
+                  <p><strong>Stato:</strong> 
+                    <span className={batch.isClosed ? 'status-closed' : 'status-open'}>
+                      {batch.isClosed ? ' Chiuso' : ' Aperto'}
+                    </span>
+                  </p>
+                  {batch.imageIpfsHash && batch.imageIpfsHash !== "N/A" && (
+                    <p>
+                      <a 
+                        href="#" 
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setSelectedImage(`https://musical-emerald-partridge.myfilebase.com/ipfs/${batch.imageIpfsHash}`);
+                        }}
+                      >
+                        Apri L'immagine
+                      </a>
+                    </p>
+                  )}
+                  <p><strong>Tx Hash:</strong> 
+                    <a 
+                      href={`https://polygonscan.com/inputdatadecoder?tx=${batch.transactionHash}`} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                    >
+                      {truncateText(batch.transactionHash, 15)}
+                    </a>
+                  </p>
+
+                  {batch.steps && batch.steps.length > 0 && (
+                    <div className="steps-container">
+                      <h4>Steps:</h4>
+                      {batch.steps.map(step => (
+                        <div key={step.stepIndex} className="step-item">
+                          <p><strong>{step.eventName}</strong> (Step #{step.stepIndex})</p>
+                          <p>Desc: {step.description ? truncateText(step.description, 50) : "N/D"}</p>
+                          <p>Data: {formatItalianDate(step.date)} | Luogo: {step.location || "N/D"}</p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  <div className="inscription-footer">
+                    <div className="steps-count">
+                      {batch.steps ? `${batch.steps.length} steps` : "0 steps"}
+                    </div>
+                    {/* Pulsante Aggiungi Step per iscrizioni aperte, lucchetto per quelle chiuse */}
+                    {!batch.isClosed ? (
+                      <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                        <button 
+                          className="add-step-button"
+                          onClick={() => setSelectedBatchForStep(batch)}
+                        >
+                          Aggiungi Step
+                        </button>
+                        <button 
+                          className="finalize-button"
+                          onClick={() => setSelectedBatchForFinalize(batch)}
+                        >
+                          Finalizza
+                        </button>
+                      </div>
+                    ) : (
+                      <span className="closed-lock-icon">🔒</span>
+                    )}
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="empty-state">
+                <p>Non hai ancora inizializzato nessuna iscrizione con questo account.</p>
+                <p style={{ fontSize: '0.8rem', marginTop: '0.5rem', opacity: 0.7 }}>
+                  Clicca su "Inizializza Nuova Iscrizione" per iniziare
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* Paginazione */}
+          {filteredBatches.length > itemsPerPage && (
+            <div className="pagination-container">
+              <button
+                className="pagination-button"
+                onClick={handlePreviousPage}
+                disabled={currentPage === 1}
+              >
+                &lt;
+              </button>
+
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map(number => (
+                <button
+                  key={number}
+                  className={`pagination-number ${currentPage === number ? 'active' : ''}`}
+                  onClick={() => paginate(number)}
+                >
+                  {number}
+                </button>
+              ))}
+
+              <button
+                className="pagination-button"
+                onClick={handleNextPage}
+                disabled={currentPage === totalPages}
+              >
+                &gt;
+              </button>
+              <span className="pagination-info">
+                Pagina {currentPage} di {totalPages}
+              </span>
+            </div>
+          )}
+        </>
+      )}
+
+      {/* Modale per visualizzare immagini */}
+      {selectedImage && (
+        <ImageModal 
+          imageUrl={selectedImage} 
+          onClose={() => setSelectedImage(null)} 
+        />
+      )}
+
+      {/* Modale per nuova iscrizione */}
+      {isModalOpen && (
+        <NewInscriptionModal 
+          onClose={() => setIsModalOpen(false)}
+          onSuccess={() => {
+            setIsModalOpen(false);
+            incrementRefreshCounter();
+          }}
+          onCreditsUpdate={(newCredits: number) => {
+            setCurrentCompanyData(prev => ({ ...prev, credits: newCredits }));
+          }}
+        />
+      )}
+
+      {/* Modale per aggiungere step */}
+      {selectedBatchForStep && (
+        <AddStepModal 
+          batch={selectedBatchForStep}
+          onClose={() => setSelectedBatchForStep(null)}
+          onSuccess={() => {
+            setSelectedBatchForStep(null);
+            incrementRefreshCounter();
+          }}
+          onCreditsUpdate={(newCredits: number) => {
+            setCurrentCompanyData(prev => ({ ...prev, credits: newCredits }));
+          }}
+        />
+      )}
+
+      {/* Modale per finalizzare iscrizione */}
+      {selectedBatchForFinalize && (
+        <FinalizeModal 
+          batch={selectedBatchForFinalize}
+          onClose={() => setSelectedBatchForFinalize(null)}
+          onSuccess={() => {
+            setSelectedBatchForFinalize(null);
+            incrementRefreshCounter();
+          }}
+          onCreditsUpdate={(newCredits: number) => {
+            setCurrentCompanyData(prev => ({ ...prev, credits: newCredits }));
+          }}
+        />
+      )}
+    </>
+  );
+};
+
+// Componente modale per aggiungere step
 const AddStepModal: React.FC<{ 
-  batchId: string;
+  batch: Batch;
   onClose: () => void; 
   onSuccess: () => void;
   onCreditsUpdate: (credits: number) => void;
-}> = ({ batchId, onClose, onSuccess, onCreditsUpdate }) => {
+}> = ({ batch, onClose, onSuccess, onCreditsUpdate }) => {
   const account = useActiveAccount();
   const { mutate: sendTransaction, isPending } = useSendTransaction();
 
@@ -881,10 +1272,9 @@ const AddStepModal: React.FC<{
     }
 
     setLoadingMessage("Preparazione transazione...");
-    let attachmentsIpfsHash = "N/A";
+    let attachmentsIpfsHash = "";
 
     if (selectedFile) {
-      setLoadingMessage("Caricamento allegato...");
       try {
         const uploadFormData = new FormData();
         uploadFormData.append('file', selectedFile);
@@ -894,15 +1284,12 @@ const AddStepModal: React.FC<{
           body: uploadFormData,
         });
 
-        if (!uploadResponse.ok) throw new Error("Errore durante il caricamento dell'allegato.");
-        
-        const uploadResult = await uploadResponse.json();
-        attachmentsIpfsHash = uploadResult.cid;
+        if (uploadResponse.ok) {
+          const uploadResult = await uploadResponse.json();
+          attachmentsIpfsHash = uploadResult.cid;
+        }
       } catch (error) {
-        console.error("Errore upload allegato:", error);
-        setTxResult({ status: "error", message: "Errore durante il caricamento dell'allegato." });
-        setLoadingMessage("");
-        return;
+        console.error("Errore upload file:", error);
       }
     }
 
@@ -910,19 +1297,21 @@ const AddStepModal: React.FC<{
     const transaction = prepareContractCall({
       contract,
       method: "function addStepToBatch(uint256,string,string,string,string,string)",
-      params: [toBigInt(batchId), formData.eventName, formData.description || "", formData.date || "", formData.location || "", attachmentsIpfsHash],
+      params: [batch.batchId, formData.eventName, formData.description || "", formData.date || "", formData.location || "", attachmentsIpfsHash],
     });
 
     sendTransaction(transaction, {
-      onSuccess: async () => {
-        setTxResult({ status: "success", message: "Step aggiunto con successo! Aggiorno i dati..." });
+      onSuccess: async (result) => {
+        setTxResult({ status: "success", message: "Step aggiunto! Aggiorno i dati..." });
 
+        // Aggiorna i crediti localmente dopo la transazione
         if (account?.address) {
           try {
             const response = await fetch(`/api/get-company-status?walletAddress=${account.address}`);
             if (response.ok) {
               const data = await response.json();
               onCreditsUpdate(data.credits);
+
               await fetch('/api/activate-company', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -964,20 +1353,20 @@ const AddStepModal: React.FC<{
     fontSize: "0.9rem", 
     color: "#f8f9fa" 
   };
-  
+
   return (
     <>
       <div className="modal-overlay" onClick={onClose}>
         <div className="modal-content" onClick={(e) => e.stopPropagation()}>
           <div className="modal-header">
-            <h2>Aggiungi Step all'Iscrizione ({currentStep}/6)</h2>
+            <h2>Aggiungi step all'iscrizione ({currentStep}/6)</h2>
           </div>
           <div className="modal-body" style={{ minHeight: "350px" }}>
             {currentStep === 1 && (
               <div>
                 <div className="form-group">
                   <label>
-                    Nome Evento
+                    Nome Evento 
                     <span style={{ color: "red", fontWeight: "bold" }}> * Obbligatorio</span>
                   </label>
                   <input 
@@ -1003,10 +1392,14 @@ const AddStepModal: React.FC<{
                 </div>
               </div>
             )}
+
             {currentStep === 2 && (
               <div>
                 <div className="form-group">
-                  <label>Descrizione <span style={{ color: "#6c757d" }}> Non obbligatorio</span></label>
+                  <label>
+                    Descrizione 
+                    <span style={{ color: "#6c757d" }}> Non obbligatorio</span>
+                  </label>
                   <textarea 
                     name="description" 
                     value={formData.description} 
@@ -1018,14 +1411,18 @@ const AddStepModal: React.FC<{
                   <small className="char-counter">{formData.description.length} / 500</small>
                 </div>
                 <div style={helpTextStyle}>
-                  <p>Inserisci una descrizione dello step, come una fase produttiva, logistica, amministrativa o documentale. Fornisci tutte le informazioni utili per identificarlo chiaramente all’interno del processo o della filiera a cui appartiene.</p>
+                  <p>Inserisci una descrizione dello step, come una fase produttiva, logistica, amministrativa o documentale. Fornisci tutte le informazioni utili per identificarlo chiaramente all'interno del processo o della filiera a cui appartiene.</p>
                 </div>
               </div>
             )}
+
             {currentStep === 3 && (
               <div>
                 <div className="form-group">
-                  <label>Luogo <span style={{ color: "#6c757d" }}> Non obbligatorio</span></label>
+                  <label>
+                    Luogo 
+                    <span style={{ color: "#6c757d" }}> Non obbligatorio</span>
+                  </label>
                   <input 
                     type="text" 
                     name="location" 
@@ -1037,14 +1434,18 @@ const AddStepModal: React.FC<{
                   <small className="char-counter">{formData.location.length} / 100</small>
                 </div>
                 <div style={helpTextStyle}>
-                  <p>Inserisci il luogo in cui si è svolto lo step, come una città, una regione, un’azienda agricola, uno stabilimento o un punto logistico. Serve a indicare con precisione dove è avvenuto il passaggio registrato.</p>
+                  <p>Inserisci il luogo in cui si è svolto lo step, come una città, una regione, un'azienda agricola, uno stabilimento o un punto logistico. Serve a indicare con precisione dove è avvenuto il passaggio registrato.</p>
                 </div>
               </div>
             )}
+
             {currentStep === 4 && (
               <div>
                 <div className="form-group">
-                  <label>Data <span style={{ color: "#6c757d" }}> Non obbligatorio</span></label>
+                  <label>
+                    Data 
+                    <span style={{ color: "#6c757d" }}> Non obbligatorio</span>
+                  </label>
                   <input 
                     type="date" 
                     name="date" 
@@ -1059,26 +1460,35 @@ const AddStepModal: React.FC<{
                 </div>
               </div>
             )}
+
             {currentStep === 5 && (
               <div>
                 <div className="form-group">
-                  <label>Immagini / Documenti <span style={{ color: "#6c757d" }}> Non obbligatorio</span></label>
+                  <label>
+                    Immagini / Documenti 
+                    <span style={{ color: "#6c757d" }}> Non obbligatorio</span>
+                  </label>
                   <input 
                     type="file" 
                     name="attachments" 
                     onChange={handleFileChange} 
                     className="form-input" 
-                    accept="image/png, image/jpeg, image/webp, application/pdf, application/msword, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/vnd.oasis.opendocument.text, text/csv, application/vnd.ms-excel, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                    accept="image/png, image/jpeg, image/webp, application/pdf, application/msword, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/vnd.oasis.opendocument.text, text/csv, application/vnd.ms-excel, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" 
                   />
-                  <small style={{ marginTop: "4px", display: 'block', color: '#a0a0a0' }}>Immagini (PNG, JPG, WEBP): Max 5MB.</small>
-                  <small style={{ marginTop: "4px", display: 'block', color: '#a0a0a0' }}>Documenti (PDF, DOC, ODT, CSV, XLS): Max 10MB.</small>
-                  {selectedFile && <p className="file-name-preview">File: {selectedFile.name}</p>}
+                  <small style={{ marginTop: "4px" }}>
+                    Formati immagini: PNG, JPG, WEBP. Max: 5 MB.<br/>
+                    Formati documenti: PDF, DOC, DOCX, ODT, CSV, XLS, XLSX. Max 10 MB.
+                  </small>
+                  {selectedFile && (
+                    <p className="file-name-preview">File: {selectedFile.name}</p>
+                  )}
                 </div>
                 <div style={helpTextStyle}>
-                  <p>Carica un’immagine rappresentativa dello step, come una foto della fase produttiva, di un documento firmato, di un certificato o di un controllo effettuato. Rispetta i formati e i limiti di peso.</p>
+                  <p>Carica un'immagine rappresentativa dello step, come una foto della fase produttiva, di un documento firmato, di un certificato o di un controllo effettuato. Rispetta i formati e i limiti di peso.</p>
                 </div>
               </div>
             )}
+
             {currentStep === 6 && (
               <div>
                 <h4>Riepilogo Dati</h4>
@@ -1087,7 +1497,7 @@ const AddStepModal: React.FC<{
                   <p><strong>Descrizione:</strong> {truncateText(formData.description, 60) || "N/D"}</p>
                   <p><strong>Luogo:</strong> {truncateText(formData.location, 40) || "N/D"}</p>
                   <p><strong>Data:</strong> {formData.date ? formData.date.split("-").reverse().join("/") : "N/D"}</p>
-                  <p><strong>Allegato:</strong> {truncateText(selectedFile?.name || "", 40) || "Nessuno"}</p>
+                  <p><strong>File:</strong> {truncateText(selectedFile?.name || "", 40) || "Nessuno"}</p>
                 </div>
                 <p>Vuoi confermare e registrare questo step sulla blockchain?</p>
               </div>
@@ -1096,13 +1506,19 @@ const AddStepModal: React.FC<{
           <div className="modal-footer">
             <div>
               {currentStep > 1 && (
-                <button onClick={handlePrevStep} className="web3-button secondary" disabled={isProcessing}>Indietro</button>
+                <button onClick={handlePrevStep} className="web3-button secondary" disabled={isProcessing}>
+                  Indietro
+                </button>
               )}
             </div>
             <div style={{ display: 'flex', gap: '1rem' }}>
-              <button onClick={onClose} className="web3-button secondary" disabled={isProcessing}>Chiudi</button>
+              <button onClick={onClose} className="web3-button secondary" disabled={isProcessing}>
+                Chiudi
+              </button>
               {currentStep < 6 && (
-                <button onClick={handleNextStep} className="web3-button">Avanti</button>
+                <button onClick={handleNextStep} className="web3-button">
+                  Avanti
+                </button>
               )}
               {currentStep === 6 && (
                 <button onClick={handleSubmit} disabled={isProcessing} className="web3-button">
@@ -1113,7 +1529,15 @@ const AddStepModal: React.FC<{
           </div>
         </div>
       </div>
-      {isProcessing && <TransactionStatusModal status="loading" message={loadingMessage} onClose={() => {}} />}
+
+      {isProcessing && (
+        <TransactionStatusModal 
+          status="loading" 
+          message={loadingMessage} 
+          onClose={() => {}} 
+        />
+      )}
+
       {txResult && (
         <TransactionStatusModal 
           status={txResult.status} 
@@ -1128,372 +1552,115 @@ const AddStepModal: React.FC<{
   );
 };
 
-// Componente modale per finalizzare un'iscrizione
-const FinalizeInscriptionModal: React.FC<{
-  onClose: () => void;
-  onConfirm: () => void;
-  isPending: boolean;
-}> = ({ onClose, onConfirm, isPending }) => {
-  return (
-    <div className="modal-overlay">
-      <div className="modal-content" style={{ maxWidth: '500px' }}>
-        <div className="modal-header">
-          <h2>Finalizza Iscrizione</h2>
-        </div>
-        <div className="modal-body">
-          <p><strong>Sei sicuro di voler finalizzare questa iscrizione?</strong></p>
-          <p style={{ color: '#a0a0a0', fontSize: '0.9rem', marginTop: '1rem' }}>
-            Dopo questa operazione non potrai piu' aggiungere eventi o modificare gli eventi. L'iscrizione sarà considerata completa e chiusa.
-          </p>
-        </div>
-        <div className="modal-footer">
-          <button onClick={onClose} className="web3-button secondary" disabled={isPending}>Annulla</button>
-          <button onClick={onConfirm} className="web3-button danger" disabled={isPending}>
-            {isPending ? "Finalizzando..." : "Sì, Finalizza"}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-
-// Componente per la Dashboard
-const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
+// Componente modale per finalizzare iscrizione
+const FinalizeModal: React.FC<{ 
+  batch: Batch;
+  onClose: () => void; 
+  onSuccess: () => void;
+  onCreditsUpdate: (credits: number) => void;
+}> = ({ batch, onClose, onSuccess, onCreditsUpdate }) => {
   const account = useActiveAccount();
-  const [batches, setBatches] = useState<Batch[]>([]);
-  const [isLoadingBatches, setIsLoadingBatches] = useState(true);
-  const [errorBatches, setErrorBatches] = useState<string | null>(null);
-  const [isNewInscriptionModalOpen, setIsNewInscriptionModalOpen] = useState(false);
-  const [isAddStepModalOpen, setIsAddStepModalOpen] = useState(false);
-  const [isFinalizeModalOpen, setIsFinalizeModalOpen] = useState(false);
-  const [selectedBatchForAction, setSelectedBatchForAction] = useState<string | null>(null);
+  const { mutate: sendTransaction, isPending } = useSendTransaction();
+  const [txResult, setTxResult] = useState<{ status: "success" | "error"; message: string; } | null>(null);
+  const [loadingMessage, setLoadingMessage] = useState("");
 
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  const [refreshCounter, setRefreshCounter] = useState(0);
-  const [showFullPageLoading, setShowFullPageLoading] = useState(false);
-  const [firstLoad, setFirstLoad] = useState(true);
-  const [currentCompanyData, setCurrentCompanyData] = useState<CompanyData>(companyData);
+  const handleFinalize = async () => {
+    setLoadingMessage("Finalizzazione in corso...");
+    
+    const transaction = prepareContractCall({
+      contract,
+      method: "function closeBatch(uint256)",
+      params: [batch.batchId],
+    });
 
-  const [nameFilter, setNameFilter] = useState("");
-  const [locationFilter, setLocationFilter] = useState("");
-  const [statusFilter, setStatusFilter] = useState<"Aperto" | "Chiuso" | "">("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 30;
+    sendTransaction(transaction, {
+      onSuccess: async (result) => {
+        setTxResult({ status: "success", message: "Iscrizione finalizzata! Aggiorno i dati..." });
 
-  const { data: contractData, refetch: refetchContractData } = useReadContract({
-    contract,
-    method: "function getContributorInfo(address) view returns (string, uint256, bool)",
-    params: account ? [account.address] : undefined,
-    queryOptions: { enabled: !!account },
-  });
-
-  const { mutate: finalizeBatch, isPending: isFinalizing } = useSendTransaction();
-
-  const loadBatches = async (isFirstLoad = false) => {
-    if (!account) return;
-    if (isFirstLoad) {
-      setShowFullPageLoading(true);
-    } else {
-      setIsRefreshing(true);
-    }
-    setIsLoadingBatches(true);
-    setErrorBatches(null);
-    try {
-      const response = await fetch(`/api/get-contract-events?userAddress=${account.address}`);
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || `Errore dal server: ${response.status}`);
-      }
-      const data = await response.json();
-      const readyBatches: Batch[] = data.events || [];
-      const sortedBatches = readyBatches.sort((a, b) => parseInt(b.batchId) - parseInt(a.batchId));
-      setBatches(sortedBatches);
-      setRefreshCounter(0);
-      setCurrentPage(1);
-    } catch (error: any) {
-      setErrorBatches(error.message || "Errore sconosciuto.");
-    } finally {
-      setIsLoadingBatches(false);
-      setIsRefreshing(false);
-      setShowFullPageLoading(false);
-      setFirstLoad(false);
-    }
-  };
-
-  const handleRefresh = async () => {
-    if (!account) return;
-    setShowFullPageLoading(true);
-    try {
-      const refetchedData = await refetchContractData();
-      if (refetchedData.data) {
-        const [, onChainCredits] = refetchedData.data;
-        const creditsNumber = Number(onChainCredits);
-        await fetch('/api/activate-company', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            action: 'setCredits',
-            walletAddress: account.address,
-            credits: creditsNumber,
-          }),
-        });
-        setCurrentCompanyData(prev => ({ ...prev, credits: creditsNumber }));
-      }
-      await loadBatches(false);
-    } catch (error: any) {
-      setErrorBatches(error.message || "Errore durante l'aggiornamento.");
-    } finally {
-      setShowFullPageLoading(false);
-    }
-  };
-
-  const incrementRefreshCounter = () => {
-    setRefreshCounter(prev => prev + 1);
-  };
-
-  useEffect(() => {
-    if (account && firstLoad) {
-      loadBatches(true);
-    }
-  }, [account, firstLoad]);
-
-  const handleOpenAddStepModal = (batchId: string) => {
-    setSelectedBatchForAction(batchId);
-    setIsAddStepModalOpen(true);
-  };
-
-  const handleOpenFinalizeModal = (batchId: string) => {
-    setSelectedBatchForAction(batchId);
-    setIsFinalizeModalOpen(true);
-  };
-  
-  const handleConfirmFinalize = () => {
-      if (!selectedBatchForAction || !account) return;
-
-      const transaction = prepareContractCall({
-        contract,
-        method: "function closeBatch(uint256)",
-        params: [toBigInt(selectedBatchForAction)],
-      });
-
-      finalizeBatch(transaction, {
-        onSuccess: async () => {
-          setIsFinalizeModalOpen(false);
-          incrementRefreshCounter();
-          alert("Iscrizione finalizzata con successo! Clicca il tasto refresh per vedere l'aggiornamento.");
-          
+        // Aggiorna i crediti localmente dopo la transazione
+        if (account?.address) {
           try {
-              const response = await fetch(`/api/get-company-status?walletAddress=${account.address}`);
-              if (response.ok) {
-                  const data = await response.json();
-                  setCurrentCompanyData(prev => ({ ...prev, credits: data.credits }));
-              }
-          } catch(err) {
-              console.error("Failed to update credits after finalization", err);
+            const response = await fetch(`/api/get-company-status?walletAddress=${account.address}`);
+            if (response.ok) {
+              const data = await response.json();
+              onCreditsUpdate(data.credits);
+
+              await fetch('/api/activate-company', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  action: 'setCredits',
+                  walletAddress: account.address,
+                  credits: data.credits,
+                }),
+              });
+            }
+          } catch (error) {
+            console.error("Errore durante l'aggiornamento dei crediti:", error);
           }
-        },
-        onError: (err) => {
-          alert(`Errore: ${err.message}`);
         }
-      });
+
+        setTimeout(() => {
+          onSuccess();
+          setLoadingMessage("");
+        }, 2000);
+      },
+      onError: (err) => {
+        setTxResult({ 
+          status: "error", 
+          message: err.message.toLowerCase().includes("insufficient funds") ? "Crediti Insufficienti" : "Errore nella transazione." 
+        });
+        setLoadingMessage("");
+      },
+    });
   };
 
-
-  const getBatchDisplayNumber = (batchId: string) => {
-    const sortedBatches = [...batches].sort((a, b) => parseInt(a.batchId) - parseInt(b.batchId));
-    const index = sortedBatches.findIndex(batch => batch.batchId === batchId);
-    return index + 1;
-  };
-
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-
-  const filteredBatches = batches.filter(batch => {
-    const nameMatch = batch.name.toLowerCase().includes(nameFilter.toLowerCase());
-    const locationMatch = batch.location?.toLowerCase().includes(locationFilter.toLowerCase());
-    let statusMatch = true;
-    if (statusFilter === "Aperto") {
-      statusMatch = !batch.isClosed;
-    } else if (statusFilter === "Chiuso") {
-      statusMatch = batch.isClosed;
-    }
-    return nameMatch && locationMatch && statusMatch;
-  });
-
-  const currentItems = filteredBatches.slice(indexOfFirstItem, indexOfLastItem);
-  const totalPages = Math.ceil(filteredBatches.length / itemsPerPage);
-  const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
-  const handlePreviousPage = () => { if (currentPage > 1) setCurrentPage(currentPage - 1); };
-  const handleNextPage = () => { if (currentPage < totalPages) setCurrentPage(currentPage + 1); };
+  const isProcessing = loadingMessage !== "" || isPending;
 
   return (
     <>
-      {showFullPageLoading && <FullPageLoading message="Aggiornamento dati in corso..." />}
-
-      <div className="dashboard-header-card">
-        <div>
-          <div className="dashboard-title-section">
-            <h2 className="dashboard-title">{currentCompanyData.companyName}</h2>
+      <div className="modal-overlay" onClick={onClose}>
+        <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '400px' }}>
+          <div className="modal-header">
+            <h2>Finalizza Iscrizione</h2>
           </div>
-          <div className="dashboard-info">
-            <div className="dashboard-info-item">
-              <span>Crediti Rimanenti: <strong>{currentCompanyData.credits}</strong></span>
-            </div>
-            <div className="dashboard-info-item">
-              <span>Stato: <strong className={currentCompanyData.status === 'active' ? 'status-active-text' : 'status-inactive-text'}>
-                {currentCompanyData.status === 'active' ? 'ATTIVO' : 'NON ATTIVO'}
-              </strong></span>
-            </div>
+          <div className="modal-body">
+            <p style={{ marginBottom: '1rem' }}>Sei sicuro di voler finalizzare questa iscrizione?</p>
+            <p style={{ marginBottom: '1rem' }}>Dopo questa operazione non potrai più aggiungere eventi o modificare gli eventi.</p>
+            <p style={{ fontWeight: 'bold' }}>L'iscrizione sarà considerata completa e chiusa.</p>
           </div>
-        </div>
-        <button onClick={() => setIsNewInscriptionModalOpen(true)} className="web3-button">+ Inizializza Nuova Iscrizione</button>
-      </div>
-
-      <div className="inscriptions-section-header">
-        <h3 className="inscriptions-section-title">Le mie Iscrizioni su Blockchain</h3>
-        <div className="refresh-section">
-          <button 
-            className="refresh-button"
-            onClick={handleRefresh}
-            disabled={isRefreshing || refreshCounter === 0}
-            title={isRefreshing || refreshCounter === 0 ? "Dashboard Aggiornata" : "Aggiorna Dashboard"}
-          >
-            <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPCEtLSBSZWZyZXNoIGNpcmN1bGFyIGFycm93cyAtLT4KPHBhdGggZD0iTTMgMTJBOSA5IDAgMCAxIDEyIDNWMUwxNiA1TDEyIDlWN0E3IDcgMCAwIDAgNSAxMkgzWiIgZmlsbD0id2hpdGUiLz4KPHBhdGggZD0iTTIxIDEyQTkgOSAwIDAgMSAxMiAyMVYyM0w4IDE5TDEyIDE1VjE3QTcgNyAwIDAgMCAxOSAxMkgyMVoiIGZpbGw9IndoaXRlIi8+Cjwvc3ZnPgo=" alt="refresh" className="refresh-icon" style={{width: '20px', height: '20px'}} />
-            {refreshCounter > 0 && (
-              <div className="refresh-counter">+{refreshCounter}</div>
-            )}
-          </button>
+          <div className="modal-footer">
+            <button onClick={onClose} className="web3-button secondary" disabled={isProcessing}>
+              Annulla
+            </button>
+            <button onClick={handleFinalize} disabled={isProcessing} className="web3-button">
+              {isProcessing ? "Finalizzazione..." : "OK"}
+            </button>
+          </div>
         </div>
       </div>
 
-      <div className="inscriptions-filters">
-        <div className="filter-group">
-          <label className="filter-label">Nome</label>
-          <input type="text" className="filter-input" value={nameFilter} onChange={(e) => setNameFilter(e.target.value)} />
-        </div>
-        <div className="filter-group">
-          <label className="filter-label">Luogo</label>
-          <input type="text" className="filter-input" value={locationFilter} onChange={(e) => setLocationFilter(e.target.value)} />
-        </div>
-        <div className="filter-group">
-          <label className="filter-label">Stato</label>
-          <select className="filter-input" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value as "Aperto" | "Chiuso" | "")}>
-            <option value="">Tutti</option>
-            <option value="Aperto">Aperto</option>
-            <option value="Chiuso">Chiuso</option>
-          </select>
-        </div>
-      </div>
-
-      {isLoadingBatches && !showFullPageLoading ? (
-        <div className="loading-error-container"><p>Caricamento delle tue iscrizioni...</p></div>
-      ) : errorBatches ? (
-        <div className="loading-error-container"><p style={{ color: 'red' }}>{errorBatches}</p></div>
-      ) : (
-        <>
-          <div className="inscriptions-grid">
-            {currentItems.length > 0 ? (
-              currentItems.map((batch) => (
-                <div key={batch.batchId} className="inscription-card">
-                  <h3>#{getBatchDisplayNumber(batch.batchId)} - {batch.name}</h3>
-                  <p><strong>Descrizione:</strong> {batch.description ? truncateText(batch.description, window.innerWidth < 768 ? 80 : 100) : "N/D"}</p>
-                  <p><strong>Data:</strong> {formatItalianDate(batch.date)}</p>
-                  <p><strong>Luogo:</strong> {batch.location || "N/D"}</p>
-                  <p><strong>Stato: </strong><span className={batch.isClosed ? 'status-closed' : 'status-open'}>{batch.isClosed ? 'Chiuso' : 'Aperto'}</span></p>
-                  {batch.imageIpfsHash && batch.imageIpfsHash !== "N/A" && (
-                    <p><a href="#" onClick={(e) => { e.preventDefault(); setSelectedImage(`https://musical-emerald-partridge.myfilebase.com/ipfs/${batch.imageIpfsHash}`); }}>Apri L'immagine</a></p>
-                  )}
-                  <p><strong>Tx Hash: </strong><a href={`https://polygonscan.com/inputdatadecoder?tx=${batch.transactionHash}`} target="_blank" rel="noopener noreferrer">{truncateText(batch.transactionHash, 15)}</a></p>
-
-                  {batch.steps && batch.steps.length > 0 && (
-                    <div className="steps-container">
-                      <h4>Steps:</h4>
-                      {batch.steps.map(step => (
-                        <div key={step.stepIndex} className="step-item">
-                          <p><strong>{step.eventName}</strong> (Step #{step.stepIndex})</p>
-                          <p>Desc: {step.description ? truncateText(step.description, 50) : "N/D"}</p>
-                          <p>Data: {formatItalianDate(step.date)} | Luogo: {step.location || "N/D"}</p>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  <div className="inscription-footer">
-                    <div className="steps-count">{batch.steps ? `${batch.steps.length} steps` : "0 steps"}</div>
-                    {!batch.isClosed ? (
-                      <div className="inscription-footer-actions">
-                          <button className="finalize-button" onClick={() => handleOpenFinalizeModal(batch.batchId)}>Finalizza</button>
-                          <button className="add-step-button" onClick={() => handleOpenAddStepModal(batch.batchId)}>Aggiungi Step</button>
-                      </div>
-                    ) : (
-                      <span className="closed-lock-icon">🔒</span>
-                    )}
-                  </div>
-                </div>
-              ))
-            ) : (
-              <div className="empty-state">
-                <p>Non hai ancora inizializzato nessuna iscrizione con questo account.</p>
-                <p style={{ fontSize: '0.8rem', marginTop: '0.5rem', opacity: 0.7 }}>Clicca su "Inizializza Nuova Iscrizione" per iniziare</p>
-              </div>
-            )}
-          </div>
-
-          {filteredBatches.length > itemsPerPage && (
-            <div className="pagination-container">
-              <button className="pagination-button" onClick={handlePreviousPage} disabled={currentPage === 1}>&lt;</button>
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map(number => (
-                <button key={number} className={`pagination-number ${currentPage === number ? 'active' : ''}`} onClick={() => paginate(number)}>{number}</button>
-              ))}
-              <button className="pagination-button" onClick={handleNextPage} disabled={currentPage === totalPages}>&gt;</button>
-              <span className="pagination-info">Pagina {currentPage} di {totalPages}</span>
-            </div>
-          )}
-        </>
-      )}
-
-      {selectedImage && <ImageModal imageUrl={selectedImage} onClose={() => setSelectedImage(null)} />}
-      
-      {isNewInscriptionModalOpen && (
-        <NewInscriptionModal 
-          onClose={() => setIsNewInscriptionModalOpen(false)}
-          onSuccess={() => {
-            setIsNewInscriptionModalOpen(false);
-            incrementRefreshCounter();
-          }}
-          onCreditsUpdate={(newCredits: number) => {
-            setCurrentCompanyData(prev => ({ ...prev, credits: newCredits }));
-          }}
+      {isProcessing && (
+        <TransactionStatusModal 
+          status="loading" 
+          message={loadingMessage} 
+          onClose={() => {}} 
         />
       )}
 
-      {isAddStepModalOpen && selectedBatchForAction && (
-        <AddStepModal 
-          batchId={selectedBatchForAction}
-          onClose={() => setIsAddStepModalOpen(false)}
-          onSuccess={() => {
-            setIsAddStepModalOpen(false);
-            incrementRefreshCounter();
-          }}
-          onCreditsUpdate={(newCredits: number) => {
-            setCurrentCompanyData(prev => ({ ...prev, credits: newCredits }));
-          }}
-        />
-      )}
-      
-      {isFinalizeModalOpen && (
-        <FinalizeInscriptionModal
-          onClose={() => setIsFinalizeModalOpen(false)}
-          onConfirm={handleConfirmFinalize}
-          isPending={isFinalizing}
+      {txResult && (
+        <TransactionStatusModal 
+          status={txResult.status} 
+          message={txResult.message} 
+          onClose={() => {
+            if (txResult.status === "success") onClose();
+            setTxResult(null);
+          }} 
         />
       )}
     </>
   );
 };
-
 
 // Componente modale per nuova iscrizione
 const NewInscriptionModal: React.FC<{ 
