@@ -346,6 +346,160 @@ const AziendaPageStyles = () => (
         transform: translateY(-1px);
       }
 
+      .export-button {
+        background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+        color: white;
+        border: none;
+        border-radius: 0.5rem;
+        padding: 0.5rem 1rem;
+        font-size: 0.8rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        position: relative;
+      }
+
+      .export-button:hover:not(:disabled) {
+        background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+        transform: translateY(-1px);
+      }
+
+      .export-button:disabled {
+        background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+        cursor: not-allowed;
+        opacity: 0.6;
+      }
+
+      .view-steps-button {
+        background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+        color: white;
+        border: none;
+        border-radius: 0.5rem;
+        padding: 0.5rem 1rem;
+        font-size: 0.8rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      .view-steps-button:hover {
+        background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+        transform: translateY(-1px);
+      }
+
+      .tooltip {
+        position: absolute;
+        bottom: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        background-color: #1f2937;
+        color: white;
+        padding: 0.5rem;
+        border-radius: 0.25rem;
+        font-size: 0.75rem;
+        white-space: nowrap;
+        z-index: 1000;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.2s;
+      }
+
+      .tooltip::after {
+        content: '';
+        position: absolute;
+        top: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        border: 4px solid transparent;
+        border-top-color: #1f2937;
+      }
+
+      .export-button:hover .tooltip {
+        opacity: 1;
+      }
+
+      .steps-modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0, 0, 0, 0.75);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+        padding: 1rem;
+      }
+
+      .steps-modal-content {
+        background-color: #1a1a1a;
+        border-radius: 1rem;
+        border: 1px solid #333;
+        width: 100%;
+        max-width: 800px;
+        max-height: 90vh;
+        overflow-y: auto;
+        color: #ffffff;
+      }
+
+      .steps-modal-header {
+        padding: 1.5rem;
+        border-bottom: 1px solid #333;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .steps-modal-body {
+        padding: 1.5rem;
+      }
+
+      .step-card {
+        background: linear-gradient(135deg, #2a2a2a 0%, #3a3a3a 100%);
+        border-radius: 0.75rem;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        border: 1px solid #444;
+      }
+
+      .step-card h4 {
+        color: #3b82f6;
+        margin: 0 0 1rem 0;
+        font-size: 1.1rem;
+      }
+
+      .step-card p {
+        margin: 0.5rem 0;
+        color: #a0a0a0;
+      }
+
+      .step-card strong {
+        color: #ffffff;
+      }
+
+      .export-modal-buttons {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        margin-top: 2rem;
+      }
+
+      .export-type-button {
+        background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+        color: white;
+        border: none;
+        border-radius: 0.5rem;
+        padding: 1rem 2rem;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        min-width: 150px;
+      }
+
+      .export-type-button:hover {
+        background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+        transform: translateY(-2px);
+      }
+
       .finalize-button {
         background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
         color: white;
@@ -824,6 +978,11 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
   const [currentCompanyData, setCurrentCompanyData] = useState<CompanyData>(companyData);
   const [selectedBatchForStep, setSelectedBatchForStep] = useState<Batch | null>(null);
   const [selectedBatchForFinalize, setSelectedBatchForFinalize] = useState<Batch | null>(null);
+  const [selectedBatchForSteps, setSelectedBatchForSteps] = useState<Batch | null>(null);
+  const [selectedBatchForExport, setSelectedBatchForExport] = useState<Batch | null>(null);
+  const [showExportModal, setShowExportModal] = useState(false);
+  const [showBannerModal, setShowBannerModal] = useState(false);
+  const [selectedExportType, setSelectedExportType] = useState<'pdf' | 'html' | null>(null);
 
   // State per i filtri
   const [nameFilter, setNameFilter] = useState("");
@@ -968,6 +1127,35 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
     }
   };
 
+  const handleExport = async (batch: Batch, exportType: 'pdf' | 'html', bannerId: string) => {
+    try {
+      const response = await fetch('/api/export-batch', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          batch,
+          exportType,
+          bannerId,
+          companyName: currentCompanyData.companyName
+        }),
+      });
+
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${batch.name}_export.${exportType}`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      }
+    } catch (error) {
+      console.error('Errore durante l\'esportazione:', error);
+    }
+  };
+
   return (
     <>
       {showFullPageLoading && (
@@ -1084,42 +1272,62 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
                     </a>
                   </p>
 
-                  {batch.steps && batch.steps.length > 0 && (
-                    <div className="steps-container">
-                      <h4>Steps:</h4>
-                      {batch.steps.map(step => (
-                        <div key={step.stepIndex} className="step-item">
-                          <p><strong>{step.eventName}</strong> (Step #{step.stepIndex})</p>
-                          <p>Desc: {step.description ? truncateText(step.description, 50) : "N/D"}</p>
-                          <p>Data: {formatItalianDate(step.date)} | Luogo: {step.location || "N/D"}</p>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
                   <div className="inscription-footer">
                     <div className="steps-count">
-                      {batch.steps ? `${batch.steps.length} steps` : "0 steps"}
-                    </div>
-                    {/* Pulsante Aggiungi Step per iscrizioni aperte, lucchetto per quelle chiuse */}
-                    {!batch.isClosed ? (
-                      <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                      {batch.steps && batch.steps.length > 0 ? (
                         <button 
-                          className="add-step-button"
-                          onClick={() => setSelectedBatchForStep(batch)}
+                          className="view-steps-button"
+                          onClick={() => setSelectedBatchForSteps(batch)}
                         >
-                          Aggiungi Step
+                          Visualizza {batch.steps.length} steps
                         </button>
+                      ) : (
+                        <span>{batch.steps ? `${batch.steps.length} steps` : "0 steps"}</span>
+                      )}
+                    </div>
+                    
+                    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                      {/* Pulsante Esporta - attivo solo per batch chiusi */}
+                      <div style={{ position: 'relative' }}>
                         <button 
-                          className="finalize-button"
-                          onClick={() => setSelectedBatchForFinalize(batch)}
+                          className="export-button"
+                          disabled={!batch.isClosed}
+                          onClick={() => {
+                            if (batch.isClosed) {
+                              setSelectedBatchForExport(batch);
+                              setShowExportModal(true);
+                            }
+                          }}
                         >
-                          Finalizza
+                          Esporta
+                          {!batch.isClosed && (
+                            <div className="tooltip">
+                              Devi prima finalizzare l'iscrizione per poter esportare un documento riepilogativo
+                            </div>
+                          )}
                         </button>
                       </div>
-                    ) : (
-                      <span className="closed-lock-icon">🔒</span>
-                    )}
+
+                      {/* Pulsanti Aggiungi Step e Finalizza per iscrizioni aperte, lucchetto per quelle chiuse */}
+                      {!batch.isClosed ? (
+                        <>
+                          <button 
+                            className="add-step-button"
+                            onClick={() => setSelectedBatchForStep(batch)}
+                          >
+                            Aggiungi Step
+                          </button>
+                          <button 
+                            className="finalize-button"
+                            onClick={() => setSelectedBatchForFinalize(batch)}
+                          >
+                            Finalizza
+                          </button>
+                        </>
+                      ) : (
+                        <span className="closed-lock-icon">🔒</span>
+                      )}
+                    </div>
                   </div>
                 </div>
               ))
@@ -1217,6 +1425,49 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
           }}
           onCreditsUpdate={(newCredits: number) => {
             setCurrentCompanyData(prev => ({ ...prev, credits: newCredits }));
+          }}
+        />
+      )}
+
+      {/* Modale per visualizzare steps */}
+      {selectedBatchForSteps && (
+        <StepsModal 
+          batch={selectedBatchForSteps}
+          onClose={() => setSelectedBatchForSteps(null)}
+        />
+      )}
+
+      {/* Modale per scelta tipo esportazione */}
+      {showExportModal && selectedBatchForExport && (
+        <ExportTypeModal 
+          batch={selectedBatchForExport}
+          onClose={() => {
+            setShowExportModal(false);
+            setSelectedBatchForExport(null);
+          }}
+          onSelectType={(type) => {
+            setSelectedExportType(type);
+            setShowExportModal(false);
+            setShowBannerModal(true);
+          }}
+        />
+      )}
+
+      {/* Modale per scelta banner */}
+      {showBannerModal && selectedBatchForExport && selectedExportType && (
+        <BannerSelectionModal 
+          batch={selectedBatchForExport}
+          exportType={selectedExportType}
+          onClose={() => {
+            setShowBannerModal(false);
+            setSelectedBatchForExport(null);
+            setSelectedExportType(null);
+          }}
+          onExport={(bannerId) => {
+            handleExport(selectedBatchForExport, selectedExportType, bannerId);
+            setShowBannerModal(false);
+            setSelectedBatchForExport(null);
+            setSelectedExportType(null);
           }}
         />
       )}
@@ -1549,6 +1800,147 @@ const AddStepModal: React.FC<{
         />
       )}
     </>
+  );
+};
+
+// Componente modale per visualizzare steps
+const StepsModal: React.FC<{ 
+  batch: Batch;
+  onClose: () => void; 
+}> = ({ batch, onClose }) => {
+  return (
+    <div className="steps-modal-overlay" onClick={onClose}>
+      <div className="steps-modal-content" onClick={(e) => e.stopPropagation()}>
+        <div className="steps-modal-header">
+          <h2>Steps di: {batch.name}</h2>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#fff', fontSize: '1.5rem', cursor: 'pointer' }}>×</button>
+        </div>
+        <div className="steps-modal-body">
+          {batch.steps && batch.steps.length > 0 ? (
+            batch.steps.map((step, index) => (
+              <div key={step.stepIndex} className="step-card">
+                <h4>Step {parseInt(step.stepIndex) + 1}: {step.eventName}</h4>
+                <p><strong>Descrizione:</strong> {step.description || "N/D"}</p>
+                <p><strong>Data:</strong> {formatItalianDate(step.date)}</p>
+                <p><strong>Luogo:</strong> {step.location || "N/D"}</p>
+                {step.attachmentsIpfsHash && step.attachmentsIpfsHash !== "N/A" && (
+                  <p>
+                    <strong>Allegati:</strong> 
+                    <a 
+                      href={`https://musical-emerald-partridge.myfilebase.com/ipfs/${step.attachmentsIpfsHash}`} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      style={{ color: '#60a5fa', marginLeft: '0.5rem' }}
+                    >
+                      Visualizza file
+                    </a>
+                  </p>
+                )}
+              </div>
+            ))
+          ) : (
+            <p style={{ textAlign: 'center', color: '#a0a0a0' }}>Nessun step presente per questa iscrizione.</p>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Componente modale per scelta tipo esportazione
+const ExportTypeModal: React.FC<{ 
+  batch: Batch;
+  onClose: () => void;
+  onSelectType: (type: 'pdf' | 'html') => void;
+}> = ({ batch, onClose, onSelectType }) => {
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '400px' }}>
+        <div className="modal-header">
+          <h2>Che tipo di file vuoi esportare?</h2>
+        </div>
+        <div className="modal-body">
+          <div className="export-modal-buttons">
+            <button 
+              className="export-type-button"
+              onClick={() => onSelectType('pdf')}
+            >
+              Esporta PDF
+            </button>
+            <button 
+              className="export-type-button"
+              onClick={() => onSelectType('html')}
+            >
+              Esporta HTML
+            </button>
+          </div>
+        </div>
+        <div className="modal-footer">
+          <button onClick={onClose} className="web3-button secondary">
+            Annulla
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Componente modale per selezione banner
+const BannerSelectionModal: React.FC<{ 
+  batch: Batch;
+  exportType: 'pdf' | 'html';
+  onClose: () => void;
+  onExport: (bannerId: string) => void;
+}> = ({ batch, exportType, onClose, onExport }) => {
+  const banners = [
+    { id: 'banner1', name: 'Banner Standard', preview: '/src/banners/banner1.png' },
+    { id: 'banner2', name: 'Banner Elegante', preview: '/src/banners/banner2.png' },
+    { id: 'banner3', name: 'Banner Minimalista', preview: '/src/banners/banner3.png' }
+  ];
+
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '600px' }}>
+        <div className="modal-header">
+          <h2>Scegli il banner per l'esportazione {exportType.toUpperCase()}</h2>
+        </div>
+        <div className="modal-body">
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '1rem' }}>
+            {banners.map(banner => (
+              <div 
+                key={banner.id}
+                style={{ 
+                  border: '1px solid #333', 
+                  borderRadius: '0.5rem', 
+                  padding: '1rem', 
+                  textAlign: 'center', 
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease'
+                }}
+                onClick={() => onExport(banner.id)}
+                onMouseEnter={(e) => e.currentTarget.style.borderColor = '#3b82f6'}
+                onMouseLeave={(e) => e.currentTarget.style.borderColor = '#333'}
+              >
+                <img 
+                  src={banner.preview} 
+                  alt={banner.name}
+                  style={{ width: '100%', height: '100px', objectFit: 'cover', borderRadius: '0.25rem', marginBottom: '0.5rem' }}
+                  onError={(e) => {
+                    e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiBmaWxsPSIjMzMzIi8+Cjx0ZXh0IHg9IjUwIiB5PSI1NSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE0IiBmaWxsPSIjNjY2IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5CYW5uZXI8L3RleHQ+Cjwvc3ZnPgo=';
+                  }}
+                />
+                <p style={{ margin: 0, fontSize: '0.9rem' }}>{banner.name}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="modal-footer">
+          <button onClick={onClose} className="web3-button secondary">
+            Annulla
+          </button>
+        </div>
+      </div>
+    </div>
   );
 };
 
