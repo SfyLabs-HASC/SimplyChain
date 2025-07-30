@@ -923,6 +923,7 @@ interface Step {
   date: string; 
   location: string; 
   attachmentsIpfsHash: string; 
+  transactionHash?: string;
 }
 
 interface Batch { 
@@ -953,7 +954,8 @@ const contract = getContract({
 });
 
 // Componente modale per visualizzare immagini
-const ImageModal: React.FC<{ imageUrl: string; onClose: () => void }> = ({ imageUrl, onClose }) => {
+const ImageModal```typescript
+: React.FC<{ imageUrl: string; onClose: () => void }> = ({ imageUrl, onClose }) => {
   return (
     <div className="image-modal-overlay" onClick={onClose}>
       <div className="image-modal-content" onClick={(e) => e.stopPropagation()}>
@@ -1278,15 +1280,13 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
                   <p><strong>Descrizione:</strong> {batch.description ? truncateText(batch.description, window.innerWidth < 768 ? 80 : 100) : "N/D"}</p>
                   <p><strong>Data:</strong> {formatItalianDate(batch.date)}</p>
                   <p><strong>Luogo:</strong> {batch.location || "N/D"}</p>
-                  <p><strong>Stato:</strong> 
-                    <span className={batch.isClosed ? 'status-closed' : 'status-open'}>
-                      {batch.isClosed ? ' Chiuso' : ' Aperto'}
-                    </span>
-                  </p>
+                  <p><strong>Stato:</strong> <span className={batch.isClosed ? 'status-closed' : 'status-open'}>
+                    {batch.isClosed ? ' Chiuso' : ' Aperto'}
+                  </span></p>
                   {batch.imageIpfsHash && batch.imageIpfsHash !== "N/A" && (
                     <p>
-                      <a 
-                        href="#" 
+                      <a
+                        href="#"
                         onClick={(e) => {
                           e.preventDefault();
                           setSelectedImage(`https://musical-emerald-partridge.myfilebase.com/ipfs/${batch.imageIpfsHash}`);
@@ -1296,10 +1296,10 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
                       </a>
                     </p>
                   )}
-                  <p><strong>Tx Hash:</strong> 
-                    <a 
-                      href={`https://polygonscan.com/inputdatadecoder?tx=${batch.transactionHash}`} 
-                      target="_blank" 
+                  <p><strong>Tx Hash:</strong>
+                    <a
+                      href={`https://polygonscan.com/inputdatadecoder?tx=${batch.transactionHash}`}
+                      target="_blank"
                       rel="noopener noreferrer"
                     >
                       {truncateText(batch.transactionHash, 15)}
@@ -1309,14 +1309,14 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
                   <div className="inscription-footer">
                     <div className="steps-count">
                       {batch.steps && batch.steps.length > 0 ? (
-                        <button 
+                        <button
                           className="view-steps-button"
                           onClick={() => setSelectedBatchForSteps(batch)}
                         >
                           {batch.steps.length} steps
                         </button>
                       ) : (
-                        <button 
+                        <button
                           className="view-steps-button disabled"
                           disabled={true}
                         >
@@ -1324,11 +1324,11 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
                         </button>
                       )}
                     </div>
-                    
+
                     <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                       {/* Pulsante Esporta - mostrato solo per batch chiusi */}
                       {batch.isClosed && (
-                        <button 
+                        <button
                           className="export-button"
                           onClick={() => {
                             setSelectedBatchForExport(batch);
@@ -1342,13 +1342,13 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
                       {/* Pulsanti Aggiungi Step e Finalizza per iscrizioni aperte, lucchetto per quelle chiuse */}
                       {!batch.isClosed ? (
                         <>
-                          <button 
+                          <button
                             className="add-step-button"
                             onClick={() => setSelectedBatchForStep(batch)}
                           >
                             Aggiungi Step
                           </button>
-                          <button 
+                          <button
                             className="finalize-button"
                             onClick={() => setSelectedBatchForFinalize(batch)}
                           >
@@ -1410,15 +1410,15 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
 
       {/* Modale per visualizzare immagini */}
       {selectedImage && (
-        <ImageModal 
-          imageUrl={selectedImage} 
-          onClose={() => setSelectedImage(null)} 
+        <ImageModal
+          imageUrl={selectedImage}
+          onClose={() => setSelectedImage(null)}
         />
       )}
 
       {/* Modale per nuova iscrizione */}
       {isModalOpen && (
-        <NewInscriptionModal 
+        <NewInscriptionModal
           onClose={() => setIsModalOpen(false)}
           onSuccess={() => {
             setIsModalOpen(false);
@@ -1432,7 +1432,7 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
 
       {/* Modale per aggiungere step */}
       {selectedBatchForStep && (
-        <AddStepModal 
+        <AddStepModal
           batch={selectedBatchForStep}
           onClose={() => setSelectedBatchForStep(null)}
           onSuccess={() => {
@@ -1447,7 +1447,7 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
 
       {/* Modale per finalizzare iscrizione */}
       {selectedBatchForFinalize && (
-        <FinalizeModal 
+        <FinalizeModal
           batch={selectedBatchForFinalize}
           onClose={() => setSelectedBatchForFinalize(null)}
           onSuccess={() => {
@@ -1462,7 +1462,7 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
 
       {/* Modale per visualizzare steps */}
       {selectedBatchForSteps && (
-        <StepsModal 
+        <StepsModal
           batch={selectedBatchForSteps}
           onClose={() => setSelectedBatchForSteps(null)}
         />
@@ -1470,7 +1470,7 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
 
       {/* Modale per scelta tipo esportazione */}
       {showExportModal && selectedBatchForExport && (
-        <ExportTypeModal 
+        <ExportTypeModal
           batch={selectedBatchForExport}
           onClose={() => {
             setShowExportModal(false);
@@ -1486,7 +1486,7 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
 
       {/* Modale per scelta banner */}
       {showBannerModal && selectedBatchForExport && selectedExportType && (
-        <BannerSelectionModal 
+        <BannerSelectionModal
           batch={selectedBatchForExport}
           exportType={selectedExportType}
           onClose={() => {
@@ -1512,9 +1512,9 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
 };
 
 // Componente modale per aggiungere step
-const AddStepModal: React.FC<{ 
+const AddStepModal: React.FC<{
   batch: Batch;
-  onClose: () => void; 
+  onClose: () => void;
   onSuccess: () => void;
   onCreditsUpdate: (credits: number) => void;
 }> = ({ batch, onClose, onSuccess, onCreditsUpdate }) => {
@@ -1620,9 +1620,9 @@ const AddStepModal: React.FC<{
         }, 2000);
       },
       onError: (err) => {
-        setTxResult({ 
-          status: "error", 
-          message: err.message.toLowerCase().includes("insufficient funds") ? "Crediti Insufficienti" : "Errore nella transazione." 
+        setTxResult({
+          status: "error",
+          message: err.message.toLowerCase().includes("insufficient funds") ? "Crediti Insufficienti" : "Errore nella transazione."
         });
         setLoadingMessage("");
       },
@@ -1631,14 +1631,14 @@ const AddStepModal: React.FC<{
 
   const isProcessing = loadingMessage !== "" || isPending;
   const today = new Date().toISOString().split("T")[0];
-  const helpTextStyle = { 
-    backgroundColor: "#343a40", 
-    border: "1px solid #495057", 
-    borderRadius: "8px", 
-    padding: "16px", 
-    marginTop: "16px", 
-    fontSize: "0.9rem", 
-    color: "#f8f9fa" 
+  const helpTextStyle = {
+    backgroundColor: "#343a40",
+    border: "1px solid #495057",
+    borderRadius: "8px",
+    padding: "16px",
+    marginTop: "16px",
+    fontSize: "0.9rem",
+    color: "#f8f9fa"
   };
 
   return (
@@ -1653,16 +1653,16 @@ const AddStepModal: React.FC<{
               <div>
                 <div className="form-group">
                   <label>
-                    Nome Evento 
+                    Nome Evento
                     <span style={{ color: "red", fontWeight: "bold" }}> * Obbligatorio</span>
                   </label>
-                  <input 
-                    type="text" 
-                    name="eventName" 
-                    value={formData.eventName} 
-                    onChange={handleInputChange} 
-                    className="form-input" 
-                    maxLength={100} 
+                  <input
+                    type="text"
+                    name="eventName"
+                    value={formData.eventName}
+                    onChange={handleInputChange}
+                    className="form-input"
+                    maxLength={100}
                   />
                   <small className="char-counter">{formData.eventName.length} / 100</small>
                 </div>
@@ -1684,15 +1684,15 @@ const AddStepModal: React.FC<{
               <div>
                 <div className="form-group">
                   <label>
-                    Descrizione 
+                    Descrizione
                     <span style={{ color: "#6c757d" }}> Non obbligatorio</span>
                   </label>
-                  <textarea 
-                    name="description" 
-                    value={formData.description} 
-                    onChange={handleInputChange} 
-                    className="form-input" 
-                    rows={4} 
+                  <textarea
+                    name="description"
+                    value={formData.description}
+                    onChange={handleInputChange}
+                    className="form-input"
+                    rows={4}
                     maxLength={500}
                   ></textarea>
                   <small className="char-counter">{formData.description.length} / 500</small>
@@ -1707,16 +1707,16 @@ const AddStepModal: React.FC<{
               <div>
                 <div className="form-group">
                   <label>
-                    Luogo 
+                    Luogo
                     <span style={{ color: "#6c757d" }}> Non obbligatorio</span>
                   </label>
-                  <input 
-                    type="text" 
-                    name="location" 
-                    value={formData.location} 
-                    onChange={handleInputChange} 
-                    className="form-input" 
-                    maxLength={100} 
+                  <input
+                    type="text"
+                    name="location"
+                    value={formData.location}
+                    onChange={handleInputChange}
+                    className="form-input"
+                    maxLength={100}
                   />
                   <small className="char-counter">{formData.location.length} / 100</small>
                 </div>
@@ -1730,16 +1730,16 @@ const AddStepModal: React.FC<{
               <div>
                 <div className="form-group">
                   <label>
-                    Data 
+                    Data
                     <span style={{ color: "#6c757d" }}> Non obbligatorio</span>
                   </label>
-                  <input 
-                    type="date" 
-                    name="date" 
-                    value={formData.date} 
-                    onChange={handleInputChange} 
-                    className="form-input" 
-                    max={today} 
+                  <input
+                    type="date"
+                    name="date"
+                    value={formData.date}
+                    onChange={handleInputChange}
+                    className="form-input"
+                    max={today}
                   />
                 </div>
                 <div style={helpTextStyle}>
@@ -1752,18 +1752,18 @@ const AddStepModal: React.FC<{
               <div>
                 <div className="form-group">
                   <label>
-                    Immagini / Documenti 
+                    Immagini / Documenti
                     <span style={{ color: "#6c757d" }}> Non obbligatorio</span>
                   </label>
-                  <input 
-                    type="file" 
-                    name="attachments" 
-                    onChange={handleFileChange} 
-                    className="form-input" 
-                    accept="image/png, image/jpeg, image/webp, application/pdf, application/msword, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/vnd.oasis.opendocument.text, text/csv, application/vnd.ms-excel, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" 
+                  <input
+                    type="file"
+                    name="attachments"
+                    onChange={handleFileChange}
+                    className="form-input"
+                    accept="image/png, image/jpeg, image/webp, application/pdf, application/msword, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/vnd.oasis.opendocument.text, text/csv, application/vnd.ms-excel, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
                   />
                   <small style={{ marginTop: "4px" }}>
-                    Formati immagini: PNG, JPG, WEBP. Max: 5 MB.<br/>
+                    Formati immagini: PNG, JPG, WEBP. Max: 5 MB.<br />
                     Formati documenti: PDF, DOC, DOCX, ODT, CSV, XLS, XLSX. Max 10 MB.
                   </small>
                   {selectedFile && (
@@ -1817,751 +1817,4 @@ const AddStepModal: React.FC<{
         </div>
       </div>
 
-      {isProcessing && (
-        <TransactionStatusModal 
-          status="loading" 
-          message={loadingMessage} 
-          onClose={() => {}} 
-        />
-      )}
-
-      {txResult && (
-        <TransactionStatusModal 
-          status={txResult.status} 
-          message={txResult.message} 
-          onClose={() => {
-            if (txResult.status === "success") onClose();
-            setTxResult(null);
-          }} 
-        />
-      )}
-    </>
-  );
-};
-
-// Componente modale per visualizzare steps
-const StepsModal: React.FC<{ 
-  batch: Batch;
-  onClose: () => void; 
-}> = ({ batch, onClose }) => {
-  return (
-    <div className="steps-modal-overlay" onClick={onClose}>
-      <div className="steps-modal-content" onClick={(e) => e.stopPropagation()}>
-        <div className="steps-modal-header">
-          <h2>Steps di: {batch.name}</h2>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#fff', fontSize: '1.5rem', cursor: 'pointer' }}>×</button>
-        </div>
-        <div className="steps-modal-body">
-          {batch.steps && batch.steps.length > 0 ? (
-            batch.steps.map((step, index) => (
-              <div key={step.stepIndex} className="step-card">
-                <h4>Step {parseInt(step.stepIndex) + 1}: {step.eventName}</h4>
-                <p><strong>Descrizione:</strong> {step.description || "N/D"}</p>
-                <p><strong>Data:</strong> {formatItalianDate(step.date)}</p>
-                <p><strong>Luogo:</strong> {step.location || "N/D"}</p>
-                {step.attachmentsIpfsHash && step.attachmentsIpfsHash !== "N/A" && (
-                  <p>
-                    <strong>Allegati:</strong> 
-                    <a 
-                      href={`https://musical-emerald-partridge.myfilebase.com/ipfs/${step.attachmentsIpfsHash}`} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      style={{ color: '#60a5fa', marginLeft: '0.5rem' }}
-                    >
-                      Visualizza file
-                    </a>
-                  </p>
-                )}
-              </div>
-            ))
-          ) : (
-            <p style={{ textAlign: 'center', color: '#a0a0a0' }}>Nessun step presente per questa iscrizione.</p>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// Componente modale per scelta tipo esportazione
-const ExportTypeModal: React.FC<{ 
-  batch: Batch;
-  onClose: () => void;
-  onSelectType: (type: 'pdf' | 'html') => void;
-}> = ({ batch, onClose, onSelectType }) => {
-  return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '400px' }}>
-        <div className="modal-header">
-          <h2>Che tipo di file vuoi esportare?</h2>
-        </div>
-        <div className="modal-body">
-          <div className="export-modal-buttons">
-            <button 
-              className="export-type-button"
-              onClick={() => onSelectType('pdf')}
-            >
-              Esporta PDF
-            </button>
-            <button 
-              className="export-type-button"
-              onClick={() => onSelectType('html')}
-            >
-              Esporta HTML
-            </button>
-          </div>
-        </div>
-        <div className="modal-footer">
-          <button onClick={onClose} className="web3-button secondary">
-            Annulla
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// Componente modale per selezione banner
-const BannerSelectionModal: React.FC<{ 
-  batch: Batch;
-  exportType: 'pdf' | 'html';
-  onClose: () => void;
-  onExport: (bannerId: string) => void;
-}> = ({ batch, exportType, onClose, onExport }) => {
-  const banners = [
-    { id: 'banner1', name: 'Banner 1', preview: '/src/banners/banner1.png' },
-    { id: 'banner2', name: 'Banner 2', preview: '/src/banners/banner2.png' },
-    { id: 'banner3', name: 'Banner 3', preview: '/src/banners/banner3.png' },
-    { id: 'banner4', name: 'Banner 4', preview: '/src/banners/banner4.png' }
-  ];
-
-  return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '600px' }}>
-        <div className="modal-header">
-          <h2>Scegli il banner per l'esportazione {exportType.toUpperCase()}</h2>
-        </div>
-        <div className="modal-body">
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '1rem' }}>
-            {banners.map(banner => (
-              <div 
-                key={banner.id}
-                style={{ 
-                  border: '1px solid #333', 
-                  borderRadius: '0.5rem', 
-                  padding: '1rem', 
-                  textAlign: 'center', 
-                  cursor: 'pointer',
-                  transition: 'all 0.3s ease'
-                }}
-                onClick={() => onExport(banner.id)}
-                onMouseEnter={(e) => e.currentTarget.style.borderColor = '#3b82f6'}
-                onMouseLeave={(e) => e.currentTarget.style.borderColor = '#333'}
-              >
-                <img 
-                  src={banner.preview} 
-                  alt={banner.name}
-                  style={{ width: '100%', height: '100px', objectFit: 'cover', borderRadius: '0.25rem', marginBottom: '0.5rem' }}
-                  onError={(e) => {
-                    e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiBmaWxsPSIjMzMzIi8+Cjx0ZXh0IHg9IjUwIiB5PSI1NSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE0IiBmaWxsPSIjNjY2IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5CYW5uZXI8L3RleHQ+Cjwvc3ZnPgo=';
-                  }}
-                />
-                <p style={{ margin: 0, fontSize: '0.9rem' }}>{banner.name}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-        <div className="modal-footer">
-          <button onClick={onClose} className="web3-button secondary">
-            Annulla
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// Componente modale per finalizzare iscrizione
-const FinalizeModal: React.FC<{ 
-  batch: Batch;
-  onClose: () => void; 
-  onSuccess: () => void;
-  onCreditsUpdate: (credits: number) => void;
-}> = ({ batch, onClose, onSuccess, onCreditsUpdate }) => {
-  const account = useActiveAccount();
-  const { mutate: sendTransaction, isPending } = useSendTransaction();
-  const [txResult, setTxResult] = useState<{ status: "success" | "error"; message: string; } | null>(null);
-  const [loadingMessage, setLoadingMessage] = useState("");
-
-  const handleFinalize = async () => {
-    setLoadingMessage("Finalizzazione in corso...");
-    
-    const transaction = prepareContractCall({
-      contract,
-      method: "function closeBatch(uint256)",
-      params: [batch.batchId],
-    });
-
-    sendTransaction(transaction, {
-      onSuccess: async (result) => {
-        setTxResult({ status: "success", message: "Iscrizione finalizzata! Aggiorno i dati..." });
-
-        // Aggiorna i crediti localmente dopo la transazione
-        if (account?.address) {
-          try {
-            const response = await fetch(`/api/get-company-status?walletAddress=${account.address}`);
-            if (response.ok) {
-              const data = await response.json();
-              onCreditsUpdate(data.credits);
-
-              await fetch('/api/activate-company', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  action: 'setCredits',
-                  walletAddress: account.address,
-                  credits: data.credits,
-                }),
-              });
-            }
-          } catch (error) {
-            console.error("Errore durante l'aggiornamento dei crediti:", error);
-          }
-        }
-
-        setTimeout(() => {
-          onSuccess();
-          setLoadingMessage("");
-        }, 2000);
-      },
-      onError: (err) => {
-        setTxResult({ 
-          status: "error", 
-          message: err.message.toLowerCase().includes("insufficient funds") ? "Crediti Insufficienti" : "Errore nella transazione." 
-        });
-        setLoadingMessage("");
-      },
-    });
-  };
-
-  const isProcessing = loadingMessage !== "" || isPending;
-
-  return (
-    <>
-      <div className="modal-overlay" onClick={onClose}>
-        <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '400px' }}>
-          <div className="modal-header">
-            <h2>Finalizza Iscrizione</h2>
-          </div>
-          <div className="modal-body">
-            <p style={{ marginBottom: '1rem' }}>Sei sicuro di voler finalizzare questa iscrizione?</p>
-            <p style={{ marginBottom: '1rem' }}>Dopo questa operazione non potrai più aggiungere eventi o modificare gli eventi.</p>
-            <p style={{ fontWeight: 'bold' }}>L'iscrizione sarà considerata completa e chiusa.</p>
-          </div>
-          <div className="modal-footer">
-            <button onClick={onClose} className="web3-button secondary" disabled={isProcessing}>
-              Annulla
-            </button>
-            <button onClick={handleFinalize} disabled={isProcessing} className="web3-button">
-              {isProcessing ? "Finalizzazione..." : "OK"}
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {isProcessing && (
-        <TransactionStatusModal 
-          status="loading" 
-          message={loadingMessage} 
-          onClose={() => {}} 
-        />
-      )}
-
-      {txResult && (
-        <TransactionStatusModal 
-          status={txResult.status} 
-          message={txResult.message} 
-          onClose={() => {
-            if (txResult.status === "success") onClose();
-            setTxResult(null);
-          }} 
-        />
-      )}
-    </>
-  );
-};
-
-// Componente modale per nuova iscrizione
-const NewInscriptionModal: React.FC<{ 
-  onClose: () => void; 
-  onSuccess: () => void;
-  onCreditsUpdate: (credits: number) => void;
-}> = ({ onClose, onSuccess, onCreditsUpdate }) => {
-  const account = useActiveAccount();
-  const { mutate: sendTransaction, isPending } = useSendTransaction();
-
-  const [currentStep, setCurrentStep] = useState(1);
-  const [formData, setFormData] = useState({
-    name: "",
-    description: "",
-    date: "",
-    location: ""
-  });
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [txResult, setTxResult] = useState<{ status: "success" | "error"; message: string; } | null>(null);
-  const [loadingMessage, setLoadingMessage] = useState("");
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSelectedFile(e.target.files?.[0] || null);
-  };
-
-  const handleNextStep = () => {
-    if (currentStep === 1 && !formData.name.trim()) {
-      alert("Il campo 'Nome Iscrizione' è obbligatorio.");
-      return;
-    }
-    if (currentStep < 6) setCurrentStep(prev => prev + 1);
-  };
-
-  const handlePrevStep = () => {
-    if (currentStep > 1) setCurrentStep(prev => prev - 1);
-  };
-
-  const handleSubmit = async () => {
-    if (!formData.name.trim()) {
-      setTxResult({ status: "error", message: "Il campo Nome è obbligatorio." });
-      return;
-    }
-
-    setLoadingMessage("Preparazione transazione...");
-    let imageIpfsHash = "N/A";
-
-    if (selectedFile) {
-      try {
-        const uploadFormData = new FormData();
-        uploadFormData.append('file', selectedFile);
-
-        const uploadResponse = await fetch('/api/upload', {
-          method: 'POST',
-          body: uploadFormData,
-        });
-
-        if (uploadResponse.ok) {
-          const uploadResult = await uploadResponse.json();
-          imageIpfsHash = uploadResult.cid;
-        }
-      } catch (error) {
-        console.error("Errore upload immagine:", error);
-      }
-    }
-
-    setLoadingMessage("Transazione in corso...");
-    const transaction = prepareContractCall({
-      contract,
-      method: "function initializeBatch(string,string,string,string,string)",
-      params: [formData.name, formData.description || "", formData.date || "", formData.location || "", imageIpfsHash],
-    });
-
-    sendTransaction(transaction, {
-      onSuccess: async (result) => {
-        setTxResult({ status: "success", message: "Iscrizione creata! Aggiorno i dati..." });
-
-        // Aggiorna i crediti localmente dopo la transazione
-        if (account?.address) {
-          try {
-            // Fetch dei crediti aggiornati dal contratto
-            const response = await fetch(`/api/get-company-status?walletAddress=${account.address}`);
-            if (response.ok) {
-              const data = await response.json();
-              onCreditsUpdate(data.credits);
-
-              // Aggiorna anche Firebase con i nuovi crediti
-              await fetch('/api/activate-company', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  action: 'setCredits',
-                  walletAddress: account.address,
-                  credits: data.credits,
-                }),
-              });
-            }
-          } catch (error) {
-            console.error("Errore durante l'aggiornamento dei crediti:", error);
-          }
-        }
-
-        setTimeout(() => {
-          onSuccess();
-          setLoadingMessage("");
-        }, 2000);
-      },
-      onError: (err) => {
-        setTxResult({ 
-          status: "error", 
-          message: err.message.toLowerCase().includes("insufficient funds") ? "Crediti Insufficienti" : "Errore nella transazione." 
-        });
-        setLoadingMessage("");
-      },
-    });
-  };
-
-  const isProcessing = loadingMessage !== "" || isPending;
-  const today = new Date().toISOString().split("T")[0];
-  const helpTextStyle = { 
-    backgroundColor: "#343a40", 
-    border: "1px solid #495057", 
-    borderRadius: "8px", 
-    padding: "16px", 
-    marginTop: "16px", 
-    fontSize: "0.9rem", 
-    color: "#f8f9fa" 
-  };
-
-  return (
-    <>
-      <div className="modal-overlay" onClick={onClose}>
-        <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-          <div className="modal-header">
-            <h2>Nuova Iscrizione ({currentStep}/6)</h2>
-          </div>
-          <div className="modal-body" style={{ minHeight: "350px" }}>
-            {currentStep === 1 && (
-              <div>
-                <div className="form-group">
-                  <label>
-                    Nome Iscrizione 
-                    <span style={{ color: "red", fontWeight: "bold" }}> * Obbligatorio</span>
-                  </label>
-                  <input 
-                    type="text" 
-                    name="name" 
-                    value={formData.name} 
-                    onChange={handleInputChange} 
-                    className="form-input" 
-                    maxLength={100} 
-                  />
-                  <small className="char-counter">{formData.name.length} / 100</small>
-                </div>
-                <div style={helpTextStyle}>
-                  <p><strong>ℹ️ Come scegliere il Nome Iscrizione</strong></p>
-                  <p>Il Nome Iscrizione è un'etichetta descrittiva che ti aiuta a identificare in modo chiaro ciò che stai registrando on-chain. Ad esempio:</p>
-                  <ul style={{ textAlign: "left", paddingLeft: "20px" }}>
-                    <li>Il nome di un prodotto o varietà: <em>Pomodori San Marzano 2025</em></li>
-                    <li>Il numero di lotto: <em>Lotto LT1025 – Olio EVO 3L</em></li>
-                    <li>Il nome di un contratto: <em>Contratto fornitura COOP – Aprile 2025</em></li>
-                    <li>Una certificazione o audit: <em>Certificazione Bio ICEA 2025</em></li>
-                    <li>Un riferimento amministrativo: <em>Ordine n.778 – Cliente NordItalia</em></li>
-                  </ul>
-                  <p style={{ marginTop: "1rem" }}><strong>📌 Consiglio:</strong> scegli un nome breve ma significativo, che ti aiuti a ritrovare facilmente l'iscrizione anche dopo mesi o anni.</p>
-                </div>
-              </div>
-            )}
-
-            {currentStep === 2 && (
-              <div>
-                <div className="form-group">
-                  <label>
-                    Descrizione 
-                    <span style={{ color: "#6c757d" }}> Non obbligatorio</span>
-                  </label>
-                  <textarea 
-                    name="description" 
-                    value={formData.description} 
-                    onChange={handleInputChange} 
-                    className="form-input" 
-                    rows={4} 
-                    maxLength={500}
-                  ></textarea>
-                  <small className="char-counter">{formData.description.length} / 500</small>
-                </div>
-                <div style={helpTextStyle}>
-                  <p>Inserisci una descrizione del prodotto, lotto, contratto o altro elemento principale. Fornisci tutte le informazioni essenziali per identificarlo chiaramente nella filiera o nel contesto dell'iscrizione.</p>
-                </div>
-              </div>
-            )}
-
-            {currentStep === 3 && (
-              <div>
-                <div className="form-group">
-                  <label>
-                    Luogo 
-                    <span style={{ color: "#6c757d" }}> Non obbligatorio</span>
-                  </label>
-                  <input 
-                    type="text" 
-                    name="location" 
-                    value={formData.location} 
-                    onChange={handleInputChange} 
-                    className="form-input" 
-                    maxLength={100} 
-                  />
-                  <small className="char-counter">{formData.location.length} / 100</small>
-                </div>
-                <div style={helpTextStyle}>
-                  <p>Inserisci il luogo di origine o di produzione del prodotto o lotto. Può essere una città, una regione, un'azienda agricola o uno stabilimento specifico per identificare con precisione dove è stato realizzato.</p>
-                </div>
-              </div>
-            )}
-
-            {currentStep === 4 && (
-              <div>
-                <div className="form-group">
-                  <label>
-                    Data 
-                    <span style={{ color: "#6c757d" }}> Non obbligatorio</span>
-                  </label>
-                  <input 
-                    type="date" 
-                    name="date" 
-                    value={formData.date} 
-                    onChange={handleInputChange} 
-                    className="form-input" 
-                    max={today} 
-                  />
-                </div>
-                <div style={helpTextStyle}>
-                  <p>Inserisci una data, puoi utilizzare il giorno attuale o una data precedente alla conferma di questa Iscrizione.</p>
-                </div>
-              </div>
-            )}
-
-            {currentStep === 5 && (
-              <div>
-                <div className="form-group">
-                  <label>
-                    Immagine 
-                    <span style={{ color: "#6c757d" }}> Non obbligatorio</span>
-                  </label>
-                  <input 
-                    type="file" 
-                    name="image" 
-                    onChange={handleFileChange} 
-                    className="form-input" 
-                    accept="image/png, image/jpeg, image/webp" 
-                  />
-                  <small style={{ marginTop: "4px" }}>Formati: PNG, JPG, WEBP. Max: 5 MB.</small>
-                  {selectedFile && (
-                    <p className="file-name-preview">File: {selectedFile.name}</p>
-                  )}
-                </div>
-                <div style={helpTextStyle}>
-                  <p>Carica un'immagine rappresentativa del prodotto, lotto, contratto, etc. Rispetta i formati e i limiti di peso.<br/><strong>Consiglio:</strong> Per una visualizzazione ottimale, usa un'immagine quadrata (formato 1:1).</p>
-                </div>
-              </div>
-            )}
-
-            {currentStep === 6 && (
-              <div>
-                <h4>Riepilogo Dati</h4>
-                <div className="recap-summary">
-                  <p><strong>Nome:</strong> {truncateText(formData.name, 40) || "N/D"}</p>
-                  <p><strong>Descrizione:</strong> {truncateText(formData.description, 60) || "N/D"}</p>
-                  <p><strong>Luogo:</strong> {truncateText(formData.location, 40) || "N/D"}</p>
-                  <p><strong>Data:</strong> {formData.date ? formData.date.split("-").reverse().join("/") : "N/D"}</p>
-                  <p><strong>Immagine:</strong> {truncateText(selectedFile?.name || "", 40) || "Nessuna"}</p>
-                </div>
-                <p>Vuoi confermare e registrare questi dati sulla blockchain?</p>
-              </div>
-            )}
-          </div>
-          <div className="modal-footer">
-            <div>
-              {currentStep > 1 && (
-                <button onClick={handlePrevStep} className="web3-button secondary" disabled={isProcessing}>
-                  Indietro
-                </button>
-              )}
-            </div>
-            <div style={{ display: 'flex', gap: '1rem' }}>
-              <button onClick={onClose} className="web3-button secondary" disabled={isProcessing}>
-                Chiudi
-              </button>
-              {currentStep < 6 && (
-                <button onClick={handleNextStep} className="web3-button">
-                  Avanti
-                </button>
-              )}
-              {currentStep === 6 && (
-                <button onClick={handleSubmit} disabled={isProcessing} className="web3-button">
-                  {isProcessing ? "Conferma..." : "Conferma e Registra"}
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {isProcessing && (
-        <TransactionStatusModal 
-          status="loading" 
-          message={loadingMessage} 
-          onClose={() => {}} 
-        />
-      )}
-
-      {txResult && (
-        <TransactionStatusModal 
-          status={txResult.status} 
-          message={txResult.message} 
-          onClose={() => {
-            if (txResult.status === "success") onClose();
-            setTxResult(null);
-          }} 
-        />
-      )}
-    </>
-  );
-};
-
-// Componente modale info
-const InfoModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
-  const navigate = (path: string) => {
-    window.location.href = path;
-  };
-
-  return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '500px' }}>
-        <div className="modal-header">
-          <h2>Informazioni Esportazione</h2>
-        </div>
-        <div className="modal-body">
-          <p style={{ lineHeight: '1.6', marginBottom: '1.5rem' }}>
-            Puoi esportare un file riepilogativo in PDF o HTML di ogni iscrizione se è stata già finalizzata / chiusa. 
-            Carica questo file sul tuo server - spazio privato, copia il link e genera il QR Code da applicare 
-            sull'etichetta del tuo prodotto.
-          </p>
-        </div>
-        <div className="modal-footer">
-          <button onClick={onClose} className="web3-button secondary">
-            Chiudi
-          </button>
-          <button 
-            onClick={() => navigate('/qrcode')} 
-            className="web3-button"
-          >
-            Genera QR Code
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// Componente Principale "Controllore"
-const AziendaPage: React.FC = () => {
-  const account = useActiveAccount();
-
-  const [companyStatus, setCompanyStatus] = useState<{
-    isLoading: boolean;
-    isActive: boolean;
-    data: CompanyData | null;
-    error: string | null;
-  }>({
-    isLoading: true,
-    isActive: false,
-    data: null,
-    error: null,
-  });
-
-  useEffect(() => {
-    if (!account) {
-      setCompanyStatus({ isLoading: false, isActive: false, data: null, error: null });
-      return;
-    }
-
-    const checkCompanyStatus = async () => {
-      setCompanyStatus(prev => ({ ...prev, isLoading: true }));
-      try {
-        const response = await fetch(`/api/get-company-status?walletAddress=${account.address}`);
-        if (!response.ok) {
-          throw new Error('Errore di rete nella verifica dello stato.');
-        }
-        const data = await response.json();
-        setCompanyStatus({
-          isLoading: false,
-          isActive: data.isActive,
-          data: data.isActive ? { 
-            companyName: data.companyName, 
-            credits: data.credits,
-            status: data.status || 'active'
-          } : null,
-          error: null,
-        });
-      } catch (err: any) {
-        setCompanyStatus({
-          isLoading: false,
-          isActive: false,
-          data: null,
-          error: err.message,
-        });
-      }
-    };
-
-    checkCompanyStatus();
-  }, [account]);
-
-  const renderContent = () => {
-    if (companyStatus.isLoading) {
-      return <div className="centered-container"><p>Verifica stato account in corso...</p></div>;
-    }
-
-    if (companyStatus.error) {
-      return <div className="centered-container"><p style={{ color: "red" }}>{companyStatus.error}</p></div>;
-    }
-
-    if (companyStatus.isActive && companyStatus.data) {
-      return <Dashboard companyData={companyStatus.data} />;
-    }
-
-    if (account) {
-      return <RegistrationForm walletAddress={account.address} />;
-    }
-
-    return <div className="centered-container"><p>Connetti il wallet per continuare.</p></div>;
-  };
-
-  if (!account) {
-    return (
-      <div className="login-container">
-        <AziendaPageStyles />
-        <div style={{ textAlign: "center" }}>
-          <h1>Benvenuto</h1>
-          <p>Connetti il tuo wallet per accedere.</p>
-          <ConnectButton 
-            client={client} 
-            wallets={[inAppWallet()]}
-            chain={polygon}
-            accountAbstraction={{ chain: polygon, sponsorGas: true }}
-          />
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <>
-      <AziendaPageStyles />
-      <div className="app-container-full">
-        <header className="main-header-bar">
-          <h1 className="header-title">EasyChain - Area Privata</h1>
-          <ConnectButton 
-            client={client}
-            chain={polygon}
-            accountAbstraction={{ chain: polygon, sponsorGas: true }}
-          />
-        </header>
-        <main>
-          {renderContent()}
-        </main>
-      </div>
-    </>
-  );
-};
-
-export default AziendaPage;
+      {isProcessing &&

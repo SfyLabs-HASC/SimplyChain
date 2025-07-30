@@ -9,70 +9,84 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { batch, exportType, bannerId, companyName } = req.body;
+    const { batch, exportType, companyName } = req.body;
 
     if (exportType === 'pdf') {
       const doc = new jsPDF();
       
-      // Aggiungi banner (se disponibile)
-      try {
-        const bannerPath = path.join(process.cwd(), 'src', 'banners', `${bannerId}.png`);
-        if (fs.existsSync(bannerPath)) {
-          const bannerData = fs.readFileSync(bannerPath, 'base64');
-          doc.addImage(`data:image/png;base64,${bannerData}`, 'PNG', 10, 10, 190, 40);
-        }
-      } catch (error) {
-        console.log('Banner non disponibile, procedo senza banner');
-      }
+      
 
       // Titolo documento con stile
       doc.setFontSize(20);
       doc.setTextColor(51, 51, 51);
-      doc.text('CERTIFICATO DI TRACCIABILITÀ', 105, 70, { align: 'center' });
+      doc.text('CERTIFICATO DI TRACCIABILITÀ', 105, 30, { align: 'center' });
       
       // Linea separatrice
       doc.setDrawColor(59, 130, 246);
       doc.setLineWidth(1);
-      doc.line(20, 75, 190, 75);
+      doc.line(20, 35, 190, 35);
 
       // Nome azienda
       doc.setFontSize(16);
       doc.setTextColor(59, 130, 246);
-      doc.text(`Prodotto da: ${companyName}`, 105, 90, { align: 'center' });
+      doc.text(`Prodotto da: ${companyName}`, 105, 50, { align: 'center' });
+
+      // Immagine prodotto (se presente)
+      let currentY = 60;
+      if (batch.imageIpfsHash && batch.imageIpfsHash !== "N/A") {
+        try {
+          // Per ora aggiungiamo solo il testo, l'immagine può essere aggiunta in futuro
+          doc.setFontSize(10);
+          doc.setTextColor(100, 100, 100);
+          doc.text('🖼️ Immagine prodotto disponibile su IPFS', 105, currentY, { align: 'center' });
+          currentY += 10;
+        } catch (error) {
+          console.log('Immagine non disponibile');
+        }
+      }
 
       // Sezione Iscrizione (Batch)
       doc.setFontSize(14);
       doc.setTextColor(0, 0, 0);
       doc.setFont('helvetica', 'bold');
-      doc.text('📋 INFORMAZIONI ISCRIZIONE', 20, 110);
+      doc.text('📋 INFORMAZIONI ISCRIZIONE', 20, currentY + 20);
       
       // Box per iscrizione
       doc.setDrawColor(200, 200, 200);
       doc.setFillColor(248, 250, 252);
-      doc.roundedRect(20, 115, 170, 50, 3, 3, 'FD');
+      doc.roundedRect(20, currentY + 25, 170, 60, 3, 3, 'FD');
       
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(11);
-      doc.text(`Nome Prodotto: ${batch.name}`, 25, 125);
-      doc.text(`Data di Origine: ${batch.date || 'N/D'}`, 25, 135);
-      doc.text(`Luogo di Produzione: ${batch.location || 'N/D'}`, 25, 145);
-      doc.text(`Stato: ✅ Finalizzato`, 25, 155);
+      doc.text(`📦 Nome Prodotto: ${batch.name}`, 25, currentY + 35);
+      doc.text(`📅 Data di Origine: ${batch.date || 'N/D'}`, 25, currentY + 45);
+      doc.text(`📍 Luogo di Produzione: ${batch.location || 'N/D'}`, 25, currentY + 55);
+      doc.text(`📊 Stato: ✅ Finalizzato`, 25, currentY + 65);
+      
+      // Immagine prodotto link (se presente)
+      if (batch.imageIpfsHash && batch.imageIpfsHash !== "N/A") {
+        doc.text(`🖼️ Immagine Prodotto: Disponibile`, 25, currentY + 75);
+      }
+      
+      currentY += 85;
       
       // Descrizione
       if (batch.description) {
-        const splitDescription = doc.splitTextToSize(`Descrizione: ${batch.description}`, 165);
-        doc.text(splitDescription, 25, 175);
+        const splitDescription = doc.splitTextToSize(`📝 Descrizione: ${batch.description}`, 165);
+        doc.text(splitDescription, 25, currentY + 5);
+        currentY += (splitDescription.length * 5) + 10;
       }
 
       // Link blockchain cliccabile
       doc.setTextColor(59, 130, 246);
-      doc.textWithLink(`🔗 Verifica su Blockchain`, 25, 190, {
+      doc.textWithLink(`🔗 Verifica su Blockchain`, 25, currentY + 5, {
         url: `https://polygonscan.com/inputdatadecoder?tx=${batch.transactionHash}`
       });
+      currentY += 15;
 
       // Steps section
       if (batch.steps && batch.steps.length > 0) {
-        let yPos = 210;
+        let yPos = currentY + 10;
         doc.setTextColor(0, 0, 0);
         doc.setFontSize(14);
         doc.setFont('helvetica', 'bold');
@@ -88,7 +102,8 @@ export default async function handler(req, res) {
           // Box per ogni step
           doc.setDrawColor(16, 185, 129);
           doc.setFillColor(240, 253, 244);
-          doc.roundedRect(20, yPos, 170, 35, 2, 2, 'FD');
+          const stepHeight = step.attachmentsIpfsHash && step.attachmentsIpfsHash !== "N/A" ? 50 : 42;
+          doc.roundedRect(20, yPos, 170, stepHeight, 2, 2, 'FD');
           
           doc.setFontSize(12);
           doc.setFont('helvetica', 'bold');
@@ -102,14 +117,28 @@ export default async function handler(req, res) {
           doc.text(`📅 ${step.date || 'N/D'}`, 25, yPos + 23);
           doc.text(`📍 ${step.location || 'N/D'}`, 25, yPos + 30);
           
-          yPos += 45;
+          // Link blockchain per step
+          doc.setTextColor(59, 130, 246);
+          doc.textWithLink(`🔗 Verifica Step`, 25, yPos + 37, {
+            url: `https://polygonscan.com/inputdatadecoder?tx=${step.transactionHash || batch.transactionHash}`
+          });
+          
+          // Allegati se presenti
+          if (step.attachmentsIpfsHash && step.attachmentsIpfsHash !== "N/A") {
+            doc.textWithLink(`📎 Visualizza Allegati`, 100, yPos + 37, {
+              url: `https://musical-emerald-partridge.myfilebase.com/ipfs/${step.attachmentsIpfsHash}`
+            });
+          }
+          
+          yPos += stepHeight + 5;
         });
       }
 
       // Footer
       doc.setFontSize(8);
       doc.setTextColor(128, 128, 128);
-      doc.text('Generato tramite EasyChain - Tracciabilità Blockchain', 105, 280, { align: 'center' });
+      doc.text('Generato tramite EasyChain - Tracciabilità Blockchain per le imprese italiane.', 105, 280, { align: 'center' });
+      doc.text('Servizio Gratuito prodotto da SFY s.r.l. - Contattaci per maggiori informazioni: sfy.startup@gmail.com', 105, 285, { align: 'center' });
 
       const pdfBuffer = doc.output('arraybuffer');
       
@@ -271,10 +300,40 @@ export default async function handler(req, res) {
               .container { box-shadow: none; }
             }
           </style>
+          <script>
+            function toggleDescription(element) {
+              const fullDesc = element.nextElementSibling;
+              if (fullDesc && fullDesc.classList.contains('full-description')) {
+                if (fullDesc.style.display === 'none') {
+                  element.style.display = 'none';
+                  fullDesc.style.display = 'inline';
+                } else {
+                  element.style.display = 'inline';
+                  fullDesc.style.display = 'none';
+                }
+              }
+            }
+            
+            function openImageModal(event, imageUrl) {
+              event.preventDefault();
+              const modal = document.createElement('div');
+              modal.style.cssText = `
+                position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+                background: rgba(0,0,0,0.9); display: flex; align-items: center;
+                justify-content: center; z-index: 1000; cursor: pointer;
+              `;
+              const img = document.createElement('img');
+              img.src = imageUrl;
+              img.style.cssText = 'max-width: 90%; max-height: 90%; border-radius: 8px;';
+              modal.appendChild(img);
+              modal.onclick = () => document.body.removeChild(modal);
+              document.body.appendChild(modal);
+            }
+          </script>
         </head>
         <body>
           <div class="container">
-            <div class="banner">[Banner ${bannerId}]</div>
+            
             
             <div class="header">
               <h1>📋 CERTIFICATO DI TRACCIABILITÀ</h1>
@@ -286,21 +345,34 @@ export default async function handler(req, res) {
                 <h2>📦 INFORMAZIONI ISCRIZIONE</h2>
                 <div class="batch-info">
                   <div class="info-item">
-                    <div class="info-label">Nome Prodotto</div>
+                    <div class="info-label">📦 Nome Prodotto</div>
                     <div class="info-value">${batch.name}</div>
                   </div>
                   <div class="info-item">
-                    <div class="info-label">Data di Origine</div>
+                    <div class="info-label">📅 Data di Origine</div>
                     <div class="info-value">${batch.date || 'N/D'}</div>
                   </div>
                   <div class="info-item">
-                    <div class="info-label">Luogo di Produzione</div>
+                    <div class="info-label">📍 Luogo di Produzione</div>
                     <div class="info-value">${batch.location || 'N/D'}</div>
                   </div>
                   <div class="info-item">
-                    <div class="info-label">Stato</div>
+                    <div class="info-label">📊 Stato</div>
                     <div class="info-value">✅ Finalizzato</div>
                   </div>
+                  ${batch.imageIpfsHash && batch.imageIpfsHash !== "N/A" ? `
+                    <div class="info-item">
+                      <div class="info-label">🖼️ Immagine Prodotto</div>
+                      <div class="info-value">
+                        <a href="https://musical-emerald-partridge.myfilebase.com/ipfs/${batch.imageIpfsHash}" 
+                           target="_blank" 
+                           onclick="openImageModal(event, this.href)"
+                           style="color: #3b82f6; text-decoration: none; font-weight: 500;">
+                          Visualizza Immagine
+                        </a>
+                      </div>
+                    </div>
+                  ` : ''}
                 </div>
                 
                 ${batch.description ? `
@@ -325,9 +397,36 @@ export default async function handler(req, res) {
                     <div class="step">
                       <div class="step-header">Step ${index + 1}: ${step.eventName}</div>
                       <div class="step-details">
-                        <div class="step-detail">📝 <strong>Descrizione:</strong> ${step.description || 'Nessuna descrizione'}</div>
+                        <div class="step-detail">
+                          📝 <strong>Descrizione:</strong> 
+                          <span class="description-text" onclick="toggleDescription(this)">
+                            ${step.description && step.description.length > 100 ? 
+                              step.description.substring(0, 100) + '...' : 
+                              step.description || 'Nessuna descrizione'}
+                          </span>
+                          ${step.description && step.description.length > 100 ? 
+                            `<span class="full-description" style="display: none;">${step.description}</span>` : ''}
+                        </div>
                         <div class="step-detail">📅 <strong>Data:</strong> ${step.date || 'N/D'}</div>
                         <div class="step-detail">📍 <strong>Luogo:</strong> ${step.location || 'N/D'}</div>
+                        <div class="step-detail">
+                          🔗 <strong>Verifica su Blockchain:</strong>
+                          <a href="https://polygonscan.com/inputdatadecoder?tx=${step.transactionHash || batch.transactionHash}" 
+                             target="_blank" 
+                             style="color: #3b82f6; text-decoration: none; font-weight: 500; margin-left: 5px;">
+                            Verifica Transazione
+                          </a>
+                        </div>
+                        ${step.attachmentsIpfsHash && step.attachmentsIpfsHash !== "N/A" ? `
+                          <div class="step-detail">
+                            📎 <strong>Allegati:</strong>
+                            <a href="https://musical-emerald-partridge.myfilebase.com/ipfs/${step.attachmentsIpfsHash}" 
+                               target="_blank" 
+                               style="color: #3b82f6; text-decoration: none; font-weight: 500; margin-left: 5px;">
+                              Visualizza File
+                            </a>
+                          </div>
+                        ` : ''}
                       </div>
                     </div>
                   `).join('')}
@@ -336,7 +435,8 @@ export default async function handler(req, res) {
             </div>
 
             <div class="footer">
-              Generato tramite EasyChain - Tracciabilità Blockchain
+              Generato tramite EasyChain - Tracciabilità Blockchain per le imprese italiane.<br>
+              Servizio Gratuito prodotto da SFY s.r.l. - Contattaci per maggiori informazioni: sfy.startup@gmail.com
             </div>
           </div>
         </body>
