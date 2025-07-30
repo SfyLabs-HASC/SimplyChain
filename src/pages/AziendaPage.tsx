@@ -385,6 +385,17 @@ const AziendaPageStyles = () => (
         transform: translateY(-1px);
       }
 
+      .view-steps-button.disabled {
+        background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+        cursor: not-allowed;
+        opacity: 0.6;
+      }
+
+      .view-steps-button.disabled:hover {
+        background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+        transform: none;
+      }
+
       .tooltip {
         position: absolute;
         bottom: 100%;
@@ -983,6 +994,7 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
   const [showExportModal, setShowExportModal] = useState(false);
   const [showBannerModal, setShowBannerModal] = useState(false);
   const [selectedExportType, setSelectedExportType] = useState<'pdf' | 'html' | null>(null);
+  const [showInfoModal, setShowInfoModal] = useState(false);
 
   // State per i filtri
   const [nameFilter, setNameFilter] = useState("");
@@ -1182,7 +1194,29 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
       </div>
 
       <div className="inscriptions-section-header">
-        <h3 className="inscriptions-section-title">Le mie Iscrizioni su Blockchain</h3>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <h3 className="inscriptions-section-title">Le mie Iscrizioni su Blockchain</h3>
+          <button 
+            className="info-button"
+            onClick={() => setShowInfoModal(true)}
+            style={{
+              background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
+              border: 'none',
+              borderRadius: '50%',
+              width: '30px',
+              height: '30px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              color: 'white',
+              fontSize: '14px',
+              fontWeight: 'bold'
+            }}
+          >
+            ℹ️
+          </button>
+        </div>
         <div className="refresh-section">
           <button 
             className="refresh-button"
@@ -1279,34 +1313,31 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
                           className="view-steps-button"
                           onClick={() => setSelectedBatchForSteps(batch)}
                         >
-                          Visualizza {batch.steps.length} steps
+                          {batch.steps.length} steps
                         </button>
                       ) : (
-                        <span>{batch.steps ? `${batch.steps.length} steps` : "0 steps"}</span>
+                        <button 
+                          className="view-steps-button disabled"
+                          disabled={true}
+                        >
+                          0 steps
+                        </button>
                       )}
                     </div>
                     
                     <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                      {/* Pulsante Esporta - attivo solo per batch chiusi */}
-                      <div style={{ position: 'relative' }}>
+                      {/* Pulsante Esporta - mostrato solo per batch chiusi */}
+                      {batch.isClosed && (
                         <button 
                           className="export-button"
-                          disabled={!batch.isClosed}
                           onClick={() => {
-                            if (batch.isClosed) {
-                              setSelectedBatchForExport(batch);
-                              setShowExportModal(true);
-                            }
+                            setSelectedBatchForExport(batch);
+                            setShowExportModal(true);
                           }}
                         >
                           Esporta
-                          {!batch.isClosed && (
-                            <div className="tooltip">
-                              Devi prima finalizzare l'iscrizione per poter esportare un documento riepilogativo
-                            </div>
-                          )}
                         </button>
-                      </div>
+                      )}
 
                       {/* Pulsanti Aggiungi Step e Finalizza per iscrizioni aperte, lucchetto per quelle chiuse */}
                       {!batch.isClosed ? (
@@ -1470,6 +1501,11 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
             setSelectedExportType(null);
           }}
         />
+      )}
+
+      {/* Modale Info */}
+      {showInfoModal && (
+        <InfoModal onClose={() => setShowInfoModal(false)} />
       )}
     </>
   );
@@ -1893,9 +1929,10 @@ const BannerSelectionModal: React.FC<{
   onExport: (bannerId: string) => void;
 }> = ({ batch, exportType, onClose, onExport }) => {
   const banners = [
-    { id: 'banner1', name: 'Banner Standard', preview: '/src/banners/banner1.png' },
-    { id: 'banner2', name: 'Banner Elegante', preview: '/src/banners/banner2.png' },
-    { id: 'banner3', name: 'Banner Minimalista', preview: '/src/banners/banner3.png' }
+    { id: 'banner1', name: 'Banner 1', preview: '/src/banners/banner1.png' },
+    { id: 'banner2', name: 'Banner 2', preview: '/src/banners/banner2.png' },
+    { id: 'banner3', name: 'Banner 3', preview: '/src/banners/banner3.png' },
+    { id: 'banner4', name: 'Banner 4', preview: '/src/banners/banner4.png' }
   ];
 
   return (
@@ -2378,6 +2415,41 @@ const NewInscriptionModal: React.FC<{
         />
       )}
     </>
+  );
+};
+
+// Componente modale info
+const InfoModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
+  const navigate = (path: string) => {
+    window.location.href = path;
+  };
+
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '500px' }}>
+        <div className="modal-header">
+          <h2>Informazioni Esportazione</h2>
+        </div>
+        <div className="modal-body">
+          <p style={{ lineHeight: '1.6', marginBottom: '1.5rem' }}>
+            Puoi esportare un file riepilogativo in PDF o HTML di ogni iscrizione se è stata già finalizzata / chiusa. 
+            Carica questo file sul tuo server - spazio privato, copia il link e genera il QR Code da applicare 
+            sull'etichetta del tuo prodotto.
+          </p>
+        </div>
+        <div className="modal-footer">
+          <button onClick={onClose} className="web3-button secondary">
+            Chiudi
+          </button>
+          <button 
+            onClick={() => navigate('/qrcode')} 
+            className="web3-button"
+          >
+            Genera QR Code
+          </button>
+        </div>
+      </div>
+    </div>
   );
 };
 

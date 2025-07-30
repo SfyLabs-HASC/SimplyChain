@@ -6,8 +6,9 @@ import { Routes, Route } from 'react-router-dom';
 // 1. Importiamo TUTTE le pagine necessarie per la navigazione
 import HomePage from './pages/HomePage';
 import AdminPage from './pages/AdminPage';
-import AziendaPage from './pages/AziendaPage';
-import GestisciPage from './pages/GestisciPage'; 
+import AziendaPage from "./pages/AziendaPage";
+import GestisciPage from "./pages/GestisciPage";
+import QRCodePage from "./pages/QRCodePage";
 import './App.css';
 
 function App() {
@@ -20,10 +21,11 @@ function App() {
       {/* Rotte specifiche per le altre sezioni */}
       <Route path="/admin" element={<AdminPage />} />
       <Route path="/azienda" element={<AziendaPage />} />
-      
+
       {/* Rotta dinamica per la gestione di una singola iscrizione (questa era già giusta) */}
       <Route path="/gestisci/:batchId" element={<GestisciPage />} />
-    </Routes>
+        <Route path="/qrcode" element={<QRCodePage />} />
+      </Routes>
   );
 }
 
