@@ -6,4 +6,5 @@ const clientId = import.meta.env.VITE_TEMPLATE_CLIENT_ID;
 
 export const client = createThirdwebClient({
   clientId: clientId,
+  secretKey: import.meta.env.VITE_THIRDWEB_SECRET_KEY, // Per le operazioni server-side
 });

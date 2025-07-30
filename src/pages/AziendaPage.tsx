@@ -946,9 +946,15 @@ interface CompanyData {
 
 const client = createThirdwebClient({ clientId: "023dd6504a82409b2bc7cb971fd35b16" });
 
+// Configura Polygon con RPC Thirdweb
+const polygonWithRPC = {
+  ...polygon,
+  rpc: `https://137.rpc.thirdweb.com/023dd6504a82409b2bc7cb971fd35b16`,
+};
+
 const contract = getContract({
   client,
-  chain: polygon,
+  chain: polygonWithRPC,
   address: "0x0c5e6204e80e6fb3c0c7098c4fa84b2210358d0b",
   abi,
 });
