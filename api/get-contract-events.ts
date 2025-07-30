@@ -45,7 +45,7 @@ export default async function handler(
     if (!secretKey) {
       return res.status(500).json({ error: "Variabile d'ambiente del server mancante." });
     }
-    
+
     const client = createThirdwebClient({ secretKey });
     const contract = getContract({ client, chain: polygon, address: CONTRACT_ADDRESS, abi: supplyChainABI });
 
@@ -53,7 +53,7 @@ export default async function handler(
     const allEvents = await getContractEvents({ contract });
 
     // --- MODIFICA 2: Filtra manualmente con la logica corretta ---
-    
+
     // Filtra prima per nome dell'evento, POI per contributor
     const userBatches = allEvents.filter(event => {
       // Controlla che sia un evento 'BatchInitialized'
@@ -79,19 +79,30 @@ export default async function handler(
         stepsByBatchId.get(batchId)!.push(stepArgs);
       }
     }
-    
+
     const combinedData = userBatches.map(batchEvent => {
       const batchArgs = batchEvent.args as any;
       const batchId = batchArgs.batchId.toString();
+
+        // Controlla se il batch è stato chiuso
+        const batchClosedEvents = allEvents.filter(event => 
+          event.eventName === 'BatchClosed' && 
+          (event.args as any)?.batchId?.toString() === batchId
+        );
+        const isClosed = batchClosedEvents.length > 0;
+
+        console.log(`Batch ${batchId}: closed events found = ${batchClosedEvents.length}, isClosed = ${isClosed}`);
+
       return {
         ...batchArgs, // Usiamo 'args' come fonte dei dati
         transactionHash: batchEvent.transactionHash,
-        steps: stepsByBatchId.get(batchId) || []
+        steps: stepsByBatchId.get(batchId) || [],
+        isClosed: isClosed // Aggiungi lo stato 'isClosed'
       };
     });
 
     const serializableData = serializeBigInts(combinedData);
-    
+
     return res.status(200).json({ events: serializableData });
 
   } catch (error: any) {
