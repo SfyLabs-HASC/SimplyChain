@@ -954,8 +954,7 @@ const contract = getContract({
 });
 
 // Componente modale per visualizzare immagini
-const ImageModal```typescript
-: React.FC<{ imageUrl: string; onClose: () => void }> = ({ imageUrl, onClose }) => {
+const ImageModal: React.FC<{ imageUrl: string; onClose: () => void }> = ({ imageUrl, onClose }) => {
   return (
     <div className="image-modal-overlay" onClick={onClose}>
       <div className="image-modal-content" onClick={(e) => e.stopPropagation()}>
