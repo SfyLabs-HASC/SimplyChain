@@ -9,7 +9,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { batch, exportType, companyName } = req.body;
+    const { batch, exportType, companyName, bannerId } = req.body;
 
     if (exportType === 'pdf') {
       const doc = new jsPDF();

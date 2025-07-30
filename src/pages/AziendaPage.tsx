@@ -1149,7 +1149,6 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
         body: JSON.stringify({
           batch,
           exportType,
-          bannerId,
           companyName: currentCompanyData.companyName
         }),
       });
@@ -2098,7 +2097,7 @@ const NewInscriptionModal: React.FC<{
     setLoadingMessage("Transazione in corso...");
     const transaction = prepareContractCall({
       contract,
-      method: "function createBatch(string,string,string,string,string)",
+      method: "function initializeBatch(string,string,string,string,string)",
       params: [formData.name, formData.description || "", formData.date || "", formData.location || "", imageIpfsHash],
     });
 
