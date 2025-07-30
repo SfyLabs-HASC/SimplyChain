@@ -9,6 +9,7 @@ import AdminPage from './pages/AdminPage';
 import AziendaPage from "./pages/AziendaPage";
 import GestisciPage from "./pages/GestisciPage";
 import QRCodePage from "./pages/QRCodePage";
+import RicaricaCreditiPage from "./pages/RicaricaCreditiPage";
 import './App.css';
 
 function App() {
@@ -24,7 +25,8 @@ function App() {
 
       {/* Rotta dinamica per la gestione di una singola iscrizione (questa era già giusta) */}
       <Route path="/gestisci/:batchId" element={<GestisciPage />} />
-        <Route path="/qrcode" element={<QRCodePage />} />
+      <Route path="/qrcode" element={<QRCodePage />} />
+      <Route path="/ricaricacrediti" element={<RicaricaCreditiPage />} />
       </Routes>
   );
 }

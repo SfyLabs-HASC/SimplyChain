@@ -996,6 +996,7 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
   const [showBannerModal, setShowBannerModal] = useState(false);
   const [selectedExportType, setSelectedExportType] = useState<'pdf' | 'html' | null>(null);
   const [showInfoModal, setShowInfoModal] = useState(false);
+  const [showQRCodeModal, setShowQRCodeModal] = useState(false);
 
   // State per i filtri
   const [nameFilter, setNameFilter] = useState("");
@@ -1163,6 +1164,11 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
         a.click();
         window.URL.revokeObjectURL(url);
         document.body.removeChild(a);
+
+        // Se è un export HTML, mostra il popup per il QR Code
+        if (exportType === 'html') {
+          setShowQRCodeModal(true);
+        }
       }
     } catch (error) {
       console.error('Errore durante l\'esportazione:', error);
@@ -1182,7 +1188,18 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
           </div>
           <div className="dashboard-info">
             <div className="dashboard-info-item">
-              <span>Crediti Rimanenti: <strong>{currentCompanyData.credits}</strong></span>
+              <span>
+                <a 
+                  href="/ricaricacrediti" 
+                  style={{ color: '#ffffff', textDecoration: 'none', cursor: 'pointer' }}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    window.location.href = '/ricaricacrediti';
+                  }}
+                >
+                  Crediti Rimanenti: <strong>{currentCompanyData.credits}</strong>
+                </a>
+              </span>
             </div>
             <div className="dashboard-info-item">
               <span>Stato: <strong className={currentCompanyData.status === 'active' ? 'status-active-text' : 'status-inactive-text'}>
@@ -1506,6 +1523,11 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
       {showInfoModal && (
         <InfoModal onClose={() => setShowInfoModal(false)} />
       )}
+
+      {/* Modale QR Code */}
+      {showQRCodeModal && (
+        <QRCodeOfferModal onClose={() => setShowQRCodeModal(false)} />
+      )}
     </>
   );
 };
@@ -1589,6 +1611,9 @@ const AddStepModal: React.FC<{
     sendTransaction(transaction, {
       onSuccess: async (result) => {
         setTxResult({ status: "success", message: "Step aggiunto! Aggiorno i dati..." });
+
+        // Salva il transaction hash dello step
+        console.log("Transaction hash per step:", result.transactionHash);
 
         // Aggiorna i crediti localmente dopo la transazione
         if (account?.address) {
@@ -1853,6 +1878,9 @@ const FinalizeModal: React.FC<{
       onSuccess: async (result) => {
         setTxResult({ status: "success", message: "Iscrizione finalizzata con successo!" });
 
+        // Salva il transaction hash della finalizzazione
+        console.log("Transaction hash per finalizzazione:", result.transactionHash);
+
         // Aggiorna i crediti localmente dopo la transazione
         if (account?.address) {
           try {
@@ -1942,15 +1970,12 @@ const StepsModal: React.FC<{
         <div className="steps-modal-content" onClick={(e) => e.stopPropagation()}>
           <div className="steps-modal-header">
             <h2>Steps - {batch.name}</h2>
-            <button onClick={onClose} className="web3-button secondary">
-              ✕
-            </button>
           </div>
           <div className="steps-modal-body">
             {batch.steps && batch.steps.length > 0 ? (
               batch.steps.map((step, index) => (
                 <div key={index} className="step-card">
-                  <h4>📝 Step {index + 1}: {step.eventName}</h4>
+                  <h4>Step {index + 1}: {step.eventName}</h4>
                   <p><strong>📄 Descrizione:</strong> {step.description || "N/D"}</p>
                   <p><strong>📅 Data:</strong> {formatItalianDate(step.date)}</p>
                   <p><strong>📍 Luogo:</strong> {step.location || "N/D"}</p>
@@ -1962,7 +1987,7 @@ const StepsModal: React.FC<{
                       rel="noopener noreferrer"
                       style={{ marginLeft: '0.5rem' }}
                     >
-                      🔗 Verifica
+                      {step.transactionHash ? truncateText(step.transactionHash, 15) : truncateText(batch.transactionHash, 15)}
                     </a>
                   </p>
                   {step.attachmentsIpfsHash && step.attachmentsIpfsHash !== "N/A" && (
@@ -1974,7 +1999,7 @@ const StepsModal: React.FC<{
                         rel="noopener noreferrer"
                         style={{ marginLeft: '0.5rem' }}
                       >
-                        📎 Visualizza
+                        Visualizza
                       </a>
                     </p>
                   )}
@@ -1983,6 +2008,11 @@ const StepsModal: React.FC<{
             ) : (
               <p>Nessuno step disponibile per questa iscrizione.</p>
             )}
+            <div style={{ textAlign: 'center', marginTop: '2rem' }}>
+              <button onClick={onClose} className="web3-button">
+                Indietro
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -2326,10 +2356,10 @@ const ExportTypeModal: React.FC<{
         </div>
         <div className="modal-body">
           <div style={{ marginBottom: '2rem' }}>
-            <p>Se hai finalizzato la tua iscrizione (non prima) potrai esportare:</p>
+            <p>Se hai completato con successo la tua iscrizione (solo dopo la finalizzazione), potrai esportare:</p>
             <ul style={{ textAlign: 'left', paddingLeft: '20px', margin: '1rem 0' }}>
-              <li>Un certificato EasyChain in formato PDF</li>
-              <li>Un certificato EasyChain HTML che potrai caricare sul tuo server - spazio privato, copia il link e genera il QR Code da applicare sull'etichetta del tuo prodotto.</li>
+              <li>Un certificato EasyChain in formato PDF, utile all'azienda per uso interno o documentale. Questo file può essere archiviato, stampato o condiviso con terzi per attestare l'iscrizione e l'autenticità del prodotto, senza necessariamente passare per il QR Code.</li>
+              <li>Un certificato EasyChain in formato HTML, pensato per la pubblicazione online. Caricalo su uno spazio web (privato o pubblico), copia il link e usalo per generare un QR Code da applicare all'etichetta del tuo prodotto. Inquadrando il QR Code, chiunque potrà visualizzare il certificato direttamente online.</li>
             </ul>
           </div>
           <div className="export-modal-buttons">
@@ -2372,6 +2402,38 @@ const BannerSelectionModal: React.FC<{
   return null;
 };
 
+// Componente modale per offrire la creazione del QR Code
+const QRCodeOfferModal: React.FC<{
+  onClose: () => void;
+}> = ({ onClose }) => {
+  const handleGenerateQRCode = () => {
+    window.location.href = '/qrcode';
+  };
+
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-header">
+          <h2>Crea QR Code</h2>
+        </div>
+        <div className="modal-body">
+          <p style={{ marginBottom: '2rem', textAlign: 'center' }}>
+            Vuoi creare anche un QrCode da usare per l'etichetta del tuo prodotto?
+          </p>
+        </div>
+        <div className="modal-footer">
+          <button onClick={onClose} className="web3-button secondary">
+            No Grazie
+          </button>
+          <button onClick={handleGenerateQRCode} className="web3-button">
+            Genera QrCode
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // Componente modale info
 const InfoModal: React.FC<{
   onClose: () => void;
@@ -2384,11 +2446,11 @@ const InfoModal: React.FC<{
         </div>
         <div className="modal-body">
           <div style={{ textAlign: 'left' }}>
-            <h4>Come funziona:</h4>
+            <h4>COME FUNZIONA</h4>
             <ul style={{ paddingLeft: '20px', margin: '1rem 0' }}>
-              <li><strong>Inizializza:</strong> Crea una nuova iscrizione con i dati base del prodotto</li>
+              <li><strong>Inizializza Nuova Iscrizione:</strong> Crea una nuova iscrizione con i dati base del prodotto</li>
               <li><strong>Aggiungi Steps:</strong> Registra ogni fase della filiera produttiva</li>
-              <li><strong>Finalizza:</strong> Chiudi l'iscrizione quando completata</li>
+              <li><strong>Finalizza:</strong> Chiudi l'iscrizione quando completata, non potrai aggiungere nuovi steps</li>
               <li><strong>Esporta:</strong> Genera certificati PDF o HTML per i tuoi clienti</li>
             </ul>
             
@@ -2398,8 +2460,20 @@ const InfoModal: React.FC<{
               <li><span style={{ color: '#ef4444' }}>Chiuso</span>: Finalizzato, pronto per l'esportazione</li>
             </ul>
 
-            <h4>Costi:</h4>
+            <h4>Riguardo i Costi:</h4>
+            <p>Dopo l'attivazione del tuo account avrai a disposizione crediti gratuiti per avviare la tua attività di certificazione su Blockchain.</p>
             <p>Ogni operazione (nuova iscrizione, aggiunta step, finalizzazione) consuma 1 credito.</p>
+            <p>Se hai bisogno di piu' crediti per le tue operazioni vai alla pagina <a href="/ricaricacrediti" style={{ color: '#3b82f6', textDecoration: 'none' }}>Ricarica Crediti</a>.</p>
+            
+            <div style={{ textAlign: 'center', marginTop: '1rem' }}>
+              <button 
+                onClick={() => window.location.href = '/ricaricacrediti'}
+                className="web3-button"
+                style={{ marginTop: '1rem' }}
+              >
+                Ricarica Crediti
+              </button>
+            </div>
           </div>
         </div>
         <div className="modal-footer">
