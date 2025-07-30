@@ -1,7 +1,5 @@
 
 import jsPDF from 'jspdf';
-import fs from 'fs';
-import path from 'path';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -14,8 +12,6 @@ export default async function handler(req, res) {
     if (exportType === 'pdf') {
       const doc = new jsPDF();
       
-      
-
       // Titolo documento con stile
       doc.setFontSize(20);
       doc.setTextColor(51, 51, 51);
@@ -317,11 +313,11 @@ export default async function handler(req, res) {
             function openImageModal(event, imageUrl) {
               event.preventDefault();
               const modal = document.createElement('div');
-              modal.style.cssText = `
+              modal.style.cssText = \`
                 position: fixed; top: 0; left: 0; right: 0; bottom: 0;
                 background: rgba(0,0,0,0.9); display: flex; align-items: center;
                 justify-content: center; z-index: 1000; cursor: pointer;
-              `;
+              \`;
               const img = document.createElement('img');
               img.src = imageUrl;
               img.style.cssText = 'max-width: 90%; max-height: 90%; border-radius: 8px;';
@@ -333,8 +329,6 @@ export default async function handler(req, res) {
         </head>
         <body>
           <div class="container">
-            
-            
             <div class="header">
               <h1>📋 CERTIFICATO DI TRACCIABILITÀ</h1>
               <div class="company-name">Prodotto da: ${companyName}</div>
@@ -446,6 +440,8 @@ export default async function handler(req, res) {
       res.setHeader('Content-Type', 'text/html; charset=utf-8');
       res.setHeader('Content-Disposition', `attachment; filename="${batch.name}_certificato.html"`);
       res.send(html);
+    } else {
+      return res.status(400).json({ error: 'Export type not supported' });
     }
 
   } catch (error) {
