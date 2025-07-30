@@ -1816,4 +1816,711 @@ const AddStepModal: React.FC<{
         </div>
       </div>
 
-      {isProcessing &&
+      {isProcessing && (
+        <TransactionStatusModal
+          isOpen={true}
+          status={txResult?.status === "success" ? "success" : txResult?.status === "error" ? "error" : "loading"}
+          message={txResult?.message || loadingMessage}
+          onClose={() => {}}
+        />
+      )}
+    </>
+  );
+};
+
+// Componente modale per finalizzare iscrizione
+const FinalizeModal: React.FC<{
+  batch: Batch;
+  onClose: () => void;
+  onSuccess: () => void;
+  onCreditsUpdate: (credits: number) => void;
+}> = ({ batch, onClose, onSuccess, onCreditsUpdate }) => {
+  const account = useActiveAccount();
+  const { mutate: sendTransaction, isPending } = useSendTransaction();
+  const [txResult, setTxResult] = useState<{ status: "success" | "error"; message: string; } | null>(null);
+  const [loadingMessage, setLoadingMessage] = useState("");
+
+  const handleFinalize = async () => {
+    setLoadingMessage("Finalizzazione in corso...");
+    
+    const transaction = prepareContractCall({
+      contract,
+      method: "function closeBatch(uint256)",
+      params: [batch.batchId],
+    });
+
+    sendTransaction(transaction, {
+      onSuccess: async (result) => {
+        setTxResult({ status: "success", message: "Iscrizione finalizzata con successo!" });
+
+        // Aggiorna i crediti localmente dopo la transazione
+        if (account?.address) {
+          try {
+            const response = await fetch(`/api/get-company-status?walletAddress=${account.address}`);
+            if (response.ok) {
+              const data = await response.json();
+              onCreditsUpdate(data.credits);
+
+              await fetch('/api/activate-company', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  action: 'setCredits',
+                  walletAddress: account.address,
+                  credits: data.credits,
+                }),
+              });
+            }
+          } catch (error) {
+            console.error("Errore durante l'aggiornamento dei crediti:", error);
+          }
+        }
+
+        setTimeout(() => {
+          onSuccess();
+          setLoadingMessage("");
+        }, 2000);
+      },
+      onError: (err) => {
+        setTxResult({
+          status: "error",
+          message: err.message.toLowerCase().includes("insufficient funds") ? "Crediti Insufficienti" : "Errore nella transazione."
+        });
+        setLoadingMessage("");
+      },
+    });
+  };
+
+  const isProcessing = loadingMessage !== "" || isPending;
+
+  return (
+    <>
+      <div className="modal-overlay" onClick={onClose}>
+        <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+          <div className="modal-header">
+            <h2>Finalizza Iscrizione</h2>
+          </div>
+          <div className="modal-body">
+            <p>Sei sicuro di voler finalizzare l'iscrizione "{batch.name}"?</p>
+            <p style={{ color: '#f59e0b', fontSize: '0.9rem', marginTop: '1rem' }}>
+              ⚠️ Attenzione: Una volta finalizzata, non potrai più aggiungere step a questa iscrizione.
+            </p>
+          </div>
+          <div className="modal-footer">
+            <button onClick={onClose} className="web3-button secondary" disabled={isProcessing}>
+              Annulla
+            </button>
+            <button onClick={handleFinalize} disabled={isProcessing} className="web3-button">
+              {isProcessing ? "Finalizzazione..." : "Finalizza"}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {isProcessing && (
+        <TransactionStatusModal
+          isOpen={true}
+          status={txResult?.status === "success" ? "success" : txResult?.status === "error" ? "error" : "loading"}
+          message={txResult?.message || loadingMessage}
+          onClose={() => {}}
+        />
+      )}
+    </>
+  );
+};
+
+// Componente modale per visualizzare steps
+const StepsModal: React.FC<{
+  batch: Batch;
+  onClose: () => void;
+}> = ({ batch, onClose }) => {
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+
+  return (
+    <>
+      <div className="steps-modal-overlay" onClick={onClose}>
+        <div className="steps-modal-content" onClick={(e) => e.stopPropagation()}>
+          <div className="steps-modal-header">
+            <h2>Steps - {batch.name}</h2>
+            <button onClick={onClose} className="web3-button secondary">
+              ✕
+            </button>
+          </div>
+          <div className="steps-modal-body">
+            {batch.steps && batch.steps.length > 0 ? (
+              batch.steps.map((step, index) => (
+                <div key={index} className="step-card">
+                  <h4>📝 Step {index + 1}: {step.eventName}</h4>
+                  <p><strong>📄 Descrizione:</strong> {step.description || "N/D"}</p>
+                  <p><strong>📅 Data:</strong> {formatItalianDate(step.date)}</p>
+                  <p><strong>📍 Luogo:</strong> {step.location || "N/D"}</p>
+                  <p>
+                    <strong>🔗 Verifica su Blockchain:</strong>
+                    <a
+                      href={`https://polygonscan.com/inputdatadecoder?tx=${step.transactionHash || batch.transactionHash}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{ marginLeft: '0.5rem' }}
+                    >
+                      🔗 Verifica
+                    </a>
+                  </p>
+                  {step.attachmentsIpfsHash && step.attachmentsIpfsHash !== "N/A" && (
+                    <p>
+                      <strong>📎 Allegati:</strong>
+                      <a
+                        href={`https://musical-emerald-partridge.myfilebase.com/ipfs/${step.attachmentsIpfsHash}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ marginLeft: '0.5rem' }}
+                      >
+                        📎 Visualizza
+                      </a>
+                    </p>
+                  )}
+                </div>
+              ))
+            ) : (
+              <p>Nessuno step disponibile per questa iscrizione.</p>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {selectedImage && (
+        <ImageModal
+          imageUrl={selectedImage}
+          onClose={() => setSelectedImage(null)}
+        />
+      )}
+    </>
+  );
+};
+
+// Componente modale per nuova iscrizione
+const NewInscriptionModal: React.FC<{
+  onClose: () => void;
+  onSuccess: () => void;
+  onCreditsUpdate: (credits: number) => void;
+}> = ({ onClose, onSuccess, onCreditsUpdate }) => {
+  const account = useActiveAccount();
+  const { mutate: sendTransaction, isPending } = useSendTransaction();
+
+  const [currentStep, setCurrentStep] = useState(1);
+  const [formData, setFormData] = useState({
+    name: "",
+    description: "",
+    date: "",
+    location: ""
+  });
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [txResult, setTxResult] = useState<{ status: "success" | "error"; message: string; } | null>(null);
+  const [loadingMessage, setLoadingMessage] = useState("");
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSelectedFile(e.target.files?.[0] || null);
+  };
+
+  const handleNextStep = () => {
+    if (currentStep === 1 && !formData.name.trim()) {
+      alert("Il campo 'Nome Iscrizione' è obbligatorio.");
+      return;
+    }
+    if (currentStep < 6) setCurrentStep(prev => prev + 1);
+  };
+
+  const handlePrevStep = () => {
+    if (currentStep > 1) setCurrentStep(prev => prev - 1);
+  };
+
+  const handleSubmit = async () => {
+    if (!formData.name.trim()) {
+      setTxResult({ status: "error", message: "Il campo Nome Iscrizione è obbligatorio." });
+      return;
+    }
+
+    setLoadingMessage("Preparazione transazione...");
+    let imageIpfsHash = "";
+
+    if (selectedFile) {
+      try {
+        const uploadFormData = new FormData();
+        uploadFormData.append('file', selectedFile);
+
+        const uploadResponse = await fetch('/api/upload', {
+          method: 'POST',
+          body: uploadFormData,
+        });
+
+        if (uploadResponse.ok) {
+          const uploadResult = await uploadResponse.json();
+          imageIpfsHash = uploadResult.cid;
+        }
+      } catch (error) {
+        console.error("Errore upload file:", error);
+      }
+    }
+
+    setLoadingMessage("Transazione in corso...");
+    const transaction = prepareContractCall({
+      contract,
+      method: "function createBatch(string,string,string,string,string)",
+      params: [formData.name, formData.description || "", formData.date || "", formData.location || "", imageIpfsHash],
+    });
+
+    sendTransaction(transaction, {
+      onSuccess: async (result) => {
+        setTxResult({ status: "success", message: "Iscrizione creata! Aggiorno i dati..." });
+
+        // Aggiorna i crediti localmente dopo la transazione
+        if (account?.address) {
+          try {
+            const response = await fetch(`/api/get-company-status?walletAddress=${account.address}`);
+            if (response.ok) {
+              const data = await response.json();
+              onCreditsUpdate(data.credits);
+
+              await fetch('/api/activate-company', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  action: 'setCredits',
+                  walletAddress: account.address,
+                  credits: data.credits,
+                }),
+              });
+            }
+          } catch (error) {
+            console.error("Errore durante l'aggiornamento dei crediti:", error);
+          }
+        }
+
+        setTimeout(() => {
+          onSuccess();
+          setLoadingMessage("");
+        }, 2000);
+      },
+      onError: (err) => {
+        setTxResult({
+          status: "error",
+          message: err.message.toLowerCase().includes("insufficient funds") ? "Crediti Insufficienti" : "Errore nella transazione."
+        });
+        setLoadingMessage("");
+      },
+    });
+  };
+
+  const isProcessing = loadingMessage !== "" || isPending;
+  const today = new Date().toISOString().split("T")[0];
+  const helpTextStyle = {
+    backgroundColor: "#343a40",
+    border: "1px solid #495057",
+    borderRadius: "8px",
+    padding: "16px",
+    marginTop: "16px",
+    fontSize: "0.9rem",
+    color: "#f8f9fa"
+  };
+
+  return (
+    <>
+      <div className="modal-overlay" onClick={onClose}>
+        <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+          <div className="modal-header">
+            <h2>Nuova Iscrizione ({currentStep}/6)</h2>
+          </div>
+          <div className="modal-body" style={{ minHeight: "350px" }}>
+            {currentStep === 1 && (
+              <div>
+                <div className="form-group">
+                  <label>
+                    Nome Iscrizione 
+                    <span style={{ color: "red", fontWeight: "bold" }}> * Obbligatorio</span>
+                  </label>
+                  <input 
+                    type="text" 
+                    name="name" 
+                    value={formData.name} 
+                    onChange={handleInputChange} 
+                    className="form-input" 
+                    maxLength={100} 
+                  />
+                  <small className="char-counter">{formData.name.length} / 100</small>
+                </div>
+                <div style={helpTextStyle}>
+                  <p><strong>ℹ️ Come scegliere il Nome Iscrizione</strong></p>
+                  <p>Il Nome Iscrizione è un'etichetta descrittiva che ti aiuta a identificare in modo chiaro ciò che stai registrando on-chain. Ad esempio:</p>
+                  <ul style={{ textAlign: "left", paddingLeft: "20px" }}>
+                    <li>Il nome di un prodotto o varietà: <em>Pomodori San Marzano 2025, Olio Extravergine Frantoio</em></li>
+                    <li>Un lotto o una produzione: <em>Lotto Pasta Artigianale LT1025, Produzione Vino Rosso 2024</em></li>
+                    <li>Un servizio o processo: <em>Trasporto Merci Roma-Milano, Certificazione Biologico 2025</em></li>
+                  </ul>
+                  <p style={{ marginTop: "1rem" }}><strong>📌 Consiglio:</strong> scegli un nome breve ma significativo, che ti permetta di ritrovare facilmente l'iscrizione anche dopo mesi o anni.</p>
+                </div>
+              </div>
+            )}
+
+            {currentStep === 2 && (
+              <div>
+                <div className="form-group">
+                  <label>
+                    Descrizione
+                    <span style={{ color: "#6c757d" }}> Non obbligatorio</span>
+                  </label>
+                  <textarea
+                    name="description"
+                    value={formData.description}
+                    onChange={handleInputChange}
+                    className="form-input"
+                    rows={4}
+                    maxLength={500}
+                  ></textarea>
+                  <small className="char-counter">{formData.description.length} / 500</small>
+                </div>
+                <div style={helpTextStyle}>
+                  <p>Inserisci una descrizione dettagliata di ciò che stai registrando. Fornisci tutte le informazioni utili per identificare chiaramente il prodotto, il servizio o il processo a cui appartiene questa iscrizione.</p>
+                </div>
+              </div>
+            )}
+
+            {currentStep === 3 && (
+              <div>
+                <div className="form-group">
+                  <label>
+                    Luogo di Produzione
+                    <span style={{ color: "#6c757d" }}> Non obbligatorio</span>
+                  </label>
+                  <input
+                    type="text"
+                    name="location"
+                    value={formData.location}
+                    onChange={handleInputChange}
+                    className="form-input"
+                    maxLength={100}
+                  />
+                  <small className="char-counter">{formData.location.length} / 100</small>
+                </div>
+                <div style={helpTextStyle}>
+                  <p>Inserisci il luogo di origine o produzione, come una città, una regione, un'azienda agricola o uno stabilimento. Serve a indicare con precisione dove ha avuto origine ciò che stai registrando.</p>
+                </div>
+              </div>
+            )}
+
+            {currentStep === 4 && (
+              <div>
+                <div className="form-group">
+                  <label>
+                    Data di Origine
+                    <span style={{ color: "#6c757d" }}> Non obbligatorio</span>
+                  </label>
+                  <input
+                    type="date"
+                    name="date"
+                    value={formData.date}
+                    onChange={handleInputChange}
+                    className="form-input"
+                    max={today}
+                  />
+                </div>
+                <div style={helpTextStyle}>
+                  <p>Inserisci una data di origine, puoi utilizzare il giorno attuale o una data precedente alla registrazione di questa iscrizione.</p>
+                </div>
+              </div>
+            )}
+
+            {currentStep === 5 && (
+              <div>
+                <div className="form-group">
+                  <label>
+                    Immagine Prodotto
+                    <span style={{ color: "#6c757d" }}> Non obbligatorio</span>
+                  </label>
+                  <input
+                    type="file"
+                    name="image"
+                    onChange={handleFileChange}
+                    className="form-input"
+                    accept="image/png, image/jpeg, image/webp"
+                  />
+                  <small style={{ marginTop: "4px" }}>
+                    Formati supportati: PNG, JPG, WEBP. Dimensione massima: 5 MB.
+                  </small>
+                  {selectedFile && (
+                    <p className="file-name-preview">File: {selectedFile.name}</p>
+                  )}
+                </div>
+                <div style={helpTextStyle}>
+                  <p>Carica un'immagine rappresentativa di ciò che stai registrando, come una foto del prodotto, del luogo di produzione o di un documento. Rispetta i formati e i limiti di peso.</p>
+                </div>
+              </div>
+            )}
+
+            {currentStep === 6 && (
+              <div>
+                <h4>Riepilogo Dati</h4>
+                <div className="recap-summary">
+                  <p><strong>Nome:</strong> {truncateText(formData.name, 40) || "N/D"}</p>
+                  <p><strong>Descrizione:</strong> {truncateText(formData.description, 60) || "N/D"}</p>
+                  <p><strong>Luogo:</strong> {truncateText(formData.location, 40) || "N/D"}</p>
+                  <p><strong>Data:</strong> {formData.date ? formData.date.split("-").reverse().join("/") : "N/D"}</p>
+                  <p><strong>Immagine:</strong> {truncateText(selectedFile?.name || "", 40) || "Nessuna"}</p>
+                </div>
+                <p>Vuoi confermare e registrare questa iscrizione sulla blockchain?</p>
+              </div>
+            )}
+          </div>
+          <div className="modal-footer">
+            <div>
+              {currentStep > 1 && (
+                <button onClick={handlePrevStep} className="web3-button secondary" disabled={isProcessing}>
+                  Indietro
+                </button>
+              )}
+            </div>
+            <div style={{ display: 'flex', gap: '1rem' }}>
+              <button onClick={onClose} className="web3-button secondary" disabled={isProcessing}>
+                Chiudi
+              </button>
+              {currentStep < 6 && (
+                <button onClick={handleNextStep} className="web3-button">
+                  Avanti
+                </button>
+              )}
+              {currentStep === 6 && (
+                <button onClick={handleSubmit} disabled={isProcessing} className="web3-button">
+                  {isProcessing ? "Conferma..." : "Conferma e Registra"}
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {isProcessing && (
+        <TransactionStatusModal
+          isOpen={true}
+          status={txResult?.status === "success" ? "success" : txResult?.status === "error" ? "error" : "loading"}
+          message={txResult?.message || loadingMessage}
+          onClose={() => {}}
+        />
+      )}
+    </>
+  );
+};
+
+// Componente modale per scelta tipo esportazione
+const ExportTypeModal: React.FC<{
+  batch: Batch;
+  onClose: () => void;
+  onSelectType: (type: 'pdf' | 'html') => void;
+}> = ({ batch, onClose, onSelectType }) => {
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-header">
+          <h2>Informazioni Esportazione</h2>
+        </div>
+        <div className="modal-body">
+          <div style={{ marginBottom: '2rem' }}>
+            <p>Se hai finalizzato la tua iscrizione (non prima) potrai esportare:</p>
+            <ul style={{ textAlign: 'left', paddingLeft: '20px', margin: '1rem 0' }}>
+              <li>Un certificato EasyChain in formato PDF</li>
+              <li>Un certificato EasyChain HTML che potrai caricare sul tuo server - spazio privato, copia il link e genera il QR Code da applicare sull'etichetta del tuo prodotto.</li>
+            </ul>
+          </div>
+          <div className="export-modal-buttons">
+            <button 
+              className="export-type-button"
+              onClick={() => onSelectType('pdf')}
+            >
+              📄 Esporta PDF
+            </button>
+            <button 
+              className="export-type-button"
+              onClick={() => onSelectType('html')}
+            >
+              🌐 Esporta HTML
+            </button>
+          </div>
+        </div>
+        <div className="modal-footer">
+          <button onClick={onClose} className="web3-button secondary">
+            Chiudi
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Componente placeholder per modale selezione banner (non più necessario)
+const BannerSelectionModal: React.FC<{
+  batch: Batch;
+  exportType: 'pdf' | 'html';
+  onClose: () => void;
+  onExport: (bannerId: string) => void;
+}> = ({ batch, exportType, onClose, onExport }) => {
+  // Esporta direttamente senza banner
+  React.useEffect(() => {
+    onExport('none');
+  }, [onExport]);
+
+  return null;
+};
+
+// Componente modale info
+const InfoModal: React.FC<{
+  onClose: () => void;
+}> = ({ onClose }) => {
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-header">
+          <h2>Informazioni Iscrizioni</h2>
+        </div>
+        <div className="modal-body">
+          <div style={{ textAlign: 'left' }}>
+            <h4>Come funziona:</h4>
+            <ul style={{ paddingLeft: '20px', margin: '1rem 0' }}>
+              <li><strong>Inizializza:</strong> Crea una nuova iscrizione con i dati base del prodotto</li>
+              <li><strong>Aggiungi Steps:</strong> Registra ogni fase della filiera produttiva</li>
+              <li><strong>Finalizza:</strong> Chiudi l'iscrizione quando completata</li>
+              <li><strong>Esporta:</strong> Genera certificati PDF o HTML per i tuoi clienti</li>
+            </ul>
+            
+            <h4>Stati dell'iscrizione:</h4>
+            <ul style={{ paddingLeft: '20px', margin: '1rem 0' }}>
+              <li><span style={{ color: '#10b981' }}>Aperto</span>: Puoi aggiungere nuovi step</li>
+              <li><span style={{ color: '#ef4444' }}>Chiuso</span>: Finalizzato, pronto per l'esportazione</li>
+            </ul>
+
+            <h4>Costi:</h4>
+            <p>Ogni operazione (nuova iscrizione, aggiunta step, finalizzazione) consuma 1 credito.</p>
+          </div>
+        </div>
+        <div className="modal-footer">
+          <button onClick={onClose} className="web3-button">
+            Ho capito
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Componente Principale "Controllore"
+const AziendaPage: React.FC = () => {
+  const account = useActiveAccount();
+
+  const [companyStatus, setCompanyStatus] = useState<{
+    isLoading: boolean;
+    isActive: boolean;
+    data: CompanyData | null;
+    error: string | null;
+  }>({
+    isLoading: true,
+    isActive: false,
+    data: null,
+    error: null,
+  });
+
+  useEffect(() => {
+    if (!account) {
+      setCompanyStatus({ isLoading: false, isActive: false, data: null, error: null });
+      return;
+    }
+
+    const checkCompanyStatus = async () => {
+      setCompanyStatus(prev => ({ ...prev, isLoading: true }));
+      try {
+        const response = await fetch(`/api/get-company-status?walletAddress=${account.address}`);
+        if (!response.ok) {
+          throw new Error('Errore di rete nella verifica dello stato.');
+        }
+        const data = await response.json();
+        setCompanyStatus({
+          isLoading: false,
+          isActive: data.isActive,
+          data: data.isActive ? { 
+            companyName: data.companyName, 
+            credits: data.credits,
+            status: data.status || 'active'
+          } : null,
+          error: null,
+        });
+      } catch (err: any) {
+        setCompanyStatus({
+          isLoading: false,
+          isActive: false,
+          data: null,
+          error: err.message,
+        });
+      }
+    };
+
+    checkCompanyStatus();
+  }, [account]);
+
+  const renderContent = () => {
+    if (companyStatus.isLoading) {
+      return <div className="centered-container"><p>Verifica stato account in corso...</p></div>;
+    }
+
+    if (companyStatus.error) {
+      return <div className="centered-container"><p style={{ color: "red" }}>{companyStatus.error}</p></div>;
+    }
+
+    if (companyStatus.isActive && companyStatus.data) {
+      return <Dashboard companyData={companyStatus.data} />;
+    }
+
+    if (account) {
+      return <RegistrationForm walletAddress={account.address} />;
+    }
+
+    return <div className="centered-container"><p>Connetti il wallet per continuare.</p></div>;
+  };
+
+  if (!account) {
+    return (
+      <div className="login-container">
+        <AziendaPageStyles />
+        <div style={{ textAlign: "center" }}>
+          <h1>Benvenuto</h1>
+          <p>Connetti il tuo wallet per accedere.</p>
+          <ConnectButton 
+            client={client} 
+            wallets={[inAppWallet()]}
+            chain={polygon}
+            accountAbstraction={{ chain: polygon, sponsorGas: true }}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <AziendaPageStyles />
+      <div className="app-container-full">
+        <header className="main-header-bar">
+          <h1 className="header-title">EasyChain - Area Privata</h1>
+          <ConnectButton 
+            client={client}
+            chain={polygon}
+            accountAbstraction={{ chain: polygon, sponsorGas: true }}
+          />
+        </header>
+        <main>
+          {renderContent()}
+        </main>
+      </div>
+    </>
+  );
+};
+
+export default AziendaPage;
