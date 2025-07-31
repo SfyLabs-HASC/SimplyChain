@@ -313,7 +313,7 @@ export default async function handler(req, res) {
                         ` : ''}
                         <div class="step-detail">
                           🔗 <strong>Verifica su Blockchain:</strong>
-                          <a href="https://polygonscan.com/inputdatadecoder?tx=${step.transactionHash || batch.transactionHash}" 
+                          <a href="https://polygonscan.com/inputdatadecoder?tx=${step.transactionHash}" 
                              target="_blank" 
                              style="color: #3b82f6; text-decoration: none; font-weight: 500; margin-left: 5px;">
                             Verifica Transazione

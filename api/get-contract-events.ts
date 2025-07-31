@@ -76,7 +76,12 @@ export default async function handler(
         if (!stepsByBatchId.has(batchId)) {
           stepsByBatchId.set(batchId, []);
         }
-        stepsByBatchId.get(batchId)!.push(stepArgs);
+        // Add transaction hash to step data
+        const stepWithTx = {
+          ...stepArgs,
+          transactionHash: stepEvent.transactionHash
+        };
+        stepsByBatchId.get(batchId)!.push(stepWithTx);
       }
     }
 

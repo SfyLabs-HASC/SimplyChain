@@ -2005,17 +2005,6 @@ const StepsModal: React.FC<{
                   <p><strong>📄 Descrizione:</strong> {step.description || "N/D"}</p>
                   <p><strong>📅 Data:</strong> {formatItalianDate(step.date)}</p>
                   <p><strong>📍 Luogo:</strong> {step.location || "N/D"}</p>
-                  <p>
-                    <strong>🔗 Verifica su Blockchain:</strong>
-                    <a
-                      href={`https://polygonscan.com/inputdatadecoder?tx=${step.transactionHash || batch.transactionHash}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={{ marginLeft: '0.5rem' }}
-                    >
-                      {truncateText(step.transactionHash || batch.transactionHash, 15)}
-                    </a>
-                  </p>
                   {step.attachmentsIpfsHash && step.attachmentsIpfsHash !== "N/A" && (
                     <p>
                       <strong>📎 Allegati:</strong>
@@ -2029,6 +2018,17 @@ const StepsModal: React.FC<{
                       </a>
                     </p>
                   )}
+                  <p>
+                    <strong>🔗 Verifica su Blockchain:</strong>
+                    <a
+                      href={`https://polygonscan.com/inputdatadecoder?tx=${step.transactionHash}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{ marginLeft: '0.5rem' }}
+                    >
+                      {truncateText(step.transactionHash, 15)}
+                    </a>
+                  </p>
                 </div>
               ))
             ) : (
