@@ -1,3 +1,4 @@
+
 // FILE: src/pages/AziendaPage.tsx
 // DESCRIZIONE: Versione aggiornata che utilizza Firebase per i dati azienda,
 // implementa il sistema di refresh on-chain e gestisce le iscrizioni con numerazione incrementale.
@@ -952,7 +953,6 @@ const polygonWithRPC = {
   rpc: `https://137.rpc.thirdweb.com/023dd6504a82409b2bc7cb971fd35b16`,
 };
 
-```text
 const contract = getContract({
   client,
   chain: polygonWithRPC,
@@ -1634,21 +1634,21 @@ const AddStepModal: React.FC<{
         // Aggiorna i crediti localmente dopo la transazione
         if (account?.address) {
           try {
-            const response = await fetch(`/api/get-company-status?walletAddress=${account.address}`);
-            if (response.ok) {
-              const data = await response.json();
-              onCreditsUpdate(data.credits);
+            // Ottieni i crediti correnti
+            const creditsResponse = await fetch(`/api/get-company-status?walletAddress=${account.address}`);
+            const creditsData = creditsResponse.ok ? await creditsResponse.json() : { credits: 0 };
+            
+            onCreditsUpdate(creditsData.credits);
 
-              await fetch('/api/activate-company', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  action: 'setCredits',
-                  walletAddress: account.address,
-                  credits: data.credits,
-                }),
-              });
-            }
+            await fetch('/api/activate-company', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                action: 'setCredits',
+                walletAddress: account.address,
+                credits: creditsData.credits,
+              }),
+            });
           } catch (error) {
             console.error("Errore durante l'aggiornamento dei crediti:", error);
           }
@@ -1656,6 +1656,10 @@ const AddStepModal: React.FC<{
 
         // Aggiungi l'evento al cache Firebase
         try {
+          // Ottieni i crediti correnti
+          const creditsResponse = await fetch(`/api/get-company-status?walletAddress=${account.address}`);
+          const creditsData = creditsResponse.ok ? await creditsResponse.json() : { credits: 0 };
+          
           await fetch('/api/add-single-event', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -1674,7 +1678,7 @@ const AddStepModal: React.FC<{
                   transactionHash: result.transactionHash
                 }
               },
-              newCredits: currentCompanyData.credits - 1
+              newCredits: creditsData.credits - 1
             }),
           });
         } catch (error) {
@@ -1937,21 +1941,21 @@ const FinalizeModal: React.FC<{
         // Aggiorna i crediti localmente dopo la transazione
         if (account?.address) {
           try {
-            const response = await fetch(`/api/get-company-status?walletAddress=${account.address}`);
-            if (response.ok) {
-              const data = await response.json();
-              onCreditsUpdate(data.credits);
+            // Ottieni i crediti correnti
+            const creditsResponse = await fetch(`/api/get-company-status?walletAddress=${account.address}`);
+            const creditsData = creditsResponse.ok ? await creditsResponse.json() : { credits: 0 };
+            
+            onCreditsUpdate(creditsData.credits);
 
-              await fetch('/api/activate-company', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  action: 'setCredits',
-                  walletAddress: account.address,
-                  credits: data.credits,
-                }),
-              });
-            }
+            await fetch('/api/activate-company', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                action: 'setCredits',
+                walletAddress: account.address,
+                credits: creditsData.credits,
+              }),
+            });
           } catch (error) {
             console.error("Errore durante l'aggiornamento dei crediti:", error);
           }
@@ -1959,6 +1963,10 @@ const FinalizeModal: React.FC<{
 
         // Aggiungi l'evento al cache Firebase
         try {
+          // Ottieni i crediti correnti
+          const creditsResponse = await fetch(`/api/get-company-status?walletAddress=${account.address}`);
+          const creditsData = creditsResponse.ok ? await creditsResponse.json() : { credits: 0 };
+          
           await fetch('/api/add-single-event', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -1968,7 +1976,7 @@ const FinalizeModal: React.FC<{
               eventData: {
                 batchId: batch.batchId
               },
-              newCredits: currentCompanyData.credits - 1
+              newCredits: creditsData.credits - 1
             }),
           });
         } catch (error) {
@@ -2190,21 +2198,21 @@ const NewInscriptionModal: React.FC<{
         // Aggiorna i crediti localmente dopo la transazione
         if (account?.address) {
           try {
-            const response = await fetch(`/api/get-company-status?walletAddress=${account.address}`);
-            if (response.ok) {
-              const data = await response.json();
-              onCreditsUpdate(data.credits);
+            // Ottieni i crediti correnti
+            const creditsResponse = await fetch(`/api/get-company-status?walletAddress=${account.address}`);
+            const creditsData = creditsResponse.ok ? await creditsResponse.json() : { credits: 0 };
+            
+            onCreditsUpdate(creditsData.credits);
 
-              await fetch('/api/activate-company', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  action: 'setCredits',
-                  walletAddress: account.address,
-                  credits: data.credits,
-                }),
-              });
-            }
+            await fetch('/api/activate-company', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                action: 'setCredits',
+                walletAddress: account.address,
+                credits: creditsData.credits,
+              }),
+            });
           } catch (error) {
             console.error("Errore durante l'aggiornamento dei crediti:", error);
           }
@@ -2212,6 +2220,10 @@ const NewInscriptionModal: React.FC<{
 
         // Aggiungi l'evento al cache Firebase
         try {
+          // Ottieni i crediti correnti
+          const creditsResponse = await fetch(`/api/get-company-status?walletAddress=${account.address}`);
+          const creditsData = creditsResponse.ok ? await creditsResponse.json() : { credits: 0 };
+          
           await fetch('/api/add-single-event', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -2229,7 +2241,7 @@ const NewInscriptionModal: React.FC<{
                 transactionHash: result.transactionHash,
                 steps: []
               },
-              newCredits: currentCompanyData.credits - 1
+              newCredits: creditsData.credits - 1
             }),
           });
         } catch (error) {
