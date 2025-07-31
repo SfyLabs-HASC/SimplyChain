@@ -952,6 +952,7 @@ const polygonWithRPC = {
   rpc: `https://137.rpc.thirdweb.com/023dd6504a82409b2bc7cb971fd35b16`,
 };
 
+```text
 const contract = getContract({
   client,
   chain: polygonWithRPC,
@@ -1653,6 +1654,33 @@ const AddStepModal: React.FC<{
           }
         }
 
+        // Aggiungi l'evento al cache Firebase
+        try {
+          await fetch('/api/add-single-event', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              userAddress: account.address,
+              eventType: 'BatchStepAdded',
+              eventData: {
+                batchId: batch.batchId,
+                stepData: {
+                  stepIndex: "0", // Verrà aggiornato dall'indexer
+                  eventName: formData.eventName,
+                  description: formData.description || "",
+                  date: formData.date || "",
+                  location: formData.location || "",
+                  attachmentsIpfsHash: attachmentsIpfsHash,
+                  transactionHash: result.transactionHash
+                }
+              },
+              newCredits: currentCompanyData.credits - 1
+            }),
+          });
+        } catch (error) {
+          console.error("Errore aggiunta evento al cache:", error);
+        }
+
         setTimeout(() => {
           onSuccess();
           setLoadingMessage("");
@@ -1883,7 +1911,7 @@ const FinalizeModal: React.FC<{
 
   const handleFinalize = async () => {
     setLoadingMessage("Finalizzazione in corso...");
-    
+
     const transaction = prepareContractCall({
       contract,
       method: "function closeBatch(uint256)",
@@ -1927,6 +1955,24 @@ const FinalizeModal: React.FC<{
           } catch (error) {
             console.error("Errore durante l'aggiornamento dei crediti:", error);
           }
+        }
+
+        // Aggiungi l'evento al cache Firebase
+        try {
+          await fetch('/api/add-single-event', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              userAddress: account.address,
+              eventType: 'BatchClosed',
+              eventData: {
+                batchId: batch.batchId
+              },
+              newCredits: currentCompanyData.credits - 1
+            }),
+          });
+        } catch (error) {
+          console.error("Errore aggiunta evento al cache:", error);
         }
 
         setTimeout(() => {
@@ -2162,6 +2208,32 @@ const NewInscriptionModal: React.FC<{
           } catch (error) {
             console.error("Errore durante l'aggiornamento dei crediti:", error);
           }
+        }
+
+        // Aggiungi l'evento al cache Firebase
+        try {
+          await fetch('/api/add-single-event', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              userAddress: account.address,
+              eventType: 'BatchInitialized',
+              eventData: {
+                batchId: result.transactionHash, // Useremo il tx hash temporaneamente
+                name: formData.name,
+                description: formData.description || "",
+                date: formData.date || "",
+                location: formData.location || "",
+                imageIpfsHash: imageIpfsHash,
+                isClosed: false,
+                transactionHash: result.transactionHash,
+                steps: []
+              },
+              newCredits: currentCompanyData.credits - 1
+            }),
+          });
+        } catch (error) {
+          console.error("Errore aggiunta evento al cache:", error);
         }
 
         setTimeout(() => {
@@ -2489,7 +2561,7 @@ const InfoModal: React.FC<{
               <li><strong>Finalizza:</strong> Chiudi l'iscrizione quando completata, non potrai aggiungere nuovi steps</li>
               <li><strong>Esporta:</strong> Genera certificati PDF o HTML per i tuoi clienti</li>
             </ul>
-            
+
             <h4>Stati dell'iscrizione:</h4>
             <ul style={{ paddingLeft: '20px', margin: '1rem 0' }}>
               <li><span style={{ color: '#10b981' }}>Aperto</span>: Puoi aggiungere nuovi step</li>
