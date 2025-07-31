@@ -1,13 +1,30 @@
+
 // PERCORSO FILE: api/get-contract-events.ts
-// DESCRIZIONE: Versione finale che filtra manualmente gli eventi in base
-// alla struttura dati reale rivelata dai log di diagnostica.
+// DESCRIZIONE: Funzione unificata che gestisce sia eventi blockchain che dati Firebase
+// basandosi sul parametro 'source' nella query
 
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { createThirdwebClient, getContract, getContractEvents } from 'thirdweb';
 import { polygon } from 'thirdweb/chains';
+import { initializeApp, cert, getApps } from 'firebase-admin/app';
+import { getFirestore } from 'firebase-admin/firestore';
 
 const supplyChainABI = [{"inputs":[],"stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"contributor","type":"address"},{"indexed":true,"internalType":"uint256","name":"batchId","type":"uint256"}],"name":"BatchClosed","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"contributor","type":"address"},{"indexed":true,"internalType":"uint256","name":"batchId","type":"uint256"},{"indexed":false,"internalType":"string","name":"name","type":"string"},{"indexed":false,"internalType":"string","name":"description","type":"string"},{"indexed":false,"internalType":"string","name":"date","type":"string"},{"indexed":false,"internalType":"string","name":"location","type":"string"},{"indexed":false,"internalType":"string","name":"imageIpfsHash","type":"string"},{"indexed":false,"internalType":"string","name":"contributorName","type":"string"},{"indexed":false,"internalType":"bool","name":"isClosed","type":"bool"}],"name":"BatchInitialized","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"uint256","name":"batchId","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"stepIndex","type":"uint256"},{"indexed":false,"internalType":"string","name":"eventName","type":"string"},{"indexed":false,"internalType":"string","name":"description","type":"string"},{"indexed":false,"internalType":"string","name":"date","type":"string"},{"indexed":false,"internalType":"string","name":"location","type":"string"},{"indexed":false,"internalType":"string","name":"attachmentsIpfsHash","type":"string"}],"name":"BatchStepAdded","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"contributorAddress","type":"address"},{"indexed":false,"internalType":"string","name":"name","type":"string"}],"name":"ContributorAdded","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"contributorAddress","type":"address"},{"indexed":false,"internalType":"uint256","name":"newCreditBalance","type":"uint256"}],"name":"ContributorCreditsSet","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"contributorAddress","type":"address"},{"indexed":false,"internalType":"uint256","name":"newCreditBalance","type":"uint256"}],"name":"ContributorCreditsUpdated","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"contributorAddress","type":"address"},{"indexed":false,"internalType":"bool","name":"isActive","type":"bool"}],"name":"ContributorStatusChanged","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"oldOwner","type":"address"},{"indexed":true,"internalType":"address","name":"newOwner","type":"address"}],"name":"OwnerSet","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"oldSuperOwner","type":"address"},{"indexed":true,"internalType":"address","name":"newSuperOwner","type":"address"}],"name":"SuperOwnerChanged","type":"event"},{"inputs":[{"internalType":"address","name":"_contributorAddress","type":"address"}],"name":"activateContributor","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"_contributorAddress","type":"address"},{"internalType":"string","name":"_name","type":"string"}],"name":"addContributor","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_batchId","type":"uint256"},{"internalType":"string","name":"_eventName","type":"string"},{"internalType":"string","name":"_description","type":"string"},{"internalType":"string","name":"_date","type":"string"},{"internalType":"string","name":"_location","type":"string"},{"internalType":"string","name":"_attachmentsIpfsHash","type":"string"}],"name":"addStepToBatch","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"","type":"uint256"}],"name":"batches","outputs":[{"internalType":"uint256","name":"id","type":"uint256"},{"internalType":"address","name":"contributor","type":"address"},{"internalType":"string","name":"contributorName","type":"string"},{"internalType":"string","name":"name","type":"string"},{"internalType":"string","name":"description","type":"string"},{"internalType":"string","name":"date","type":"string"},{"internalType":"string","name":"location","type":"string"},{"internalType":"string","name":"imageIpfsHash","type":"string"},{"internalType":"bool","name":"isClosed","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"_batchId","type":"uint256"}],"name":"closeBatch","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"","type":"address"},{"internalType":"uint256","name":"","type":"uint256"}],"name":"contributorBatches","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"","type":"address"}],"name":"contributors","outputs":[{"internalType":"string","name":"name","type":"string"},{"internalType":"uint256","name":"credits","type":"uint256"},{"internalType":"bool","name":"isActive","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"_contributorAddress","type":"address"}],"name":"deactivateContributor","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_batchId","type":"uint256"}],"name":"getBatchInfo","outputs":[{"internalType":"uint256","name":"id","type":"uint256"},{"internalType":"address","name":"contributor","type":"address"},{"internalType":"string","name":"contributorName","type":"string"},{"internalType":"string","name":"name","type":"string"},{"internalType":"string","name":"description","type":"string"},{"internalType":"string","name":"date","type":"string"},{"internalType":"string","name":"location","type":"string"},{"internalType":"string","name":"imageIpfsHash","type":"string"},{"internalType":"bool","name":"isClosed","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"_batchId","type":"uint256"},{"internalType":"uint256","name":"_stepIndex","type":"uint256"}],"name":"getBatchStep","outputs":[{"internalType":"string","name":"","type":"string"},{"internalType":"string","name":"","type":"string"},{"internalType":"string","name":"","type":"string"},{"internalType":"string","name":"","type":"string"},{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"_batchId","type":"uint256"}],"name":"getBatchStepCount","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"_contributor","type":"address"}],"name":"getBatchesByContributor","outputs":[{"internalType":"uint256[]","name":"","type":"uint256[]"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"_contributorAddress","type":"address"}],"name":"getContributorInfo","outputs":[{"internalType":"string","name":"","type":"string"},{"internalType":"uint256","name":"","type":"uint256"},{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"string","name":"_name","type":"string"},{"internalType":"string","name":"_description","type":"string"},{"internalType":"string","name":"_date","type":"string"},{"internalType":"string","name":"_location","type":"string"},{"internalType":"string","name":"_imageIpfsHash","type":"string"}],"name":"initializeBatch","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"owner","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"_contributorAddress","type":"address"},{"internalType":"uint256","name":"_credits","type":"uint256"}],"name":"setContributorCredits","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"_newOwner","type":"address"}],"name":"setOwner","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"superOwner","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"}] as const;
 const CONTRACT_ADDRESS = '0x0c5e6204e80e6fb3c0c7098c4fa84b2210358d0b';
+
+// Inizializzazione Firebase Admin
+function initializeFirebaseAdmin() {
+  if (getApps().length > 0) {
+    return;
+  }
+  if (!process.env.FIREBASE_ADMIN_SDK_JSON) {
+    throw new Error("La variabile d'ambiente FIREBASE_ADMIN_SDK_JSON non è impostata.");
+  }
+  const serviceAccount = JSON.parse(process.env.FIREBASE_ADMIN_SDK_JSON);
+  initializeApp({
+    credential: cert(serviceAccount),
+  });
+}
 
 function serializeBigInts(obj: any): any {
   if (obj === null || typeof obj !== 'object') return obj;
@@ -24,6 +41,83 @@ function serializeBigInts(obj: any): any {
   return newObj;
 }
 
+async function handleBlockchainEvents(userAddress: string) {
+  const secretKey = process.env.THIRDWEB_SECRET_KEY;
+  if (!secretKey) {
+    throw new Error("Variabile d'ambiente del server mancante.");
+  }
+
+  const client = createThirdwebClient({ secretKey });
+  const contract = getContract({ client, chain: polygon, address: CONTRACT_ADDRESS, abi: supplyChainABI });
+
+  const allEvents = await getContractEvents({ contract });
+
+  const userBatches = allEvents.filter(event => {
+    if (event.eventName !== 'BatchInitialized') {
+      return false;
+    }
+    const contributor = (event.args as any)?.contributor;
+    return contributor && contributor.toLowerCase() === userAddress.toLowerCase();
+  });
+
+  const allBatchStepEvents = allEvents.filter(event => event.eventName === 'BatchStepAdded');
+
+  const stepsByBatchId = new Map<string, any[]>();
+  for (const stepEvent of allBatchStepEvents) {
+    const stepArgs = stepEvent.args as any;
+    if (stepArgs && typeof stepArgs.batchId !== 'undefined' && stepArgs.batchId !== null) {
+      const batchId = stepArgs.batchId.toString();
+      if (!stepsByBatchId.has(batchId)) {
+        stepsByBatchId.set(batchId, []);
+      }
+      const stepWithTx = {
+        ...stepArgs,
+        transactionHash: stepEvent.transactionHash
+      };
+      stepsByBatchId.get(batchId)!.push(stepWithTx);
+    }
+  }
+
+  const combinedData = userBatches.map(batchEvent => {
+    const batchArgs = batchEvent.args as any;
+    const batchId = batchArgs.batchId.toString();
+
+    const batchClosedEvents = allEvents.filter(event => 
+      event.eventName === 'BatchClosed' && 
+      (event.args as any)?.batchId?.toString() === batchId
+    );
+    const isClosed = batchClosedEvents.length > 0;
+
+    return {
+      ...batchArgs,
+      transactionHash: batchEvent.transactionHash,
+      steps: stepsByBatchId.get(batchId) || [],
+      isClosed: isClosed
+    };
+  });
+
+  return serializeBigInts(combinedData);
+}
+
+async function handleFirebaseData(address: string) {
+  initializeFirebaseAdmin();
+  const db = getFirestore();
+
+  const batchesRef = db.collection('batches');
+  const snapshot = await batchesRef.where('ownerAddress', '==', address).get();
+
+  if (snapshot.empty) {
+    return [];
+  }
+
+  const batchesData = snapshot.docs.map(doc => ({
+    id: doc.id,
+    ...doc.data(),
+  }));
+
+  return batchesData;
+}
+
 export default async function handler(
   req: VercelRequest,
   res: VercelResponse
@@ -36,79 +130,27 @@ export default async function handler(
   if (req.method !== 'GET') return res.status(405).json({ error: `Method ${req.method} Not Allowed` });
 
   try {
-    const { userAddress } = req.query;
-    if (!userAddress || typeof userAddress !== 'string') {
-      return res.status(400).json({ error: "Il parametro 'userAddress' è obbligatorio." });
+    const { userAddress, address, source } = req.query;
+    
+    // Determina quale indirizzo usare e quale fonte di dati
+    const targetAddress = (userAddress || address) as string;
+    const dataSource = source as string || 'blockchain'; // default: blockchain
+
+    if (!targetAddress || typeof targetAddress !== 'string') {
+      return res.status(400).json({ error: "Il parametro 'userAddress' o 'address' è obbligatorio." });
     }
 
-    const secretKey = process.env.THIRDWEB_SECRET_KEY;
-    if (!secretKey) {
-      return res.status(500).json({ error: "Variabile d'ambiente del server mancante." });
+    let result;
+    
+    if (dataSource === 'firebase') {
+      // Gestisce i dati da Firebase (ex get-my-batches)
+      result = await handleFirebaseData(targetAddress);
+      return res.status(200).json(result);
+    } else {
+      // Gestisce gli eventi dalla blockchain (comportamento originale)
+      result = await handleBlockchainEvents(targetAddress);
+      return res.status(200).json({ events: result });
     }
-
-    const client = createThirdwebClient({ secretKey });
-    const contract = getContract({ client, chain: polygon, address: CONTRACT_ADDRESS, abi: supplyChainABI });
-
-    // --- MODIFICA 1: Recupera TUTTI gli eventi, senza specificare il nome ---
-    const allEvents = await getContractEvents({ contract });
-
-    // --- MODIFICA 2: Filtra manualmente con la logica corretta ---
-
-    // Filtra prima per nome dell'evento, POI per contributor
-    const userBatches = allEvents.filter(event => {
-      // Controlla che sia un evento 'BatchInitialized'
-      if (event.eventName !== 'BatchInitialized') {
-        return false;
-      }
-      // Ora che sappiamo che è del tipo giusto, controlliamo il contributor in 'event.args'
-      const contributor = (event.args as any)?.contributor;
-      return contributor && contributor.toLowerCase() === userAddress.toLowerCase();
-    });
-
-    // Filtra gli step per nome
-    const allBatchStepEvents = allEvents.filter(event => event.eventName === 'BatchStepAdded');
-
-    const stepsByBatchId = new Map<string, any[]>();
-    for (const stepEvent of allBatchStepEvents) {
-      const stepArgs = stepEvent.args as any;
-      if (stepArgs && typeof stepArgs.batchId !== 'undefined' && stepArgs.batchId !== null) {
-        const batchId = stepArgs.batchId.toString();
-        if (!stepsByBatchId.has(batchId)) {
-          stepsByBatchId.set(batchId, []);
-        }
-        // Add transaction hash to step data
-        const stepWithTx = {
-          ...stepArgs,
-          transactionHash: stepEvent.transactionHash
-        };
-        stepsByBatchId.get(batchId)!.push(stepWithTx);
-      }
-    }
-
-    const combinedData = userBatches.map(batchEvent => {
-      const batchArgs = batchEvent.args as any;
-      const batchId = batchArgs.batchId.toString();
-
-        // Controlla se il batch è stato chiuso
-        const batchClosedEvents = allEvents.filter(event => 
-          event.eventName === 'BatchClosed' && 
-          (event.args as any)?.batchId?.toString() === batchId
-        );
-        const isClosed = batchClosedEvents.length > 0;
-
-        console.log(`Batch ${batchId}: closed events found = ${batchClosedEvents.length}, isClosed = ${isClosed}`);
-
-      return {
-        ...batchArgs, // Usiamo 'args' come fonte dei dati
-        transactionHash: batchEvent.transactionHash,
-        steps: stepsByBatchId.get(batchId) || [],
-        isClosed: isClosed // Aggiungi lo stato 'isClosed'
-      };
-    });
-
-    const serializableData = serializeBigInts(combinedData);
-
-    return res.status(200).json({ events: serializableData });
 
   } catch (error: any) {
     console.error('ERRORE SERVER durante l\'esecuzione della funzione API:', error);
