@@ -1223,7 +1223,7 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
             className="info-button"
             onClick={() => setShowInfoModal(true)}
             style={{
-              background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
+              background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
               border: 'none',
               borderRadius: '50%',
               width: '30px',
@@ -1234,7 +1234,8 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
               cursor: 'pointer',
               color: 'white',
               fontSize: '14px',
-              fontWeight: 'bold'
+              fontWeight: 'bold',
+              boxShadow: '0 4px 15px rgba(59, 130, 246, 0.3)'
             }}
           >
             ℹ️
@@ -1613,8 +1614,17 @@ const AddStepModal: React.FC<{
       params: [batch.batchId, formData.eventName, formData.description || "", formData.date || "", formData.location || "", attachmentsIpfsHash],
     });
 
+    // Timeout per gestire transazioni bloccate
+    const timeoutId = setTimeout(() => {
+      if (loadingMessage !== "") {
+        setTxResult({ status: "error", message: "Timeout della transazione. Controlla su Polygonscan se è stata eseguita." });
+        setLoadingMessage("");
+      }
+    }, 60000); // 60 secondi timeout
+
     sendTransaction(transaction, {
       onSuccess: async (result) => {
+        clearTimeout(timeoutId);
         setTxResult({ status: "success", message: "Step aggiunto! Aggiorno i dati..." });
 
         // Salva il transaction hash dello step
@@ -1646,9 +1656,10 @@ const AddStepModal: React.FC<{
         setTimeout(() => {
           onSuccess();
           setLoadingMessage("");
-        }, 2000);
+        }, 1500);
       },
       onError: (err) => {
+        clearTimeout(timeoutId);
         setTxResult({
           status: "error",
           message: err.message.toLowerCase().includes("insufficient funds") ? "Crediti Insufficienti" : "Errore nella transazione."
@@ -1879,8 +1890,17 @@ const FinalizeModal: React.FC<{
       params: [batch.batchId],
     });
 
+    // Timeout per gestire transazioni bloccate
+    const timeoutId = setTimeout(() => {
+      if (loadingMessage !== "") {
+        setTxResult({ status: "error", message: "Timeout della transazione. Controlla su Polygonscan se è stata eseguita." });
+        setLoadingMessage("");
+      }
+    }, 60000); // 60 secondi timeout
+
     sendTransaction(transaction, {
       onSuccess: async (result) => {
+        clearTimeout(timeoutId);
         setTxResult({ status: "success", message: "Iscrizione finalizzata con successo!" });
 
         // Salva il transaction hash della finalizzazione
@@ -1912,9 +1932,10 @@ const FinalizeModal: React.FC<{
         setTimeout(() => {
           onSuccess();
           setLoadingMessage("");
-        }, 2000);
+        }, 1500);
       },
       onError: (err) => {
+        clearTimeout(timeoutId);
         setTxResult({
           status: "error",
           message: err.message.toLowerCase().includes("insufficient funds") ? "Crediti Insufficienti" : "Errore nella transazione."
@@ -1992,7 +2013,7 @@ const StepsModal: React.FC<{
                       rel="noopener noreferrer"
                       style={{ marginLeft: '0.5rem' }}
                     >
-                      {step.transactionHash ? truncateText(step.transactionHash, 15) : truncateText(batch.transactionHash, 15)}
+                      {truncateText(step.transactionHash || batch.transactionHash, 15)}
                     </a>
                   </p>
                   {step.attachmentsIpfsHash && step.attachmentsIpfsHash !== "N/A" && (
@@ -2107,8 +2128,17 @@ const NewInscriptionModal: React.FC<{
       params: [formData.name, formData.description || "", formData.date || "", formData.location || "", imageIpfsHash],
     });
 
+    // Timeout per gestire transazioni bloccate
+    const timeoutId = setTimeout(() => {
+      if (loadingMessage !== "") {
+        setTxResult({ status: "error", message: "Timeout della transazione. Controlla su Polygonscan se è stata eseguita." });
+        setLoadingMessage("");
+      }
+    }, 60000); // 60 secondi timeout
+
     sendTransaction(transaction, {
       onSuccess: async (result) => {
+        clearTimeout(timeoutId);
         setTxResult({ status: "success", message: "Iscrizione creata! Aggiorno i dati..." });
 
         // Aggiorna i crediti localmente dopo la transazione
@@ -2137,9 +2167,10 @@ const NewInscriptionModal: React.FC<{
         setTimeout(() => {
           onSuccess();
           setLoadingMessage("");
-        }, 2000);
+        }, 1500);
       },
       onError: (err) => {
+        clearTimeout(timeoutId);
         setTxResult({
           status: "error",
           message: err.message.toLowerCase().includes("insufficient funds") ? "Crediti Insufficienti" : "Errore nella transazione."
@@ -2469,16 +2500,6 @@ const InfoModal: React.FC<{
             <p>Dopo l'attivazione del tuo account avrai a disposizione crediti gratuiti per avviare la tua attività di certificazione su Blockchain.</p>
             <p>Ogni operazione (nuova iscrizione, aggiunta step, finalizzazione) consuma 1 credito.</p>
             <p>Se hai bisogno di piu' crediti per le tue operazioni vai alla pagina <a href="/ricaricacrediti" style={{ color: '#3b82f6', textDecoration: 'none' }}>Ricarica Crediti</a>.</p>
-            
-            <div style={{ textAlign: 'center', marginTop: '1rem' }}>
-              <button 
-                onClick={() => window.location.href = '/ricaricacrediti'}
-                className="web3-button"
-                style={{ marginTop: '1rem' }}
-              >
-                Ricarica Crediti
-              </button>
-            </div>
           </div>
         </div>
         <div className="modal-footer">

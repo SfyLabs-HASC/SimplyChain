@@ -301,14 +301,6 @@ export default async function handler(req, res) {
                         </div>
                         <div class="step-detail">📅 <strong>Data:</strong> ${step.date || 'N/D'}</div>
                         <div class="step-detail">📍 <strong>Luogo:</strong> ${step.location || 'N/D'}</div>
-                        <div class="step-detail">
-                          🔗 <strong>Verifica su Blockchain:</strong>
-                          <a href="https://polygonscan.com/inputdatadecoder?tx=${step.transactionHash || batch.transactionHash}" 
-                             target="_blank" 
-                             style="color: #3b82f6; text-decoration: none; font-weight: 500; margin-left: 5px;">
-                            Verifica Transazione
-                          </a>
-                        </div>
                         ${step.attachmentsIpfsHash && step.attachmentsIpfsHash !== "N/A" ? `
                           <div class="step-detail">
                             📎 <strong>Allegati:</strong>
@@ -319,6 +311,14 @@ export default async function handler(req, res) {
                             </a>
                           </div>
                         ` : ''}
+                        <div class="step-detail">
+                          🔗 <strong>Verifica su Blockchain:</strong>
+                          <a href="https://polygonscan.com/inputdatadecoder?tx=${step.transactionHash || batch.transactionHash}" 
+                             target="_blank" 
+                             style="color: #3b82f6; text-decoration: none; font-weight: 500; margin-left: 5px;">
+                            Verifica Transazione
+                          </a>
+                        </div>
                       </div>
                     </div>
                   `).join('')}
