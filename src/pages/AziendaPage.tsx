@@ -1,4 +1,3 @@
-
 // FILE: src/pages/AziendaPage.tsx
 // DESCRIZIONE: Versione aggiornata che utilizza Firebase per i dati azienda,
 // implementa il sistema di refresh on-chain e gestisce le iscrizioni con numerazione incrementale.
@@ -954,8 +953,7 @@ const polygonWithRPC = {
 };
 
 const contract = getContract({
-  client,
-  chain: polygonWithRPC,
+  client,  chain: polygonWithRPC,
   address: "0x0c5e6204e80e6fb3c0c7098c4fa84b2210358d0b",
   abi,
 });
@@ -1634,21 +1632,9 @@ const AddStepModal: React.FC<{
         // Aggiorna i crediti localmente dopo la transazione
         if (account?.address) {
           try {
-            // Ottieni i crediti correnti
             const creditsResponse = await fetch(`/api/get-company-status?walletAddress=${account.address}`);
             const creditsData = creditsResponse.ok ? await creditsResponse.json() : { credits: 0 };
-            
             onCreditsUpdate(creditsData.credits);
-
-            await fetch('/api/activate-company', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                action: 'setCredits',
-                walletAddress: account.address,
-                credits: creditsData.credits,
-              }),
-            });
           } catch (error) {
             console.error("Errore durante l'aggiornamento dei crediti:", error);
           }
@@ -1659,7 +1645,7 @@ const AddStepModal: React.FC<{
           // Ottieni i crediti correnti
           const creditsResponse = await fetch(`/api/get-company-status?walletAddress=${account.address}`);
           const creditsData = creditsResponse.ok ? await creditsResponse.json() : { credits: 0 };
-          
+
           await fetch('/api/add-single-event', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -1941,21 +1927,9 @@ const FinalizeModal: React.FC<{
         // Aggiorna i crediti localmente dopo la transazione
         if (account?.address) {
           try {
-            // Ottieni i crediti correnti
             const creditsResponse = await fetch(`/api/get-company-status?walletAddress=${account.address}`);
             const creditsData = creditsResponse.ok ? await creditsResponse.json() : { credits: 0 };
-            
             onCreditsUpdate(creditsData.credits);
-
-            await fetch('/api/activate-company', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                action: 'setCredits',
-                walletAddress: account.address,
-                credits: creditsData.credits,
-              }),
-            });
           } catch (error) {
             console.error("Errore durante l'aggiornamento dei crediti:", error);
           }
@@ -1966,7 +1940,7 @@ const FinalizeModal: React.FC<{
           // Ottieni i crediti correnti
           const creditsResponse = await fetch(`/api/get-company-status?walletAddress=${account.address}`);
           const creditsData = creditsResponse.ok ? await creditsResponse.json() : { credits: 0 };
-          
+
           await fetch('/api/add-single-event', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -2198,21 +2172,9 @@ const NewInscriptionModal: React.FC<{
         // Aggiorna i crediti localmente dopo la transazione
         if (account?.address) {
           try {
-            // Ottieni i crediti correnti
             const creditsResponse = await fetch(`/api/get-company-status?walletAddress=${account.address}`);
             const creditsData = creditsResponse.ok ? await creditsResponse.json() : { credits: 0 };
-            
             onCreditsUpdate(creditsData.credits);
-
-            await fetch('/api/activate-company', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                action: 'setCredits',
-                walletAddress: account.address,
-                credits: creditsData.credits,
-              }),
-            });
           } catch (error) {
             console.error("Errore durante l'aggiornamento dei crediti:", error);
           }
@@ -2223,7 +2185,7 @@ const NewInscriptionModal: React.FC<{
           // Ottieni i crediti correnti
           const creditsResponse = await fetch(`/api/get-company-status?walletAddress=${account.address}`);
           const creditsData = creditsResponse.ok ? await creditsResponse.json() : { credits: 0 };
-          
+
           await fetch('/api/add-single-event', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
