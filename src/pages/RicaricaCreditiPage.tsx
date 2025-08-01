@@ -357,7 +357,7 @@ const RicaricaCreditiPage: React.FC = () => {
 
     // Salva i dati di fatturazione
     try {
-      await fetch('/api/unified-api?action=save-billing-data', {
+      const response = await fetch('/api/unified-api?action=save-billing-data', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -493,7 +493,7 @@ const RicaricaCreditiPage: React.FC = () => {
         <p>${customRequest.message.replace(/\n/g, '<br>')}</p>
       `;
 
-      const response = await fetch('/api/unified-api?action=send-email', {
+      const response = await fetch('/api/unified-api?action=send-contact-request', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

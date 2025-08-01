@@ -88,6 +88,8 @@ export default async function handler(req, res) {
         return await handleCreatePayPalPayment(req, res, db);
       case 'confirm-payment':
         return await handleConfirmPayment(req, res, db);
+      case 'send-contact-request':
+        return await handleSendContactRequest(req, res);
 
       default:
         return res.status(400).json({ error: 'Azione non valida o mancante' });
@@ -441,7 +443,97 @@ async function sendEmail(req, res) {
   }
 }
 
-async function createStripePayment(req, res, db) {
+async function handleConfirmPayment(req, res, db) {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method Not Allowed' });
+  }
+
+  const { paymentId, provider } = req.body;
+
+  // 1. Retrieve Payment Data from Firebase
+  const paymentDoc = await db.collection('pending_payments').doc(paymentId).get();
+  if (!paymentDoc.exists) {
+      return res.status(404).json({ error: 'Payment not found' });
+  }
+  const paymentData = paymentDoc.data();
+
+  // 2. Verify Payment with the Provider
+  let isPaymentValid = false;
+
+  if (provider === 'stripe') {
+      const paymentIntent = await stripe.paymentIntents.retrieve(paymentId);
+      isPaymentValid = paymentIntent.status === 'succeeded';
+  } else if (provider === 'paypal') {
+      // Verify with PayPal API
+      const authResponse = await fetch('https://api.paypal.com/v1/oauth2/token', {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/x-www-form-urlencoded',
+              'Authorization': `Basic ${Buffer.from(`${process.env.PAYPAL_CLIENT_ID}:${process.env.PAYPAL_CLIENT_SECRET}`).toString('base64')}`
+          },
+          body: 'grant_type=client_credentials'
+      });
+
+      const authData = await authResponse.json();
+
+      const orderResponse = await fetch(`https://api.paypal.com/v2/checkout/orders/${paymentId}`, {
+          headers: {
+              'Authorization': `Bearer ${authData.access_token}`
+          }
+      });
+
+      const orderData = await orderResponse.json();
+      isPaymentValid = orderData.status === 'COMPLETED';
+  }
+
+  if (!isPaymentValid) {
+      return res.status(400).json({ error: 'Payment not completed' });
+  }
+
+  // 3. Credit On-Chain Credits
+  try {
+      const transaction = prepareContractCall({
+          contract,
+          method: "function setContributorCredits(address _contributorAddress, uint256 _credits)",
+          params: [paymentData.userAddress, paymentData.credits]
+      });
+
+      await sendTransaction({
+          transaction,
+          account: ownerAccount
+      });
+
+      // 4. Update Payment Status in Firebase
+      await db.collection('pending_payments').doc(paymentId).update({
+          status: 'completed',
+          completedAt: admin.firestore.FieldValue.serverTimestamp()
+      });
+
+      // 5. Send Confirmation Email
+      const emailSubject = `Pagamento Crediti Confermato - EasyChain`;
+      const emailBody = `
+          <h2>Pagamento Confermato!</h2>
+          <p>Il tuo pagamento di €${paymentData.amount} è stato confermato.</p>
+          <p>Sono stati accreditati <strong>${paymentData.credits} crediti</strong> al tuo account.</p>
+          <p>Puoi ora utilizzare i crediti per le tue operazioni di tracciabilità.</p>
+      `;
+
+      await resend.emails.send({
+          from: 'noreply@easychain.it',
+          to: 'sfy.startup@gmail.com', // Replace with the actual user email address
+          subject: emailSubject,
+          html: emailBody
+      });
+
+      res.status(200).json({ success: true, credits: paymentData.credits });
+
+  } catch (onchainError) {
+      console.error('Error crediting on-chain:', onchainError);
+      res.status(500).json({ error: 'Failed to credit on-chain' });
+  }
+}
+
+async function handleCreateStripePayment(req, res, db) {
     try {
         const { amount, credits, userAddress, billingData } = req.body;
 
@@ -476,7 +568,7 @@ async function createStripePayment(req, res, db) {
     }
 }
 
-async function createPayPalPayment(req, res, db) {
+async function handleCreatePayPalPayment(req, res, db) {
     try {
         const { amount, credits, userAddress, billingData } = req.body;
 
@@ -530,123 +622,41 @@ async function createPayPalPayment(req, res, db) {
         res.status(500).json({ error: 'Failed to create payment' });
     }
 }
-async function confirmPayment(req, res, db) {
-    try {
-        const { paymentId, provider } = req.body;
-
-        // 1. Retrieve Payment Data from Firebase
-        const paymentDoc = await db.collection('pending_payments').doc(paymentId).get();
-        if (!paymentDoc.exists) {
-            return res.status(404).json({ error: 'Payment not found' });
-        }
-        const paymentData = paymentDoc.data();
-
-        // 2. Verify Payment with the Provider
-        let isPaymentValid = false;
-
-        if (provider === 'stripe') {
-            const paymentIntent = await stripe.paymentIntents.retrieve(paymentId);
-            isPaymentValid = paymentIntent.status === 'succeeded';
-        } else if (provider === 'paypal') {
-            // Verify with PayPal API
-            const authResponse = await fetch('https://api.paypal.com/v1/oauth2/token', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                    'Authorization': `Basic ${Buffer.from(`${process.env.PAYPAL_CLIENT_ID}:${process.env.PAYPAL_CLIENT_SECRET}`).toString('base64')}`
-                },
-                body: 'grant_type=client_credentials'
-            });
-
-            const authData = await authResponse.json();
-
-            const orderResponse = await fetch(`https://api.paypal.com/v2/checkout/orders/${paymentId}`, {
-                headers: {
-                    'Authorization': `Bearer ${authData.access_token}`
-                }
-            });
-
-            const orderData = await orderResponse.json();
-            isPaymentValid = orderData.status === 'COMPLETED';
-        }
-
-        if (!isPaymentValid) {
-            return res.status(400).json({ error: 'Payment not completed' });
-        }
-
-        // 3. Credit On-Chain Credits
-        try {
-            const transaction = prepareContractCall({
-                contract,
-                method: "function setContributorCredits(address _contributorAddress, uint256 _credits)",
-                params: [paymentData.userAddress, paymentData.credits]
-            });
-
-            await sendTransaction({
-                transaction,
-                account: ownerAccount
-            });
-
-            // 4. Update Payment Status in Firebase
-            await db.collection('pending_payments').doc(paymentId).update({
-                status: 'completed',
-                completedAt: admin.firestore.FieldValue.serverTimestamp()
-            });
-
-            // 5. Send Confirmation Email
-            const emailSubject = `Pagamento Crediti Confermato - EasyChain`;
-            const emailBody = `
-                <h2>Pagamento Confermato!</h2>
-                <p>Il tuo pagamento di €${paymentData.amount} è stato confermato.</p>
-                <p>Sono stati accreditati <strong>${paymentData.credits} crediti</strong> al tuo account.</p>
-                <p>Puoi ora utilizzare i crediti per le tue operazioni di tracciabilità.</p>
-            `;
-
-            await resend.emails.send({
-                from: 'noreply@easychain.it',
-                to: 'sfy.startup@gmail.com', // Replace with the actual user email address
-                subject: emailSubject,
-                html: emailBody
-            });
-
-            res.status(200).json({ success: true, credits: paymentData.credits });
-
-        } catch (onchainError) {
-            console.error('Error crediting on-chain:', onchainError);
-            res.status(500).json({ error: 'Failed to credit on-chain' });
-        }
-
-    } catch (error) {
-        console.error('Error confirming payment:', error);
-        res.status(500).json({ error: 'Failed to confirm payment' });
-    }
-}
-
-async function handleSendEmail(req, res) {
+async function handleSendContactRequest(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
-  const { to, subject, html, text } = req.body;
+  const { message, email, phone } = req.body;
+
+  if (!message || !email || !phone) {
+    return res.status(400).json({ error: 'Tutti i campi sono obbligatori' });
+  }
+
+  if (message.length > 500) {
+    return res.status(400).json({ error: 'Il messaggio non può superare 500 caratteri' });
+  }
 
   try {
-    const { data, error } = await resend.emails.send({
-      from: 'EasyChain <onboarding@resend.dev>',
-      to: [to],
-      subject: subject,
-      html: html,
-      text: text
-    });
-
-    if (error) {
-      console.error('Errore Resend:', error);
-      return res.status(400).json({ error: error.message });
+    if (process.env.RESEND_API_KEY) {
+      await resend.emails.send({
+        from: 'noreply@yourdomain.com',
+        to: 'sfy.startup@gmail.com',
+        subject: 'Richiesta Custom',
+        html: `
+          <h2>Nuova Richiesta Custom</h2>
+          <p><strong>Email:</strong> ${email}</p>
+          <p><strong>Telefono:</strong> ${phone}</p>
+          <p><strong>Messaggio:</strong></p>
+          <p>${message}</p>
+        `
+      });
     }
 
-    return res.status(200).json({ success: true, data });
+    return res.status(200).json({ message: 'Richiesta inviata con successo' });
   } catch (error) {
-    console.error('Errore invio email:', error);
-    return res.status(500).json({ error: 'Errore interno del server' });
+    console.error('Errore invio richiesta:', error);
+    return res.status(500).json({ error: 'Errore durante l\'invio della richiesta' });
   }
 }
 
