@@ -1,4 +1,3 @@
-
 // FILE: api/unified-api.js
 // API unificata per gestire tutte le operazioni e aggirare i limiti di Vercel
 
@@ -44,45 +43,51 @@ export default async function handler(req, res) {
     switch (action) {
       case 'get-pending-companies':
         return await handleGetPendingCompanies(req, res, db);
-      
+
       case 'activate-company':
         return await handleActivateCompany(req, res, db);
-      
+
       case 'delete-company':
         return await handleDeleteCompany(req, res, db);
-      
+
       case 'get-company-status':
         return await handleGetCompanyStatus(req, res, db);
-      
+
       case 'send-email':
         return await handleSendEmail(req, res, db);
-      
+
       case 'create-relayer':
         return await handleCreateRelayer(req, res, db);
-      
+
       case 'insight-proxy':
         return await handleInsightProxy(req, res);
-      
+
       case 'indexer-data':
         return await handleIndexerData(req, res, db);
-      
+
       case 'add-single-event':
         return await handleAddSingleEvent(req, res, db);
-      
+
       case 'export-batch':
         return await handleExportBatch(req, res, db);
-      
+
       case 'upload':
         return await handleUpload(req, res);
-      
+
       case 'get-contract-events':
         return await handleGetContractEvents(req, res, db);
-      
+
       case 'save-billing-data':
         return await handleSaveBillingData(req, res, db);
-      
+
       case 'get-billing-data':
         return await handleGetBillingData(req, res, db);
+      case 'create-stripe-payment':
+        return await handleCreateStripePayment(req, res, db);
+      case 'create-paypal-payment':
+        return await handleCreatePayPalPayment(req, res, db);
+      case 'confirm-payment':
+        return await handleConfirmPayment(req, res, db);
 
       default:
         return res.status(400).json({ error: 'Azione non valida o mancante' });
@@ -101,7 +106,7 @@ async function handleGetPendingCompanies(req, res, db) {
 
   const pendingSnapshot = await db.collection('pendingCompanies').get();
   const activeSnapshot = await db.collection('activeCompanies').get();
-  
+
   const pendingCompanies = [];
   pendingSnapshot.forEach(doc => {
     pendingCompanies.push({ id: doc.id, ...doc.data() });
@@ -121,7 +126,7 @@ async function handleActivateCompany(req, res, db) {
   }
 
   const { companyId, companyData } = req.body;
-  
+
   if (!companyId || !companyData) {
     return res.status(400).json({ error: 'Dati mancanti' });
   }
@@ -144,7 +149,7 @@ async function handleDeleteCompany(req, res, db) {
   }
 
   const { companyId, collection } = req.body;
-  
+
   if (!companyId || !collection) {
     return res.status(400).json({ error: 'Parametri mancanti' });
   }
@@ -159,7 +164,7 @@ async function handleGetCompanyStatus(req, res, db) {
   }
 
   const { walletAddress } = req.body;
-  
+
   if (!walletAddress) {
     return res.status(400).json({ error: 'walletAddress mancante' });
   }
@@ -216,7 +221,7 @@ async function handleCreateRelayer(req, res, db) {
   }
 
   const { companyId } = req.body;
-  
+
   if (!companyId) {
     return res.status(400).json({ error: "ID Azienda mancante." });
   }
@@ -228,7 +233,7 @@ async function handleCreateRelayer(req, res, db) {
   if (!engineUrl || !adminKey || !clientId) {
     throw new Error("Configurazione del server incompleta.");
   }
-  
+
   const cleanedEngineUrl = engineUrl.replace(/\/$/, ""); 
   const fullEndpointUrl = `${cleanedEngineUrl}/v1/backend-wallet/create`;
 
@@ -292,7 +297,7 @@ async function handleInsightProxy(req, res) {
 async function handleIndexerData(req, res, db) {
   if (req.method === 'GET') {
     const { userAddress } = req.query;
-    
+
     if (!userAddress) {
       return res.status(400).json({ error: 'userAddress è obbligatorio' });
     }
@@ -313,7 +318,7 @@ async function handleIndexerData(req, res, db) {
 
   if (req.method === 'POST') {
     const { userAddress, batches } = req.body;
-    
+
     if (!userAddress || !batches) {
       return res.status(400).json({ error: 'Parametri mancanti' });
     }
@@ -335,7 +340,7 @@ async function handleAddSingleEvent(req, res, db) {
   }
 
   const eventData = req.body;
-  
+
   await db.collection('singleEvents').add({
     ...eventData,
     createdAt: new Date().toISOString()
@@ -350,14 +355,14 @@ async function handleExportBatch(req, res, db) {
   }
 
   const { batchId } = req.query;
-  
+
   if (!batchId) {
     return res.status(400).json({ error: 'batchId mancante' });
   }
 
   // Logica per esportare i dati del batch
   const batchDoc = await db.collection('batches').doc(batchId).get();
-  
+
   if (!batchDoc.exists) {
     return res.status(404).json({ error: 'Batch non trovato' });
   }
@@ -382,7 +387,7 @@ async function handleGetContractEvents(req, res, db) {
 
   const { userAddress, address, source } = req.query;
   const targetAddress = (userAddress || address);
-    
+
   if (!targetAddress) {
     return res.status(400).json({ error: "Il parametro 'userAddress' o 'address' è obbligatorio." });
   }
@@ -397,7 +402,7 @@ async function handleSaveBillingData(req, res, db) {
   }
 
   const { address, billingData } = req.body;
-  
+
   if (!address || !billingData) {
     return res.status(400).json({ error: 'Parametri mancanti' });
   }
@@ -416,16 +421,255 @@ async function handleGetBillingData(req, res, db) {
   }
 
   const { address } = req.query;
-  
+
   if (!address) {
     return res.status(400).json({ error: 'Indirizzo mancante' });
   }
 
   const doc = await db.collection('billingData').doc(address.toLowerCase()).get();
-  
+
   if (!doc.exists) {
     return res.status(404).json({ error: 'Dati fatturazione non trovati' });
   }
 
   return res.status(200).json({ billingData: doc.data() });
+}
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+const { Resend } = require('resend');
+const admin = require('firebase-admin');
+const { createThirdwebClient, getContract, prepareContractCall, sendTransaction } = require('thirdweb');
+const { polygon } = require('thirdweb/chains');
+const { privateKeyToAccount } = require('thirdweb/wallets');
+
+// Initialize Firebase Admin (only once)
+if (!admin.apps.length) {
+  const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY);
+  admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount),
+    databaseURL: process.env.FIREBASE_DATABASE_URL
+  });
+}
+
+const db = admin.firestore();
+const resend = new Resend(process.env.RESEND_API_KEY);
+
+// Thirdweb setup for on-chain transactions
+const client = createThirdwebClient({ clientId: "023dd6504a82409b2bc7cb971fd35b16" });
+const contract = getContract({ 
+  client, 
+  chain: polygon,
+  address: "0xd0bad36896df719b26683e973f2fc6135f215d4e" 
+});
+
+// Owner account for on-chain transactions (your company wallet)
+const ownerAccount = privateKeyToAccount({ 
+  client, 
+  privateKey: process.env.OWNER_PRIVATE_KEY 
+});
+async function sendEmail(req, res) {
+  try {
+    const { to, subject, html, requestData } = req.body;
+
+    const result = await resend.emails.send({
+      from: 'noreply@easychain.it',
+      to: to,
+      subject: subject,
+      html: html,
+    });
+
+    // Save email log to Firebase if needed
+    if (requestData) {
+      await db.collection('email_logs').add({
+        ...requestData,
+        emailId: result.id,
+        sentAt: admin.firestore.FieldValue.serverTimestamp()
+      });
+    }
+
+    res.status(200).json({ success: true, emailId: result.id });
+  } catch (error) {
+    console.error('Error sending email:', error);
+    res.status(500).json({ error: 'Failed to send email' });
+  }
+}
+
+async function createStripePayment(req, res, db) {
+    try {
+        const { amount, credits, userAddress, billingData } = req.body;
+
+        const paymentIntent = await stripe.paymentIntents.create({
+            amount: Math.round(amount * 100), // Stripe uses cents
+            currency: 'eur',
+            metadata: {
+                userAddress,
+                credits: credits.toString(),
+                type: 'credit_purchase'
+            }
+        });
+
+        // Save the pending payment in Firebase
+        await db.collection('pending_payments').doc(paymentIntent.id).set({
+            userAddress,
+            credits,
+            amount,
+            billingData,
+            status: 'pending',
+            provider: 'stripe',
+            createdAt: admin.firestore.FieldValue.serverTimestamp()
+        });
+
+        res.status(200).json({
+            clientSecret: paymentIntent.client_secret,
+            paymentIntentId: paymentIntent.id
+        });
+    } catch (error) {
+        console.error('Error creating Stripe payment:', error);
+        res.status(500).json({ error: 'Failed to create payment' });
+    }
+}
+
+async function createPayPalPayment(req, res, db) {
+    try {
+        const { amount, credits, userAddress, billingData } = req.body;
+
+        // 1. Get PayPal Access Token
+        const authResponse = await fetch('https://api.paypal.com/v1/oauth2/token', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Authorization': `Basic ${Buffer.from(`${process.env.PAYPAL_CLIENT_ID}:${process.env.PAYPAL_CLIENT_SECRET}`).toString('base64')}`
+            },
+            body: 'grant_type=client_credentials'
+        });
+
+        const authData = await authResponse.json();
+
+        // 2. Create PayPal Order
+        const orderResponse = await fetch('https://api.paypal.com/v2/checkout/orders', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${authData.access_token}`
+            },
+            body: JSON.stringify({
+                intent: 'CAPTURE',
+                purchase_units: [{
+                    amount: {
+                        currency_code: 'EUR',
+                        value: amount.toFixed(2)
+                    },
+                    description: `Acquisto ${credits} crediti EasyChain`
+                }]
+            })
+        });
+
+        const orderData = await orderResponse.json();
+
+        // 3. Save Pending Payment in Firebase
+        await db.collection('pending_payments').doc(orderData.id).set({
+            userAddress,
+            credits,
+            amount,
+            billingData,
+            status: 'pending',
+            provider: 'paypal',
+            createdAt: admin.firestore.FieldValue.serverTimestamp()
+        });
+
+        res.status(200).json({ orderId: orderData.id });
+    } catch (error) {
+        console.error('Error creating PayPal payment:', error);
+        res.status(500).json({ error: 'Failed to create payment' });
+    }
+}
+async function confirmPayment(req, res, db) {
+    try {
+        const { paymentId, provider } = req.body;
+
+        // 1. Retrieve Payment Data from Firebase
+        const paymentDoc = await db.collection('pending_payments').doc(paymentId).get();
+        if (!paymentDoc.exists) {
+            return res.status(404).json({ error: 'Payment not found' });
+        }
+        const paymentData = paymentDoc.data();
+
+        // 2. Verify Payment with the Provider
+        let isPaymentValid = false;
+
+        if (provider === 'stripe') {
+            const paymentIntent = await stripe.paymentIntents.retrieve(paymentId);
+            isPaymentValid = paymentIntent.status === 'succeeded';
+        } else if (provider === 'paypal') {
+            // Verify with PayPal API
+            const authResponse = await fetch('https://api.paypal.com/v1/oauth2/token', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'Authorization': `Basic ${Buffer.from(`${process.env.PAYPAL_CLIENT_ID}:${process.env.PAYPAL_CLIENT_SECRET}`).toString('base64')}`
+                },
+                body: 'grant_type=client_credentials'
+            });
+
+            const authData = await authResponse.json();
+
+            const orderResponse = await fetch(`https://api.paypal.com/v2/checkout/orders/${paymentId}`, {
+                headers: {
+                    'Authorization': `Bearer ${authData.access_token}`
+                }
+            });
+
+            const orderData = await orderResponse.json();
+            isPaymentValid = orderData.status === 'COMPLETED';
+        }
+
+        if (!isPaymentValid) {
+            return res.status(400).json({ error: 'Payment not completed' });
+        }
+
+        // 3. Credit On-Chain Credits
+        try {
+            const transaction = prepareContractCall({
+                contract,
+                method: "function setContributorCredits(address _contributorAddress, uint256 _credits)",
+                params: [paymentData.userAddress, paymentData.credits]
+            });
+
+            await sendTransaction({
+                transaction,
+                account: ownerAccount
+            });
+
+            // 4. Update Payment Status in Firebase
+            await db.collection('pending_payments').doc(paymentId).update({
+                status: 'completed',
+                completedAt: admin.firestore.FieldValue.serverTimestamp()
+            });
+
+            // 5. Send Confirmation Email
+            const emailSubject = `Pagamento Crediti Confermato - EasyChain`;
+            const emailBody = `
+                <h2>Pagamento Confermato!</h2>
+                <p>Il tuo pagamento di €${paymentData.amount} è stato confermato.</p>
+                <p>Sono stati accreditati <strong>${paymentData.credits} crediti</strong> al tuo account.</p>
+                <p>Puoi ora utilizzare i crediti per le tue operazioni di tracciabilità.</p>
+            `;
+
+            await resend.emails.send({
+                from: 'noreply@easychain.it',
+                to: 'sfy.startup@gmail.com', // Replace with the actual user email address
+                subject: emailSubject,
+                html: emailBody
+            });
+
+            res.status(200).json({ success: true, credits: paymentData.credits });
+
+        } catch (onchainError) {
+            console.error('Error crediting on-chain:', onchainError);
+            res.status(500).json({ error: 'Failed to credit on-chain' });
+        }
+
+    } catch (error) {
+        console.error('Error confirming payment:', error);
+        res.status(500).json({ error: 'Failed to confirm payment' });
+    }
 }

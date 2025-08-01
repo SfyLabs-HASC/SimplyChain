@@ -383,58 +383,97 @@ const RicaricaCreditiPage: React.FC = () => {
     
     setIsProcessing(true);
     const selectedPkg = CREDIT_PACKAGES[selectedPackage];
-    const companyName = contributorInfo?.[0] || 'Azienda';
 
     try {
-      // Simula integrazione pagamento
-      console.log(`Processando pagamento ${method} per €${selectedPkg.totalPrice}`);
-      
-      // Invia email di conferma
-      const emailSubject = `Pagamento Crediti ${companyName}`;
-      const emailBody = `
-        <h2>Pagamento Crediti Confermato</h2>
-        <p><strong>${companyName}</strong> ha appena pagato <strong>€${selectedPkg.totalPrice}</strong></p>
-        <p>Pacchetto: ${selectedPkg.credits} crediti</p>
-        
-        <h3>Invia la fattura a:</h3>
-        ${billing.type === 'azienda' ? `
-          <p><strong>Denominazione Sociale:</strong> ${billing.denominazioneSociale}</p>
-          <p><strong>Indirizzo:</strong> ${billing.indirizzoAzienda}</p>
-          <p><strong>Codice Fiscale/Partita IVA:</strong> ${billing.codiceFiscalePartitaIva}</p>
-          <p><strong>Codice Univoco/PEC:</strong> ${billing.codiceUnicooPec}</p>
-        ` : `
-          <p><strong>Nome e Cognome:</strong> ${billing.nomeCognome}</p>
-          <p><strong>Indirizzo:</strong> ${billing.indirizzoPrivato}</p>
-          <p><strong>Codice Fiscale:</strong> ${billing.codiceFiscalePrivato}</p>
-        `}
-      `;
-
-      await fetch('/api/unified-api?action=send-email', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          to: 'sfy.startup@gmail.com',
-          subject: emailSubject,
-          html: emailBody,
-          requestData: {
-            type: 'payment_confirmation',
-            companyName,
+      if (method === 'stripe') {
+        // Crea pagamento Stripe
+        const response = await fetch('/api/unified-api?action=create-stripe-payment', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
             amount: selectedPkg.totalPrice,
             credits: selectedPkg.credits,
-            billingData: billing,
-            userAddress: account?.address
+            userAddress: account?.address,
+            billingData: billing
+          })
+        });
+        
+        const { clientSecret, paymentIntentId } = await response.json();
+        
+        // Carica Stripe.js dinamicamente
+        const stripe = await loadStripe(process.env.STRIPE_PUBLISHABLE_KEY);
+        
+        // Conferma il pagamento
+        const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
+          payment_method: {
+            card: {
+              // Qui dovresti implementare un form per i dati della carta
+              // Per ora utilizziamo un prompt di test
+            }
           }
-        })
-      });
-
-      alert('Pagamento elaborato con successo! Riceverai i crediti a breve.');
-      setSelectedPackage(null);
+        });
+        
+        if (error) {
+          throw new Error(error.message);
+        }
+        
+        if (paymentIntent.status === 'succeeded') {
+          await confirmPaymentAndCredit(paymentIntentId, 'stripe');
+        }
+        
+      } else if (method === 'paypal') {
+        // Crea pagamento PayPal
+        const response = await fetch('/api/unified-api?action=create-paypal-payment', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            amount: selectedPkg.totalPrice,
+            credits: selectedPkg.credits,
+            userAddress: account?.address,
+            billingData: billing
+          })
+        });
+        
+        const { orderId } = await response.json();
+        
+        // Carica PayPal SDK e apri popup
+        // Qui dovresti implementare l'integrazione PayPal completa
+        alert(`PayPal Order ID: ${orderId} - Implementa l'integrazione PayPal`);
+      }
       
     } catch (error) {
       console.error('Errore nel processamento pagamento:', error);
       alert('Errore nel processamento del pagamento. Riprova.');
     } finally {
       setIsProcessing(false);
+    }
+  };
+  
+  const confirmPaymentAndCredit = async (paymentId: string, provider: string) => {
+    try {
+      const response = await fetch('/api/unified-api?action=confirm-payment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          paymentId,
+          provider
+        })
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        alert(`Pagamento confermato! Sono stati accreditati ${result.credits} crediti al tuo account.`);
+        setSelectedPackage(null);
+        // Aggiorna i dati del contributore
+        window.location.reload();
+      } else {
+        throw new Error(result.error);
+      }
+      
+    } catch (error) {
+      console.error('Errore nella conferma pagamento:', error);
+      alert('Errore nella conferma del pagamento.');
     }
   };
 
