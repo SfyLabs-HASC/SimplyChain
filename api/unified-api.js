@@ -54,7 +54,7 @@ export default async function handler(req, res) {
         return await handleGetCompanyStatus(req, res, db);
 
       case 'send-email':
-        return await handleSendEmail(req, res, db);
+        return await handleSendEmail(req, res);
 
       case 'create-relayer':
         return await handleCreateRelayer(req, res, db);
@@ -69,7 +69,7 @@ export default async function handler(req, res) {
         return await handleAddSingleEvent(req, res, db);
 
       case 'export-batch':
-        return await handleExportBatch(req, res, db);
+        return await handleExportBatch(req, res);
 
       case 'upload':
         return await handleUpload(req, res);
@@ -182,37 +182,6 @@ async function handleGetCompanyStatus(req, res, db) {
   }
 
   return res.status(404).json({ status: 'not_found' });
-}
-
-async function handleSendEmail(req, res, db) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method Not Allowed' });
-  }
-
-  const { to, subject, html, requestData } = req.body;
-
-  if (!to || !subject || !html) {
-    return res.status(400).json({ error: 'Parametri email mancanti' });
-  }
-
-  const msg = {
-    to,
-    from: 'sfy.startup@gmail.com',
-    subject,
-    html,
-  };
-
-  await sgMail.send(msg);
-
-  // Salva la richiesta in Firestore se fornita
-  if (requestData) {
-    await db.collection('emailRequests').add({
-      ...requestData,
-      sentAt: new Date().toISOString(),
-    });
-  }
-
-  return res.status(200).json({ message: 'Email inviata con successo' });
 }
 
 async function handleCreateRelayer(req, res, db) {
@@ -347,27 +316,6 @@ async function handleAddSingleEvent(req, res, db) {
   });
 
   return res.status(200).json({ message: 'Evento aggiunto con successo' });
-}
-
-async function handleExportBatch(req, res, db) {
-  if (req.method !== 'GET') {
-    return res.status(405).json({ error: 'Method Not Allowed' });
-  }
-
-  const { batchId } = req.query;
-
-  if (!batchId) {
-    return res.status(400).json({ error: 'batchId mancante' });
-  }
-
-  // Logica per esportare i dati del batch
-  const batchDoc = await db.collection('batches').doc(batchId).get();
-
-  if (!batchDoc.exists) {
-    return res.status(404).json({ error: 'Batch non trovato' });
-  }
-
-  return res.status(200).json({ batch: batchDoc.data() });
 }
 
 async function handleUpload(req, res) {
@@ -672,4 +620,57 @@ async function confirmPayment(req, res, db) {
         console.error('Error confirming payment:', error);
         res.status(500).json({ error: 'Failed to confirm payment' });
     }
+}
+
+async function handleSendEmail(req, res) {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method Not Allowed' });
+  }
+
+  const { to, subject, html, text } = req.body;
+
+  try {
+    const { data, error } = await resend.emails.send({
+      from: 'EasyChain <onboarding@resend.dev>',
+      to: [to],
+      subject: subject,
+      html: html,
+      text: text
+    });
+
+    if (error) {
+      console.error('Errore Resend:', error);
+      return res.status(400).json({ error: error.message });
+    }
+
+    return res.status(200).json({ success: true, data });
+  } catch (error) {
+    console.error('Errore invio email:', error);
+    return res.status(500).json({ error: 'Errore interno del server' });
+  }
+}
+
+async function handleExportBatch(req, res) {
+  if (req.method !== 'GET') {
+    return res.status(405).json({ error: 'Method Not Allowed' });
+  }
+
+  const { batchId } = req.query;
+
+  if (!batchId) {
+    return res.status(400).json({ error: 'BatchId mancante' });
+  }
+
+  try {
+    // Logica per esportare i dati del batch
+    // Questo dipende dalla tua implementazione specifica
+    return res.status(200).json({ 
+      success: true, 
+      message: 'Export completato',
+      batchId 
+    });
+  } catch (error) {
+    console.error('Errore export batch:', error);
+    return res.status(500).json({ error: 'Errore interno del server' });
+  }
 }

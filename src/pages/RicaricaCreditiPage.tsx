@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { ConnectButton, useActiveAccount, useReadContract } from "thirdweb/react";
 import { createThirdwebClient, getContract } from "thirdweb";
@@ -317,7 +316,7 @@ const RicaricaCreditiPage: React.FC = () => {
   useEffect(() => {
     const loadSavedBillingData = async () => {
       if (!account?.address) return;
-      
+
       try {
         const response = await fetch(`/api/unified-api?action=get-billing-data&address=${account.address}`);
         if (response.ok) {
@@ -369,7 +368,7 @@ const RicaricaCreditiPage: React.FC = () => {
 
       setSavedBillingData(billingData);
       setShowBillingForm(false);
-      
+
       // Procedi con il pagamento
       await processPayment('stripe', billingData);
     } catch (error) {
@@ -380,7 +379,7 @@ const RicaricaCreditiPage: React.FC = () => {
 
   const processPayment = async (method: 'stripe' | 'paypal', billing: BillingData) => {
     if (selectedPackage === null) return;
-    
+
     setIsProcessing(true);
     const selectedPkg = CREDIT_PACKAGES[selectedPackage];
 
@@ -397,12 +396,12 @@ const RicaricaCreditiPage: React.FC = () => {
             billingData: billing
           })
         });
-        
+
         const { clientSecret, paymentIntentId } = await response.json();
-        
+
         // Carica Stripe.js dinamicamente
         const stripe = await loadStripe(process.env.STRIPE_PUBLISHABLE_KEY);
-        
+
         // Conferma il pagamento
         const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
           payment_method: {
@@ -412,15 +411,15 @@ const RicaricaCreditiPage: React.FC = () => {
             }
           }
         });
-        
+
         if (error) {
           throw new Error(error.message);
         }
-        
+
         if (paymentIntent.status === 'succeeded') {
           await confirmPaymentAndCredit(paymentIntentId, 'stripe');
         }
-        
+
       } else if (method === 'paypal') {
         // Crea pagamento PayPal
         const response = await fetch('/api/unified-api?action=create-paypal-payment', {
@@ -433,14 +432,14 @@ const RicaricaCreditiPage: React.FC = () => {
             billingData: billing
           })
         });
-        
+
         const { orderId } = await response.json();
-        
+
         // Carica PayPal SDK e apri popup
         // Qui dovresti implementare l'integrazione PayPal completa
         alert(`PayPal Order ID: ${orderId} - Implementa l'integrazione PayPal`);
       }
-      
+
     } catch (error) {
       console.error('Errore nel processamento pagamento:', error);
       alert('Errore nel processamento del pagamento. Riprova.');
@@ -448,7 +447,7 @@ const RicaricaCreditiPage: React.FC = () => {
       setIsProcessing(false);
     }
   };
-  
+
   const confirmPaymentAndCredit = async (paymentId: string, provider: string) => {
     try {
       const response = await fetch('/api/unified-api?action=confirm-payment', {
@@ -459,9 +458,9 @@ const RicaricaCreditiPage: React.FC = () => {
           provider
         })
       });
-      
+
       const result = await response.json();
-      
+
       if (result.success) {
         alert(`Pagamento confermato! Sono stati accreditati ${result.credits} crediti al tuo account.`);
         setSelectedPackage(null);
@@ -470,7 +469,7 @@ const RicaricaCreditiPage: React.FC = () => {
       } else {
         throw new Error(result.error);
       }
-      
+
     } catch (error) {
       console.error('Errore nella conferma pagamento:', error);
       alert('Errore nella conferma del pagamento.');
@@ -479,7 +478,7 @@ const RicaricaCreditiPage: React.FC = () => {
 
   const handleCustomRequest = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!customRequest.email || !customRequest.phone || !customRequest.message) {
       alert('Tutti i campi sono obbligatori');
       return;
@@ -494,7 +493,7 @@ const RicaricaCreditiPage: React.FC = () => {
         <p>${customRequest.message.replace(/\n/g, '<br>')}</p>
       `;
 
-      await fetch('/api/unified-api?action=send-email', {
+      const response = await fetch('/api/unified-api?action=send-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -543,7 +542,7 @@ const RicaricaCreditiPage: React.FC = () => {
           </Link>
           <ConnectButton client={client} chain={polygon} />
         </header>
-        
+
         {/* Informazioni Azienda */}
         <div className="company-info">
           <div className="company-name">{companyName}</div>
@@ -561,7 +560,7 @@ const RicaricaCreditiPage: React.FC = () => {
         {/* Sezione Ricarica Crediti */}
         <div className="credits-section">
           <h2 className="section-title">RICARICA CREDITI</h2>
-          
+
           <div className="packages-grid">
             {CREDIT_PACKAGES.map((pkg, index) => (
               <div
@@ -611,7 +610,7 @@ const RicaricaCreditiPage: React.FC = () => {
         {showBillingForm && (
           <form className="billing-form" onSubmit={handleBillingSubmit}>
             <h3 className="section-title">Dati di Fatturazione</h3>
-            
+
             <div className="radio-group">
               <label className="radio-option">
                 <input
@@ -733,7 +732,7 @@ const RicaricaCreditiPage: React.FC = () => {
             Ti serve un servizio custom adatto alle tue esigenze? Vuoi sviluppare un software proprietario per la tua azienda?
           </p>
           <h3 style={{ color: '#ffffff', marginBottom: '1rem' }}>Contattaci</h3>
-          
+
           <form className="custom-form" onSubmit={handleCustomRequest}>
             <div className="form-group">
               <label className="form-label">Email *</label>
@@ -745,7 +744,7 @@ const RicaricaCreditiPage: React.FC = () => {
                 required
               />
             </div>
-            
+
             <div className="form-group">
               <label className="form-label">Numero di Telefono *</label>
               <input
@@ -756,7 +755,7 @@ const RicaricaCreditiPage: React.FC = () => {
                 required
               />
             </div>
-            
+
             <div className="form-group">
               <label className="form-label">Richiesta (max 500 parole) *</label>
               <textarea
@@ -768,7 +767,7 @@ const RicaricaCreditiPage: React.FC = () => {
               ></textarea>
               <div className="char-counter">{customRequest.message.length} / 500</div>
             </div>
-            
+
             <button type="submit" className="submit-button">
               Invia Richiesta
             </button>

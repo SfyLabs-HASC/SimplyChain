@@ -5,4 +5,4 @@ run = "npm run dev"
 channel = "stable-25_05"
 
 [deployment]
-run = ["sh", "-c", "npm run dev"]
+run = ["sh", "-c", "npm run dev -- --host 0.0.0.0 --port 5000"]
