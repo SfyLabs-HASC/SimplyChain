@@ -31,7 +31,7 @@ const RegistrationForm: React.FC<RegistrationFormProps> = ({ walletAddress }) =>
 
     try {
       // --- MODIFICA CHIAVE: Eseguire la vera chiamata API al tuo backend ---
-      const response = await fetch('/api/unified-api?action=send-email', {
+      const response = await fetch('/api/send-email', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ ...formData, walletAddress }),
@@ -41,7 +41,7 @@ const RegistrationForm: React.FC<RegistrationFormProps> = ({ walletAddress }) =>
           const errorResult = await response.json();
           throw new Error(errorResult.message || "Si è verificato un errore durante l'invio.");
       }
-
+      
       setStatus({ message: "Richiesta inviata con successo! Verrai ricontattato dopo l'approvazione del tuo account.", type: 'success' });
 
     } catch (error) {
@@ -64,7 +64,7 @@ const RegistrationForm: React.FC<RegistrationFormProps> = ({ walletAddress }) =>
     <div className="card" style={{ marginTop: '2rem', maxWidth: '700px', margin: '2rem auto', textAlign: 'left' }}>
       <h3>Benvenuto su Easy Chain!</h3>
       <p>Il tuo account non è ancora attivo. Compila il form di registrazione per inviare una richiesta di attivazione all'amministratore.</p>
-
+      
       <form onSubmit={handleSubmit} style={{ marginTop: '1.5rem' }}>
         <div className="form-group"><label>Nome Azienda *</label><input type="text" name="companyName" className="form-input" onChange={handleInputChange} required /></div>
         <div className="form-group"><label>Email di Contatto *</label><input type="email" name="contactEmail" className="form-input" onChange={handleInputChange} required /></div>

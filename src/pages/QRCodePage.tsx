@@ -172,7 +172,7 @@ const QRCodePage: React.FC = () => {
       // 1. Scarica l'immagine come dati binari (blob)
       const response = await fetch(qrCode);
       const blob = await response.blob();
-
+      
       // 2. Crea un URL locale temporaneo per il file scaricato
       const objectUrl = window.URL.createObjectURL(blob);
 
@@ -196,7 +196,7 @@ const QRCodePage: React.FC = () => {
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-
+      
       // 5. Rilascia l'URL temporaneo per liberare memoria
       window.URL.revokeObjectURL(objectUrl);
 

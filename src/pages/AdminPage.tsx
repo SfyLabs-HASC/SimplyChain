@@ -146,7 +146,7 @@ const EditCompanyModal = ({ company, onClose, onUpdate }: { company: Company, on
   const handleDelete = async () => {
     if (!window.confirm(`Sei sicuro di voler eliminare definitivamente ${company.companyName} dalla lista?`)) return;
     try {
-      await fetch('/api/unified-api?action=delete-company', {
+      await fetch('/api/delete-company', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ walletAddress: company.walletAddress, status: company.status }),
