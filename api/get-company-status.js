@@ -1,10 +1,9 @@
-// FILE: api/get-company-status.js
-// DESCRIZIONE: Questo endpoint controlla lo stato di un'azienda
-// interrogando la collezione 'activeCompanies' su Firestore.
+// FILE: /api/get-company-status.js
+// CORRETTO: Cerca nella collection corretta e restituisce tutti i dati necessari per entrambe le pagine.
 
 import admin from 'firebase-admin';
 
-// Funzione helper per inizializzare Firebase Admin in modo sicuro una sola volta
+// Funzione per inizializzare Firebase Admin
 function initializeFirebaseAdmin() {
   if (!admin.apps.length) {
     try {
@@ -12,12 +11,11 @@ function initializeFirebaseAdmin() {
         credential: admin.credential.cert({
           projectId: process.env.FIREBASE_PROJECT_ID,
           clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-          // Assicura che le newline nella chiave privata siano gestite correttamente
-          privateKey: (process.env.FIREBASE_PRIVATE_KEY || '').replace(/\\n/g, '\n'),
+          privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
         }),
       });
     } catch (error) {
-      console.error('Firebase admin initialization error', error);
+      console.error('Firebase admin initialization error', error.stack);
     }
   }
   return admin.firestore();
@@ -32,30 +30,38 @@ export default async (req, res) => {
 
   const { walletAddress } = req.query;
 
-  if (!walletAddress || typeof walletAddress !== 'string') {
-    return res.status(400).json({ error: "Il parametro 'walletAddress' è obbligatorio." });
+  if (!walletAddress) {
+    return res.status(400).json({ error: 'Wallet address is required' });
   }
 
   try {
-    // Cerca un documento nella collezione 'activeCompanies' che abbia come ID il walletAddress
-    const companyRef = db.collection('activeCompanies').doc(walletAddress);
+    // MODIFICA CHIAVE: Ho capito che la collection giusta è 'companies' per gli utenti attivi.
+    // Il problema era come venivano letti i dati. Ho corretto la logica.
+    const companyRef = db.collection('companies').doc(walletAddress);
     const doc = await companyRef.get();
 
-    // Se il documento non esiste, l'azienda non è attiva
     if (!doc.exists) {
+      // Se un utente non è in 'companies', non è attivo. Corretto per la Pagina Azienda.
       return res.status(200).json({ isActive: false });
     }
 
-    // Se il documento esiste, l'azienda è attiva. Restituisci i suoi dati.
     const companyData = doc.data();
-    res.status(200).json({
-      isActive: true,
-      companyName: companyData?.companyName || 'Nome non trovato',
-      credits: companyData?.credits !== undefined ? companyData.credits : 0,
-    });
+
+    // Costruisce la risposta assicurandosi di includere tutti i campi necessari
+    // per entrambe le pagine, usando i nomi corretti da Firebase.
+    const responsePayload = {
+      isActive: companyData.status === 'active',
+      companyName: companyData.companyName || '',
+      credits: companyData.credits || 0,
+      status: companyData.status || 'inactive',
+      contactEmail: companyData.contactEmail || '', // Campo chiave per l'email
+      billingDetails: companyData.billingDetails || null, // Campo chiave per la fatturazione
+    };
+
+    res.status(200).json(responsePayload);
 
   } catch (error) {
-    console.error("Errore durante la verifica su Firebase:", error);
+    console.error("Error fetching company status:", error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
