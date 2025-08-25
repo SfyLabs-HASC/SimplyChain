@@ -228,7 +228,7 @@ export default function App() {
             )}
           </div>
 
-          {/* --- AREA RISULTATO (DESTRA) --- */}
+          {/* --- AREA RISULTATO (DESTRA)- --- */}
           <div className="bg-gray-800/50 p-6 rounded-2xl border border-gray-700 flex flex-col items-center justify-center min-h-[300px] transition-all duration-300">
             {isGenerating ? (
               <div className="flex flex-col items-center text-gray-400">
