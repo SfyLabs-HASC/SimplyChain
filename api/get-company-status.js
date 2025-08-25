@@ -1,9 +1,10 @@
-// FILE: /api/get-company-status.js
-// CORRETTO: Ora restituisce tutti i dati necessari, inclusi email, stato e dati di fatturazione.
+// FILE: api/get-company-status.js
+// DESCRIZIONE: Questo endpoint controlla lo stato di un'azienda
+// interrogando la collezione 'activeCompanies' su Firestore.
 
 import admin from 'firebase-admin';
 
-// Funzione per inizializzare Firebase Admin
+// Funzione helper per inizializzare Firebase Admin in modo sicuro una sola volta
 function initializeFirebaseAdmin() {
   if (!admin.apps.length) {
     try {
@@ -11,11 +12,12 @@ function initializeFirebaseAdmin() {
         credential: admin.credential.cert({
           projectId: process.env.FIREBASE_PROJECT_ID,
           clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-          privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+          // Assicura che le newline nella chiave privata siano gestite correttamente
+          privateKey: (process.env.FIREBASE_PRIVATE_KEY || '').replace(/\\n/g, '\n'),
         }),
       });
     } catch (error) {
-      console.error('Firebase admin initialization error', error.stack);
+      console.error('Firebase admin initialization error', error);
     }
   }
   return admin.firestore();
@@ -30,35 +32,30 @@ export default async (req, res) => {
 
   const { walletAddress } = req.query;
 
-  if (!walletAddress) {
-    return res.status(400).json({ error: 'Wallet address is required' });
+  if (!walletAddress || typeof walletAddress !== 'string') {
+    return res.status(400).json({ error: "Il parametro 'walletAddress' è obbligatorio." });
   }
 
   try {
-    // ASSUMO che la tua collection delle aziende attive si chiami 'companies'
-    const companyRef = db.collection('companies').doc(walletAddress);
+    // Cerca un documento nella collezione 'activeCompanies' che abbia come ID il walletAddress
+    const companyRef = db.collection('activeCompanies').doc(walletAddress);
     const doc = await companyRef.get();
 
+    // Se il documento non esiste, l'azienda non è attiva
     if (!doc.exists) {
       return res.status(200).json({ isActive: false });
     }
 
+    // Se il documento esiste, l'azienda è attiva. Restituisci i suoi dati.
     const companyData = doc.data();
-
-    // Costruisce la risposta assicurandosi di includere tutti i campi necessari
-    const responsePayload = {
-      isActive: companyData.status === 'active',
-      companyName: companyData.companyName || '',
-      credits: companyData.credits || 0,
-      status: companyData.status || 'inactive',
-      contactEmail: companyData.contactEmail || '', // Campo chiave per l'email
-      billingDetails: companyData.billingDetails || null, // Campo chiave per la fatturazione
-    };
-
-    res.status(200).json(responsePayload);
+    res.status(200).json({
+      isActive: true,
+      companyName: companyData?.companyName || 'Nome non trovato',
+      credits: companyData?.credits !== undefined ? companyData.credits : 0,
+    });
 
   } catch (error) {
-    console.error("Error fetching company status:", error);
+    console.error("Errore durante la verifica su Firebase:", error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
