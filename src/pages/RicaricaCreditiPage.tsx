@@ -40,7 +40,7 @@ interface CreditPackage {
 const client = createThirdwebClient({ clientId: "023dd6504a82409b2bc7cb971fd35b16" });
 const stripePromise = loadStripe("pk_test_51RrJLQRx6E9RZt5ynBwc2dt3o7RT4YTwwij3O9xj3VdMwNKlI4GA9Yvbzkgwbxi0I5J9XnqPMlgY7bz2xHSgxmz000KCex9EiA");
 
-// --- Stili (copiati e adattati da AziendaPage per coerenza) ---
+// --- Stili ---
 const RicaricaCreditiStyles = () => (
   <style>{`
     /* Stili base da AziendaPage */
@@ -83,7 +83,7 @@ const RicaricaCreditiStyles = () => (
   `}</style>
 );
 
-// --- Pacchetti Crediti (dall'immagine) ---
+// --- Pacchetti Crediti ---
 const creditPackages: CreditPackage[] = [
   { id: 'price_1', credits: 10, pricePerCredit: 0.20, totalPrice: 2.00, description: 'Pacchetto 10 crediti' },
   { id: 'price_2', credits: 50, pricePerCredit: 0.12, totalPrice: 6.00, description: 'Pacchetto 50 crediti' },
@@ -197,39 +197,48 @@ const RicaricaCreditiPage: React.FC = () => {
       return;
     }
 
+    // ### MODIFICA CHIAVE QUI ###
+    // Sostituisce i dati fittizi con una vera chiamata API
     const fetchUserData = async () => {
       setLoading(true);
       setError(null);
       try {
-        const mockData = {
-          userData: {
-            companyName: "Azienda Prova S.R.L.",
-            credits: 5,
-            status: "active",
-            email: "utente@prova.com",
-          },
-          billingDetails: { 
-            type: 'azienda',
-            ragioneSociale: 'Azienda Prova S.R.L.',
-            indirizzo: 'Via Roma 1, 00100 Roma (RM)',
-            pIvaCf: 'IT12345678901',
-            sdiPec: 'codice@pec.it'
-          }
-        };
-
-        setUserData(mockData.userData);
-        setBillingDetails(mockData.billingDetails);
-
-        if (!mockData.billingDetails) {
-          setIsEditingBilling(true);
+        // Chiama il tuo endpoint per ottenere i dati dell'azienda
+        const response = await fetch(`/api/get-company-status?walletAddress=${account.address}`);
+        if (!response.ok) {
+          throw new Error('Azienda non trovata o errore nel recuperare i dati.');
         }
-      } catch (err) {
-        setError("Impossibile caricare i dati dell'utente.");
+        const data = await response.json();
+
+        // Popola lo stato con i dati reali da Firebase
+        if (data.isActive) {
+          setUserData({
+            companyName: data.companyName,
+            credits: data.credits,
+            status: data.status,
+            email: data.email, // Assicurati che il tuo API restituisca anche l'email
+          });
+
+          // Prova a caricare anche i dati di fatturazione, se esistono
+          // Questo presuppone che tu abbia un modo per salvarli e recuperarli
+          if (data.billingDetails) {
+            setBillingDetails(data.billingDetails);
+          } else {
+            // Se non ci sono dati di fatturazione, mostra il form per inserirli
+            setIsEditingBilling(true);
+          }
+        } else {
+            throw new Error('Il tuo account non risulta attivo.');
+        }
+
+      } catch (err: any) {
+        setError(err.message || "Impossibile caricare i dati dell'utente.");
         console.error(err);
       } finally {
         setLoading(false);
       }
     };
+    // ### FINE SEZIONE MODIFICATA ###
 
     fetchUserData();
   }, [account]);
@@ -244,14 +253,12 @@ const RicaricaCreditiPage: React.FC = () => {
     }
 
     try {
-        // ### MODIFICA CHIAVE QUI ###
-        // La chiamata API ora punta a 'send-email' con il parametro corretto.
-        const response = await fetch('/api/send-email?action=create-payment-intent', {
+        const response = await fetch(`/api/send-email?action=create-payment-intent`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 packageId: pkg.id,
-                amount: pkg.totalPrice * 100, // Stripe usa i centesimi
+                amount: pkg.totalPrice * 100,
                 walletAddress: account?.address
             }),
         });
@@ -269,6 +276,8 @@ const RicaricaCreditiPage: React.FC = () => {
   };
 
   const handleSaveBilling = async (details: BillingDetails) => {
+    // QUI DOVRAI IMPLEMENTARE LA CHIAMATA API PER SALVARE I DATI DI FATTURAZIONE
+    // Esempio: await fetch('/api/save-billing', { method: 'POST', body: JSON.stringify({ walletAddress: account.address, details }) });
     console.log("Salvataggio dati fatturazione:", details);
     
     setBillingDetails(details);
@@ -286,7 +295,6 @@ const RicaricaCreditiPage: React.FC = () => {
 
     return (
       <div className="recharge-container">
-        {/* Sezione Dati Utente */}
         <div className="user-info-card">
           <h2>Riepilogo Account</h2>
           <div className="user-info-grid">
@@ -299,7 +307,6 @@ const RicaricaCreditiPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Sezione Selezione Pacchetti */}
         <div className="packages-card">
           <h2>Seleziona un Pacchetto Crediti</h2>
           <table className="credit-packages-table">
@@ -322,7 +329,6 @@ const RicaricaCreditiPage: React.FC = () => {
           </table>
         </div>
 
-        {/* Sezione Fatturazione e Pagamento */}
         {selectedPackage && (
           <div className="billing-card">
             {billingDetails && !isEditingBilling ? (
