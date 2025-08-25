@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
-// Importa le librerie di Stripe
+// Le librerie di Stripe vengono caricate dinamicamente per evitare errori di build.
+// Nel tuo progetto reale, assicurati di averle installate:
+// npm install @stripe/stripe-js @stripe/react-stripe-js
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 // Importa le funzioni di Firebase Firestore
@@ -18,15 +20,24 @@ const stripePromise = loadStripe('pk_test_51RrJLQRx6E9RZt5ynBwc2dt3o7RT4YTwwij3O
 // import { useActiveAccount } from "thirdweb/react";
 const useActiveAccount = () => ({ address: '0x38a1FB0e7536b469184843C56eC315dC1AF344D3' });
 
+// --- TIPI TypeScript per i componenti ---
+interface CheckoutFormProps {
+    amount: number;
+    credits: number;
+    customerEmail: string;
+    walletAddress: string;
+    onSuccessfulPayment: () => void;
+}
+
 // --- COMPONENTE CHECKOUT FORM ---
 
-const CheckoutForm = ({ amount, credits, customerEmail, walletAddress, onSuccessfulPayment }) => {
+const CheckoutForm: React.FC<CheckoutFormProps> = ({ amount, credits, customerEmail, walletAddress, onSuccessfulPayment }) => {
     const stripe = useStripe();
     const elements = useElements();
     const [isProcessing, setIsProcessing] = useState(false);
-    const [error, setError] = useState(null);
+    const [error, setError] = useState<string | null>(null);
 
-    const handleSubmit = async (event) => {
+    const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         if (!stripe || !elements) return;
 
@@ -34,6 +45,11 @@ const CheckoutForm = ({ amount, credits, customerEmail, walletAddress, onSuccess
         setError(null);
 
         const cardElement = elements.getElement(CardElement);
+        if (!cardElement) {
+            setError("Elemento carta non trovato.");
+            setIsProcessing(false);
+            return;
+        }
 
         const { error: paymentMethodError, paymentMethod } = await stripe.createPaymentMethod({
             type: 'card',
@@ -44,7 +60,7 @@ const CheckoutForm = ({ amount, credits, customerEmail, walletAddress, onSuccess
         });
 
         if (paymentMethodError) {
-            setError(paymentMethodError.message);
+            setError(paymentMethodError.message || "Errore nella creazione del metodo di pagamento.");
             setIsProcessing(false);
             return;
         }
@@ -56,7 +72,7 @@ const CheckoutForm = ({ amount, credits, customerEmail, walletAddress, onSuccess
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     paymentMethodId: paymentMethod.id,
-                    amount: amount * 100, // Stripe lavora in centesimi
+                    amount: Math.round(amount * 100), // Stripe lavora in centesimi, arrotonda per sicurezza
                     customerEmail: customerEmail,
                     creditsToPurchase: credits,
                     walletAddress: walletAddress,
@@ -65,8 +81,8 @@ const CheckoutForm = ({ amount, credits, customerEmail, walletAddress, onSuccess
 
             const paymentResult = await response.json();
 
-            if (paymentResult.error) {
-                setError(paymentResult.error);
+            if (!response.ok || paymentResult.error) {
+                setError(paymentResult.error || "Si è verificato un errore durante il pagamento.");
             } else if (paymentResult.success) {
                 alert('Pagamento completato! Riceverai una fattura via email.');
                 onSuccessfulPayment();
@@ -114,10 +130,10 @@ const CheckoutForm = ({ amount, credits, customerEmail, walletAddress, onSuccess
 
 export default function RicaricaCreditiPage() {
     const account = useActiveAccount();
-    const [userData, setUserData] = useState(null);
-    const [pacchettoScelto, setPacchettoScelto] = useState(null);
+    const [userData, setUserData] = useState<{ nomeAzienda: string; crediti: number; stato: string; email: string; } | null>(null);
+    const [pacchettoScelto, setPacchettoScelto] = useState<{ id: string; crediti: number; prezzoTotale: number; } | null>(null);
     const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState(null);
+    const [error, setError] = useState<string | null>(null);
 
     const pacchetti = [
         { id: '10', crediti: 10, prezzoTotale: 2.00 },
@@ -138,7 +154,7 @@ export default function RicaricaCreditiPage() {
         setError(null);
 
         try {
-            // --- LOGICA DATI REALI (DA DECOMMENTARE) ---
+            // --- LOGICA DATI REALI (DA DECOMMENTARE NEL TUO PROGETTO) ---
             // const userRef = doc(db, 'companies', account.address);
             // const userSnap = await getDoc(userRef);
             // if (userSnap.exists()) {
@@ -154,7 +170,7 @@ export default function RicaricaCreditiPage() {
             // }
 
             // --- Logica di Esempio per la preview ---
-            // Rimuovi questo blocco quando usi i dati reali
+            // Rimuovi questo blocco quando usi i dati reali. Serve per evitare la pagina bianca.
             setTimeout(() => {
                 setUserData({
                     nomeAzienda: "Vino SFY",
@@ -162,13 +178,14 @@ export default function RicaricaCreditiPage() {
                     stato: "Attivo",
                     email: "vinokasjdfkajsdf@gmail.com",
                 });
-                setIsLoading(false);
             }, 500);
 
         } catch (e) {
             setError("Errore nel caricamento dei dati.");
             console.error(e);
-            setIsLoading(false);
+        } finally {
+            // Simula la fine del caricamento
+            setTimeout(() => setIsLoading(false), 500);
         }
     };
 
@@ -205,7 +222,8 @@ export default function RicaricaCreditiPage() {
                         <main>
                             <h2 className="text-xl font-semibold text-gray-700 mb-4">Ricarica Crediti</h2>
                             <select
-                                onChange={(e) => setPacchettoScelto(pacchetti.find(p => p.id === e.target.value))}
+                                id="credit-select" // Aggiunto ID per poterlo resettare
+                                onChange={(e) => setPacchettoScelto(pacchetti.find(p => p.id === e.target.value) || null)}
                                 defaultValue=""
                                 className="block w-full p-3 border border-gray-300 rounded-md shadow-sm"
                             >
@@ -227,6 +245,9 @@ export default function RicaricaCreditiPage() {
                                         onSuccessfulPayment={() => {
                                             // Ricarica i dati utente per mostrare i nuovi crediti
                                             loadUserData();
+                                            // Resetta il select deselezionando il pacchetto
+                                            const selectElement = document.getElementById('credit-select') as HTMLSelectElement | null;
+                                            if(selectElement) selectElement.value = "";
                                             setPacchettoScelto(null);
                                         }}
                                     />
