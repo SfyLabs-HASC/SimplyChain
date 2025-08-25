@@ -18,10 +18,11 @@ export default function App() {
   const [size, setSize] = useState(500); // Dimensione predefinita del QR code
   const [error, setError] = useState(''); // Per gestire i messaggi di errore
 
+  // --- MODIFICA CHIAVE: Corretto il valore massimo a 1000px come da documentazione API ---
   const resolutions = [
     { label: 'Bassa', value: 250 },
     { label: 'Media', value: 500 },
-    { label: 'Alta', value: 1024 },
+    { label: 'Alta', value: 1000 },
   ];
 
   /**
@@ -187,7 +188,6 @@ export default function App() {
             ) : qrCode ? (
               <div className="flex flex-col items-center w-full animate-fade-in">
                 <div className="bg-white p-3 rounded-lg shadow-lg mb-6">
-                  {/* --- MODIFICA CHIAVE: Rimosso lo stile inline che limitava la larghezza --- */}
                   <img src={qrCode} alt="QR Code Generato" className="max-w-full h-auto" />
                 </div>
                 <button 
