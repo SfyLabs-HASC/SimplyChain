@@ -1,9 +1,9 @@
 // FILE: api/send-email.js
-// MODIFICATO: Ora gestisce sia l'invio email che la creazione di pagamenti Stripe.
+// MODIFICATO: Ora gestisce invio email, pagamenti Stripe e salvataggio dati di fatturazione.
 
 import { Resend } from 'resend';
 import admin from 'firebase-admin';
-import Stripe from 'stripe'; // <-- AGGIUNTO: Import per Stripe
+import Stripe from 'stripe';
 
 // --- Inizializzazione dei servizi ---
 function initializeFirebaseAdmin() {
@@ -25,13 +25,12 @@ function initializeFirebaseAdmin() {
 
 const db = initializeFirebaseAdmin();
 const resend = new Resend(process.env.RESEND_API_KEY);
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY); // <-- AGGIUNTO: Inizializzazione Stripe
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
-// --- Logica per inviare l'email di registrazione ---
+// --- 1. Logica per inviare l'email di registrazione ---
 async function handleSendEmail(req, res) {
   try {
     const { companyName, contactEmail, sector, walletAddress, ...socials } = req.body;
-
     const pendingRef = db.collection('pendingCompanies').doc(walletAddress);
     await pendingRef.set({
       companyName, contactEmail, sector, walletAddress, status: 'pending',
@@ -43,7 +42,7 @@ async function handleSendEmail(req, res) {
       from: 'Easy Chain <onboarding@resend.dev>',
       to: ['sfy.startup@gmail.com'],
       subject: `${companyName} - Richiesta Attivazione`,
-      html: `<div style="font-family: sans-serif; padding: 20px; border: 1px solid #eee; border-radius: 8px;"><h2>Nuova Richiesta di Attivazione</h2><p>L'azienda "${companyName}" ha richiesto l'attivazione sulla piattaforma Easy Chain.</p><hr /><h3>Dettagli Richiesta:</h3><ul style="list-style-type: none; padding: 0;"><li><strong>Nome Azienda:</strong> ${companyName}</li><li><strong>Email Contatto:</strong> ${contactEmail}</li><li><strong>Settore:</strong> ${sector}</li><li><strong>Wallet Address:</strong> ${walletAddress}</li></ul><h3>Social (Opzionali):</h3><ul style="list-style-type: none; padding: 0;"><li><strong>Sito Web:</strong> ${socials.website || 'N/D'}</li><li><strong>Facebook:</strong> ${socials.facebook || 'N/D'}</li><li><strong>Instagram:</strong> ${socials.instagram || 'N/D'}</li></ul></div>`,
+      html: `<div style="font-family: sans-serif; padding: 20px; border: 1px solid #eee; border-radius: 8px;"><h2>Nuova Richiesta di Attivazione</h2><p>L'azienda "${companyName}" ha richiesto l'attivazione.</p><hr /><h3>Dettagli:</h3><ul><li><strong>Nome Azienda:</strong> ${companyName}</li><li><strong>Email:</strong> ${contactEmail}</li><li><strong>Settore:</strong> ${sector}</li><li><strong>Wallet:</strong> ${walletAddress}</li></ul><h3>Social:</h3><ul><li><strong>Sito Web:</strong> ${socials.website || 'N/D'}</li><li><strong>Facebook:</strong> ${socials.facebook || 'N/D'}</li><li><strong>Instagram:</strong> ${socials.instagram || 'N/D'}</li></ul></div>`,
     });
 
     if (error) return res.status(400).json(error);
@@ -54,7 +53,7 @@ async function handleSendEmail(req, res) {
   }
 }
 
-// --- AGGIUNTO: Logica per creare il pagamento Stripe ---
+// --- 2. Logica per creare il pagamento Stripe ---
 async function handleCreatePaymentIntent(req, res) {
   try {
     const { amount, walletAddress } = req.body;
@@ -71,20 +70,44 @@ async function handleCreatePaymentIntent(req, res) {
   }
 }
 
+// --- AGGIUNTO: 3. Logica per salvare i dati di fatturazione ---
+async function handleSaveBillingDetails(req, res) {
+  try {
+    const { walletAddress, details } = req.body;
+    if (!walletAddress || !details) {
+      return res.status(400).json({ error: 'Indirizzo wallet o dati di fatturazione mancanti.' });
+    }
+    // ASSUMO che la tua collection delle aziende attive si chiami 'companies'
+    const companyRef = db.collection('companies').doc(walletAddress);
+    await companyRef.set({
+      billingDetails: details
+    }, { merge: true }); // 'merge: true' assicura di non sovrascrivere altri dati dell'azienda
+
+    res.status(200).json({ message: 'Dati di fatturazione salvati con successo.' });
+  } catch (error) {
+    console.error("Errore nel salvataggio dei dati di fatturazione:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+}
+
 // --- Handler Principale che decide quale funzione eseguire ---
 export default async (req, res) => {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
-  // Controlla se nell'URL è presente '?action=create-payment-intent'
   const { action } = req.query;
 
-  if (action === 'create-payment-intent') {
-    // Se c'è, esegue la logica di Stripe
-    return await handleCreatePaymentIntent(req, res);
-  } else {
-    // Altrimenti, esegue la logica di default per inviare l'email
-    return await handleSendEmail(req, res);
+  switch (action) {
+    case 'create-payment-intent':
+      return await handleCreatePaymentIntent(req, res);
+    
+    // AGGIUNTO: Nuovo caso per il salvataggio dei dati
+    case 'save-billing-details':
+      return await handleSaveBillingDetails(req, res);
+      
+    default:
+      // Se non c'è 'action' o è sconosciuto, esegue l'invio dell'email
+      return await handleSendEmail(req, res);
   }
 };
