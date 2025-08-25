@@ -24,7 +24,7 @@ interface BillingDetails {
   sdiPec?: string;
   // Dati privato
   nome?: string;
-  cognome?:- string;
+  cognome?: string; // <-- ERRORE CORRETTO QUI
   cf?: string;
 }
 
