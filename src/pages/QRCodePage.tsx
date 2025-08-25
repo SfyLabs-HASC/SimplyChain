@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-// Icona per il download (SVG inlined))
+// Icona per il download (SVG inlined)
 const DownloadIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
@@ -187,7 +187,8 @@ export default function App() {
             ) : qrCode ? (
               <div className="flex flex-col items-center w-full animate-fade-in">
                 <div className="bg-white p-3 rounded-lg shadow-lg mb-6">
-                  <img src={qrCode} alt="QR Code Generato" className="max-w-full h-auto" style={{width: `${Math.min(size, 250)}px`}}/>
+                  {/* --- MODIFICA CHIAVE: Rimosso lo stile inline che limitava la larghezza --- */}
+                  <img src={qrCode} alt="QR Code Generato" className="max-w-full h-auto" />
                 </div>
                 <button 
                   onClick={downloadQRCode} 
