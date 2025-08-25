@@ -3,7 +3,7 @@ import { ConnectButton, useActiveAccount } from "thirdweb/react";
 import { createThirdwebClient } from "thirdweb";
 import { polygon } from "thirdweb/chains";
 import { inAppWallet } from "thirdweb/wallets";
-import { loadStripe, Stripe } from "@stripe/stripe-js";
+import { loadStripe } from "@stripe/stripe-js";
 import { Elements, PaymentElement, useStripe, useElements } from "@stripe/react-stripe-js";
 import "../App.css"; // Usa lo stesso CSS della AziendaPage
 
@@ -24,7 +24,7 @@ interface BillingDetails {
   sdiPec?: string;
   // Dati privato
   nome?: string;
-  cognome?: string; // <-- ERRORE CORRETTO QUI
+  cognome?: string;
   cf?: string;
 }
 
@@ -102,7 +102,6 @@ const BillingForm: React.FC<{ initialDetails?: BillingDetails | null, onSave: (d
   };
 
   const handleSave = () => {
-    // Aggiungi validazione qui se necessario
     onSave({ type, ...formData } as BillingDetails);
   };
 
@@ -182,15 +181,10 @@ const StripeCheckoutForm: React.FC = () => {
 const RicaricaCreditiPage: React.FC = () => {
   const account = useActiveAccount();
   
-  // Stati UI
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  // Stati Dati Utente
   const [userData, setUserData] = useState<UserData | null>(null);
   const [billingDetails, setBillingDetails] = useState<BillingDetails | null>(null);
-  
-  // Stati Pagamento
   const [selectedPackage, setSelectedPackage] = useState<CreditPackage | null>(null);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [isEditingBilling, setIsEditingBilling] = useState(false);
@@ -207,12 +201,6 @@ const RicaricaCreditiPage: React.FC = () => {
       setLoading(true);
       setError(null);
       try {
-        // --- SIMULAZIONE CHIAMATA API ---
-        // In un'app reale, faresti una chiamata al tuo backend
-        // const response = await fetch(`/api/get-user-data?walletAddress=${account.address}`);
-        // const data = await response.json();
-        
-        // Dati fittizi per l'esempio
         const mockData = {
           userData: {
             companyName: "Azienda Prova S.R.L.",
@@ -220,7 +208,6 @@ const RicaricaCreditiPage: React.FC = () => {
             status: "active",
             email: "utente@prova.com",
           },
-          // Prova a impostarlo a 'null' per vedere il form di inserimento
           billingDetails: { 
             type: 'azienda',
             ragioneSociale: 'Azienda Prova S.R.L.',
@@ -233,11 +220,9 @@ const RicaricaCreditiPage: React.FC = () => {
         setUserData(mockData.userData);
         setBillingDetails(mockData.billingDetails);
 
-        // Se non ci sono dati di fatturazione, mostra subito il form
         if (!mockData.billingDetails) {
           setIsEditingBilling(true);
         }
-
       } catch (err) {
         setError("Impossibile caricare i dati dell'utente.");
         console.error(err);
@@ -251,16 +236,17 @@ const RicaricaCreditiPage: React.FC = () => {
   
   const handleSelectPackage = async (pkg: CreditPackage) => {
     setSelectedPackage(pkg);
-    setClientSecret(null); // Resetta il client secret precedente
+    setClientSecret(null);
 
     if (!billingDetails) {
-        setIsEditingBilling(true); // Forza l'inserimento dei dati se non presenti
+        setIsEditingBilling(true);
         return;
     }
 
     try {
-        // Chiamata API per creare un Payment Intent su Stripe
-        const response = await fetch('/api/create-payment-intent', {
+        // ### MODIFICA CHIAVE QUI ###
+        // La chiamata API ora punta a 'send-email' con il parametro corretto.
+        const response = await fetch('/api/send-email?action=create-payment-intent', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -269,6 +255,11 @@ const RicaricaCreditiPage: React.FC = () => {
                 walletAddress: account?.address
             }),
         });
+        
+        if (!response.ok) {
+            throw new Error(`Errore dal server: ${response.statusText}`);
+        }
+
         const data = await response.json();
         setClientSecret(data.clientSecret);
     } catch (error) {
@@ -278,14 +269,11 @@ const RicaricaCreditiPage: React.FC = () => {
   };
 
   const handleSaveBilling = async (details: BillingDetails) => {
-    // Chiamata API per salvare i dati di fatturazione
-    // await fetch('/api/save-billing-details', { method: 'POST', ... });
     console.log("Salvataggio dati fatturazione:", details);
     
     setBillingDetails(details);
     setIsEditingBilling(false);
 
-    // Se un pacchetto era già stato selezionato, ora crea il payment intent
     if (selectedPackage) {
         await handleSelectPackage(selectedPackage);
     }
@@ -338,7 +326,6 @@ const RicaricaCreditiPage: React.FC = () => {
         {selectedPackage && (
           <div className="billing-card">
             {billingDetails && !isEditingBilling ? (
-              // Visualizza dati esistenti
               <div>
                 <div className="billing-header">
                   <h3>Dati di Fatturazione</h3>
@@ -360,14 +347,12 @@ const RicaricaCreditiPage: React.FC = () => {
                 )}
               </div>
             ) : (
-              // Mostra il form per inserire/modificare i dati
               <div>
                 <h3>{billingDetails ? 'Modifica Dati di Fatturazione' : 'Inserisci i Dati di Fatturazione'}</h3>
                 <BillingForm initialDetails={billingDetails} onSave={handleSaveBilling} />
               </div>
             )}
             
-            {/* Mostra Stripe solo se i dati sono stati salvati e abbiamo un clientSecret */}
             {!isEditingBilling && clientSecret && (
                 <div style={{marginTop: '2rem'}}>
                     <h3 style={{borderTop: '1px solid #444', paddingTop: '2rem'}}>Procedi con il Pagamento</h3>
@@ -382,7 +367,6 @@ const RicaricaCreditiPage: React.FC = () => {
     );
   };
 
-  // Render Principale
   return (
     <>
       <RicaricaCreditiStyles />
