@@ -3,13 +3,11 @@ import React, { useState, useEffect } from 'react';
  * ❗ NOTA SULL'IMPORTAZIONE ❗
  * Per garantire la massima compatibilità con l'ambiente di anteprima,
  * le librerie di Stripe vengono caricate da un CDN (un server esterno).
- * Nel tuo progetto locale, il metodo corretto è installarle con:
- * npm install @stripe/stripe-js @stripe/react-stripe-js
- * e poi importarle normalmente, ad esempio:
- * import { loadStripe } from '@stripe/stripe-js';
+ * Questo metodo previene gli errori di compilazione se le librerie non sono
+ * state installate localmente con 'npm install'.
  */
-import { loadStripe } from 'https://esm.sh/@stripe/stripe-js';
-import { Elements, CardElement, useStripe, useElements } from 'https://esm.sh/@stripe/react-stripe-js';
+import { loadStripe } from 'https://esm.sh/@stripe/stripe-js?dev';
+import { Elements, CardElement, useStripe, useElements } from 'https://esm.sh/@stripe/react-stripe-js?deps=react@18&dev';
 
 // Importa le funzioni di Firebase Firestore
 // import { getFirestore, doc, getDoc, updateDoc } from 'firebase/firestore';
