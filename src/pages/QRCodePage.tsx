@@ -9,6 +9,48 @@ const DownloadIcon = () => (
   </svg>
 );
 
+// Componente per il popup modale informativo
+const InfoModal = ({ isOpen, onClose }) => {
+  if (!isOpen) {
+    return null;
+  }
+
+  return (
+    // Sfondo semi-trasparente
+    <div 
+      className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4 animate-fade-in-fast"
+      onClick={onClose} // Chiude il modale cliccando sullo sfondo
+    >
+      {/* Contenitore del modale */}
+      <div 
+        className="bg-gray-800/80 border border-gray-700 backdrop-blur-lg rounded-2xl p-6 sm:p-8 max-w-2xl w-full text-left relative transform animate-slide-up"
+        onClick={(e) => e.stopPropagation()} // Evita la chiusura cliccando sul contenuto
+      >
+        <h2 className="text-2xl font-bold text-white mb-4">Come funziona? Il controllo è tuo.</h2>
+        <p className="text-gray-300 mb-4">
+          Il QR Code che generi punterà alla <strong>pagina web di tracciabilità (il file .html) che hai appena creato</strong>. Per renderla accessibile a tutti, devi prima caricarla sul tuo spazio web personale (sito aziendale, server privato, hosting, ecc.).
+        </p>
+        <ol className="list-decimal list-inside space-y-2 text-gray-300">
+          <li>La <strong>pagina di tracciabilità (.html)</strong> è stata appena generata e scaricata sul tuo computer.</li>
+          <li><strong>Carica questo file HTML</strong> sul tuo server o hosting (es. via FTP o dal pannello di controllo).</li>
+          <li><strong>Copia l'URL pubblico</strong> del file HTML una volta caricato (es. `https://www.mia-azienda.it/tracciabilita/prodotto-123.html`).</li>
+          <li><strong>Incolla l'URL</strong> nel campo qui sotto per generare il QR Code corrispondente.</li>
+        </ol>
+        <p className="mt-6 text-sm text-blue-400 bg-blue-900/30 p-3 rounded-lg border border-blue-500/30">
+          <strong>Vantaggio:</strong> In questo modo, sei tu il proprietario del link. Puoi aggiornare il file di destinazione in qualsiasi momento senza dover cambiare il QR Code già stampato.
+        </p>
+        <button
+          onClick={onClose}
+          className="mt-6 w-full sm:w-auto float-right bg-blue-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-blue-700 transition-colors duration-300"
+        >
+          Chiudi
+        </button>
+      </div>
+    </div>
+  );
+};
+
+
 // Componente principale dell'applicazione
 export default function App() {
   // --- STATI DEL COMPONENTE ---
@@ -17,8 +59,8 @@ export default function App() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [size, setSize] = useState(500); // Dimensione predefinita del QR code
   const [error, setError] = useState(''); // Per gestire i messaggi di errore
+  const [isModalOpen, setIsModalOpen] = useState(false); // Stato per il modale
 
-  // --- MODIFICA CHIAVE: Corretto il valore massimo a 1000px come da documentazione API ---
   const resolutions = [
     { label: 'Bassa', value: 250 },
     { label: 'Media', value: 500 },
@@ -62,7 +104,8 @@ export default function App() {
         setIsGenerating(false);
       }
 
-    } catch (err) {
+    } catch (err)
+{
       console.error('Errore nella generazione del QR Code:', err);
       setError('Si è verificato un errore imprevisto durante la generazione.');
       setIsGenerating(false);
@@ -104,17 +147,27 @@ export default function App() {
 
   return (
     <div className="bg-gray-900 min-h-screen font-sans text-white p-4 sm:p-6 lg:p-8 flex flex-col items-center">
-      <div className="w-full max-w-4xl">
+      <div className="w-full max-w-5xl">
         
         {/* --- INTESTAZIONE --- */}
-        <header className="text-center mb-8 md:mb-12">
-          <h1 className="text-4xl sm:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500 mb-2">
-            Generatore QR Code
+        <header className="text-center mb-10">
+          <h1 className="text-4xl sm:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500 mb-3">
+            Generatore QR Code per Tracciabilità
           </h1>
-          <p className="text-gray-400 max-w-2xl mx-auto text-sm sm:text-base">
-            Incolla il link del tuo file, scegli la risoluzione e genera un QR Code da applicare sul tuo prodotto per una tracciabilità immediata.
+          <p className="text-gray-400 max-w-3xl mx-auto text-sm sm:text-base">
+            Crea un QR Code da applicare ai tuoi prodotti per fornire informazioni di tracciabilità in modo semplice e diretto.
           </p>
         </header>
+
+        {/* --- TRIGGER PER IL MODALE ESPLICATIVO --- */}
+        <div className="text-center mb-10">
+            <button
+                onClick={() => setIsModalOpen(true)}
+                className="text-lg font-semibold text-blue-400 hover:text-blue-300 transition-colors duration-200 underline decoration-dotted underline-offset-4"
+            >
+                Come funziona? Il controllo è tuo.
+            </button>
+        </div>
 
         <main className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-start">
           
@@ -124,7 +177,7 @@ export default function App() {
             {/* Input URL */}
             <div className="mb-6">
               <label htmlFor="url-input" className="block text-sm font-medium text-gray-300 mb-2">
-                URL del file esportato
+                URL pubblico della tua pagina HTML di tracciabilità
               </label>
               <input
                 id="url-input"
@@ -207,6 +260,10 @@ export default function App() {
         </main>
 
       </div>
+      
+      {/* --- MODALE INFORMATIVO --- */}
+      <InfoModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+
     </div>
   );
 }
