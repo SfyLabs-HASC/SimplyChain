@@ -54,6 +54,7 @@ const RicaricaCreditiStyles = () => (
     .form-group { margin-bottom: 1rem; }
     .form-group label { display: block; margin-bottom: 0.5rem; font-weight: 500; color: #f8f9fa; }
     .form-input { width: 100%; padding: 0.75rem; border: 1px solid #495057; border-radius: 0.5rem; background-color: #212529; color: #f8f9fa; font-size: 0.9rem; }
+    .error-message { color: #ef4444; font-size: 0.8rem; margin-top: 0.25rem; }
     
     /* Stili specifici per la pagina di ricarica */
     .recharge-container { max-width: 800px; margin: 0 auto; color: #fff; }
@@ -91,17 +92,58 @@ const creditPackages: CreditPackage[] = [
   { id: 'price_5', credits: 1000, pricePerCredit: 0.07, totalPrice: 70.00, description: 'Pacchetto 1000 crediti' },
 ];
 
-// --- Componente Form di Fatturazione ---
+// --- Componente Form di Fatturazione con Validazione ---
 const BillingForm: React.FC<{ initialDetails?: BillingDetails | null, onSave: (details: BillingDetails) => void, isSaving: boolean }> = ({ initialDetails, onSave, isSaving }) => {
     const [type, setType] = useState<'azienda' | 'privato'>(initialDetails?.type || 'azienda');
     const [formData, setFormData] = useState(initialDetails || {});
+    const [errors, setErrors] = useState<Partial<BillingDetails>>({});
+
+    // Funzione di validazione
+    const validate = () => {
+        const newErrors: Partial<BillingDetails> = {};
+        
+        if (type === 'azienda') {
+            if (!formData.ragioneSociale?.trim()) newErrors.ragioneSociale = "La denominazione sociale è obbligatoria.";
+            if (!formData.indirizzo?.trim()) newErrors.indirizzo = "L'indirizzo è obbligatorio.";
+            if (!formData.pIvaCf?.trim()) newErrors.pIvaCf = "La Partita IVA è obbligatoria.";
+            else if (!/^[0-9]{11}$/.test(formData.pIvaCf)) newErrors.pIvaCf = "La Partita IVA deve contenere 11 cifre.";
+            if (!formData.sdiPec?.trim()) newErrors.sdiPec = "Il codice SDI o la PEC sono obbligatori.";
+            else if (!/^[a-zA-Z0-9]{7}$/.test(formData.sdiPec) && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.sdiPec)) {
+                newErrors.sdiPec = "Inserisci un codice SDI (7 caratteri) o una PEC valida.";
+            }
+        } else { // Privato
+            if (!formData.nome?.trim()) newErrors.nome = "Il nome è obbligatorio.";
+            if (!formData.cognome?.trim()) newErrors.cognome = "Il cognome è obbligatorio.";
+            if (!formData.indirizzo?.trim()) newErrors.indirizzo = "L'indirizzo è obbligatorio.";
+            if (!formData.cf?.trim()) newErrors.cf = "Il codice fiscale è obbligatorio.";
+            else if (!/^[A-Z0-9]{16}$/i.test(formData.cf)) newErrors.cf = "Il codice fiscale deve essere di 16 caratteri.";
+        }
+
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
   
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
     };
   
     const handleSave = () => {
-      onSave({ type, ...formData } as BillingDetails);
+      if (validate()) {
+        // Pulisce i dati non pertinenti prima di salvare
+        const detailsToSave: BillingDetails = { type };
+        if (type === 'azienda') {
+            detailsToSave.ragioneSociale = formData.ragioneSociale;
+            detailsToSave.indirizzo = formData.indirizzo;
+            detailsToSave.pIvaCf = formData.pIvaCf;
+            detailsToSave.sdiPec = formData.sdiPec;
+        } else {
+            detailsToSave.nome = formData.nome;
+            detailsToSave.cognome = formData.cognome;
+            detailsToSave.indirizzo = formData.indirizzo;
+            detailsToSave.cf = formData.cf;
+        }
+        onSave(detailsToSave);
+      }
     };
   
     return (
@@ -116,17 +158,49 @@ const BillingForm: React.FC<{ initialDetails?: BillingDetails | null, onSave: (d
         
         {type === 'azienda' ? (
           <>
-            <div className="form-group"><label>Denominazione Sociale</label><input type="text" name="ragioneSociale" value={formData.ragioneSociale || ''} onChange={handleInputChange} className="form-input" disabled={isSaving}/></div>
-            <div className="form-group"><label>Indirizzo</label><input type="text" name="indirizzo" value={formData.indirizzo || ''} onChange={handleInputChange} className="form-input" disabled={isSaving}/></div>
-            <div className="form-group"><label>Partita IVA / Codice Fiscale</label><input type="text" name="pIvaCf" value={formData.pIvaCf || ''} onChange={handleInputChange} className="form-input" disabled={isSaving}/></div>
-            <div className="form-group"><label>Codice Univoco (SDI) o PEC</label><input type="text" name="sdiPec" value={formData.sdiPec || ''} onChange={handleInputChange} className="form-input" disabled={isSaving}/></div>
+            <div className="form-group">
+                <label>Denominazione Sociale</label>
+                <input type="text" name="ragioneSociale" value={formData.ragioneSociale || ''} onChange={handleInputChange} className="form-input" disabled={isSaving}/>
+                {errors.ragioneSociale && <p className="error-message">{errors.ragioneSociale}</p>}
+            </div>
+            <div className="form-group">
+                <label>Indirizzo</label>
+                <input type="text" name="indirizzo" value={formData.indirizzo || ''} onChange={handleInputChange} className="form-input" disabled={isSaving}/>
+                {errors.indirizzo && <p className="error-message">{errors.indirizzo}</p>}
+            </div>
+            <div className="form-group">
+                <label>Partita IVA</label>
+                <input type="text" name="pIvaCf" value={formData.pIvaCf || ''} onChange={handleInputChange} className="form-input" disabled={isSaving}/>
+                {errors.pIvaCf && <p className="error-message">{errors.pIvaCf}</p>}
+            </div>
+            <div className="form-group">
+                <label>Codice Univoco (SDI) o PEC</label>
+                <input type="text" name="sdiPec" value={formData.sdiPec || ''} onChange={handleInputChange} className="form-input" disabled={isSaving}/>
+                {errors.sdiPec && <p className="error-message">{errors.sdiPec}</p>}
+            </div>
           </>
         ) : (
           <>
-            <div className="form-group"><label>Nome</label><input type="text" name="nome" value={formData.nome || ''} onChange={handleInputChange} className="form-input" disabled={isSaving}/></div>
-            <div className="form-group"><label>Cognome</label><input type="text" name="cognome" value={formData.cognome || ''} onChange={handleInputChange} className="form-input" disabled={isSaving}/></div>
-            <div className="form-group"><label>Indirizzo</label><input type="text" name="indirizzo" value={formData.indirizzo || ''} onChange={handleInputChange} className="form-input" disabled={isSaving}/></div>
-            <div className="form-group"><label>Codice Fiscale</label><input type="text" name="cf" value={formData.cf || ''} onChange={handleInputChange} className="form-input" disabled={isSaving}/></div>
+            <div className="form-group">
+                <label>Nome</label>
+                <input type="text" name="nome" value={formData.nome || ''} onChange={handleInputChange} className="form-input" disabled={isSaving}/>
+                {errors.nome && <p className="error-message">{errors.nome}</p>}
+            </div>
+            <div className="form-group">
+                <label>Cognome</label>
+                <input type="text" name="cognome" value={formData.cognome || ''} onChange={handleInputChange} className="form-input" disabled={isSaving}/>
+                {errors.cognome && <p className="error-message">{errors.cognome}</p>}
+            </div>
+            <div className="form-group">
+                <label>Indirizzo</label>
+                <input type="text" name="indirizzo" value={formData.indirizzo || ''} onChange={handleInputChange} className="form-input" disabled={isSaving}/>
+                {errors.indirizzo && <p className="error-message">{errors.indirizzo}</p>}
+            </div>
+            <div className="form-group">
+                <label>Codice Fiscale</label>
+                <input type="text" name="cf" value={formData.cf || ''} onChange={handleInputChange} className="form-input" disabled={isSaving}/>
+                {errors.cf && <p className="error-message">{errors.cf}</p>}
+            </div>
           </>
         )}
         <button onClick={handleSave} className="web3-button" style={{ marginTop: '1rem' }} disabled={isSaving}>
@@ -206,10 +280,10 @@ const RicaricaCreditiPage: React.FC = () => {
             companyName: data.companyName,
             credits: data.credits,
             status: data.status,
-            email: data.email, 
+            email: data.contactEmail, // Corretto per leggere 'contactEmail' da Firebase
           });
 
-          if (data.billingDetails) {
+          if (data.billingDetails && Object.keys(data.billingDetails).length > 0) {
             setBillingDetails(data.billingDetails);
             setIsEditingBilling(false);
           } else {
