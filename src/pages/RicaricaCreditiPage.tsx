@@ -8,10 +8,12 @@ import { getFirestore, doc, getDoc, updateDoc } from 'firebase/firestore';
 // const db = getFirestore(app);
 
 // --- SIMULAZIONE DELL'HOOK useActiveAccount ---
-// Poiché l'ambiente non può risolvere "thirdweb/react", simuliamo l'hook
-// per fornire un indirizzo di wallet di prova.
+// Mantengo questa simulazione per evitare errori di compilazione nel preview.
+// Nel tuo ambiente di sviluppo, dovrai sostituirla con il vero import:
+// import { useActiveAccount } from "thirdweb/react";
 const useActiveAccount = () => {
     // Restituisce un oggetto account fittizio per scopi di test
+    // In produzione, questo conterrà il vero wallet dell'utente.
     return {
         address: '0x1234567890AbCdEf1234567890aBcDeF12345678' 
     };
@@ -42,7 +44,7 @@ export default function RicaricaCreditiPage() {
     ];
 
     // --- EFFETTI ---
-    // Carica i dati dell'utente da Firebase quando il componente viene montato o l'account cambia
+    // Carica i dati dell'utente da Firebase
     useEffect(() => {
         const loadData = async () => {
             if (!account || !account.address) {
@@ -55,51 +57,57 @@ export default function RicaricaCreditiPage() {
             setError(null);
 
             try {
-                // --- INTEGRAZIONE FIREBASE REALE (DA DECOMMENTARE) ---
-                // const userRef = doc(db, 'companies', account.address); // 'companies' è la collezione, account.address è l'ID del documento
-                // const userSnap = await getDoc(userRef);
+                // --- INTEGRAZIONE FIREBASE REALE ---
+                // La collezione in Firestore si chiama 'companies' e il documento ha come ID l'indirizzo del wallet.
+                const userRef = doc(db, 'companies', account.address); 
+                const userSnap = await getDoc(userRef);
 
-                // if (userSnap.exists()) {
-                //     const firebaseData = userSnap.data();
-                //     const formattedData = {
-                //         nomeAzienda: firebaseData.companyName,
-                //         crediti: firebaseData.credits,
-                //         stato: firebaseData.status === 'active' ? 'Attivo' : 'Non Attivo',
-                //         datiFatturazione: firebaseData.datiFatturazione || null
-                //     };
-                //     setUserData(formattedData);
-                // } else {
-                //     setError("Dati azienda non trovati. Assicurati di aver completato la registrazione.");
-                // }
-                
-                // --- Logica di Esempio (per testare senza Firebase connesso) ---
-                console.log(`Simulazione recupero dati per l'utente: ${account.address}`);
-                setTimeout(() => {
-                    const mockFirebaseData = {
-                        companyName: 'La Mia Azienda (da Firebase)',
-                        credits: 150,
-                        status: 'active',
-                        datiFatturazione: null, 
-                    };
+                if (userSnap.exists()) {
+                    const firebaseData = userSnap.data();
+                    // Mappiamo i dati di Firebase con i nomi usati nel componente
                     const formattedData = {
-                        nomeAzienda: mockFirebaseData.companyName,
-                        crediti: mockFirebaseData.credits,
-                        stato: mockFirebaseData.status === 'active' ? 'Attivo' : 'Non Attivo',
-                        datiFatturazione: mockFirebaseData.datiFatturazione
+                        nomeAzienda: firebaseData.companyName,
+                        crediti: firebaseData.credits,
+                        stato: firebaseData.status === 'active' ? 'Attivo' : 'Non Attivo',
+                        datiFatturazione: firebaseData.datiFatturazione || null // Carica anche i dati di fatturazione se esistono
                     };
                     setUserData(formattedData);
-                    setIsLoading(false);
-                }, 1000);
-
-
+                } else {
+                    setError("Dati azienda non trovati. Assicurati di aver completato la registrazione.");
+                }
+                
             } catch (e) {
                 console.error("Errore nel caricamento dati da Firebase:", e);
                 setError("Si è verificato un errore durante il caricamento dei dati.");
+            } finally {
                 setIsLoading(false);
             }
         };
 
-        loadData();
+        // Decommenta la riga seguente per usare i dati reali
+        // loadData();
+
+        // --- Logica di Esempio (rimuovi/commenta quando attivi la logica reale) ---
+        // Questa parte serve solo per far visualizzare la pagina senza una connessione a Firebase
+        console.log(`Modalità Sviluppo: Dati mock per l'utente: ${account.address}`);
+        setTimeout(() => {
+            const mockFirebaseData = {
+                companyName: 'La Mia Azienda SRL (Dati Finti)',
+                credits: 210,
+                status: 'active',
+                datiFatturazione: null,
+            };
+            const formattedData = {
+                nomeAzienda: mockFirebaseData.companyName,
+                crediti: mockFirebaseData.credits,
+                stato: mockFirebaseData.status === 'active' ? 'Attivo' : 'Non Attivo',
+                datiFatturazione: mockFirebaseData.datiFatturazione
+            };
+            setUserData(formattedData);
+            setIsLoading(false);
+        }, 1000);
+
+
     }, [account]);
 
     // --- GESTORI DI EVENTI ---
@@ -248,8 +256,8 @@ function FormFatturazione({ onSave, isSaving, setIsSaving, account }) {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!account) {
-            alert("Errore: account non trovato.");
+        if (!account || !account.address) {
+            alert("Errore: indirizzo wallet non trovato.");
             return;
         }
         setIsSaving(true);
@@ -267,13 +275,9 @@ function FormFatturazione({ onSave, isSaving, setIsSaving, account }) {
         }
 
         try {
-            // --- INTEGRAZIONE FIREBASE REALE (DA DECOMMENTARE) ---
-            // const userRef = doc(db, 'companies', account.address);
-            // await updateDoc(userRef, { datiFatturazione: dataToSave });
-
-            // --- Logica di Esempio ---
-            console.log(`Simulazione salvataggio dati per ${account.address}:`, dataToSave);
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            // --- INTEGRAZIONE FIREBASE REALE ---
+            const userRef = doc(db, 'companies', account.address);
+            await updateDoc(userRef, { datiFatturazione: dataToSave });
 
             onSave(dataToSave);
         } catch (e) {
