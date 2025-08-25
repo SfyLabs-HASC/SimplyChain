@@ -1,267 +1,414 @@
-import React, { useState, useEffect } from 'react';
-/*
- * ❗ NOTA SULL'IMPORTAZIONE ❗
- * Per garantire la massima compatibilità con l'ambiente di anteprima,
- * le librerie di Stripe vengono caricate da un CDN (un server esterno).
- * Questo metodo previene gli errori di compilazione se le librerie non sono
- * state installate localmente con 'npm install'.
- */
-import { loadStripe } from 'https://esm.sh/@stripe/stripe-js?dev';
-import { Elements, CardElement, useStripe, useElements } from 'https://esm.sh/@stripe/react-stripe-js?deps=react@18&dev';
+import React, { useState, useEffect } from "react";
+import { ConnectButton, useActiveAccount } from "thirdweb/react";
+import { createThirdwebClient } from "thirdweb";
+import { polygon } from "thirdweb/chains";
+import { inAppWallet } from "thirdweb/wallets";
+import { loadStripe, Stripe } from "@stripe/stripe-js";
+import { Elements, PaymentElement, useStripe, useElements } from "@stripe/react-stripe-js";
+import "../App.css"; // Usa lo stesso CSS della AziendaPage
 
-// Importa le funzioni di Firebase Firestore
-// import { getFirestore, doc, getDoc, updateDoc } from 'firebase/firestore';
-
-// --- CONFIGURAZIONE ---
-
-// 1. Inizializza Stripe con la tua chiave PUBBLICA
-const stripePromise = loadStripe('pk_test_51RrJLQRx6E9RZt5ynBwc2dt3o7RT4YTwwij3O9xj3VdMwNKlI4GA9Yvbzkgwbxi0I5J9XnqPMlgY7bz2xHSgxmz000KCex9EiA');
-
-// 2. Inizializza Firebase (decommenta nel tuo progetto)
-// import { app } from '../firebase-config'; 
-// const db = getFirestore(app);
-
-// 3. Simula l'hook per ottenere l'utente loggato (sostituisci con il tuo import reale)
-// import { useActiveAccount } from "thirdweb/react";
-const useActiveAccount = () => ({ address: '0x38a1FB0e7536b469184843C56eC315dC1AF344D3' });
-
-// --- TIPI TypeScript per i componenti ---
-interface CheckoutFormProps {
-    amount: number;
-    credits: number;
-    customerEmail: string;
-    walletAddress: string;
-    onSuccessfulPayment: () => void;
+// --- Interfacce Dati ---
+interface UserData {
+  companyName: string;
+  credits: number;
+  status: string;
+  email: string;
 }
 
-// --- COMPONENTE CHECKOUT FORM ---
+interface BillingDetails {
+  type: 'azienda' | 'privato';
+  // Dati azienda
+  ragioneSociale?: string;
+  indirizzo?: string;
+  pIvaCf?: string;
+  sdiPec?: string;
+  // Dati privato
+  nome?: string;
+  cognome?:- string;
+  cf?: string;
+}
 
-const CheckoutForm: React.FC<CheckoutFormProps> = ({ amount, credits, customerEmail, walletAddress, onSuccessfulPayment }) => {
-    const stripe = useStripe();
-    const elements = useElements();
-    const [isProcessing, setIsProcessing] = useState(false);
-    const [error, setError] = useState<string | null>(null);
+interface CreditPackage {
+  id: string;
+  credits: number;
+  pricePerCredit: number;
+  totalPrice: number;
+  description: string;
+}
 
-    const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-        event.preventDefault();
-        if (!stripe || !elements) return;
+// --- Setup Thirdweb e Stripe ---
+const client = createThirdwebClient({ clientId: "023dd6504a82409b2bc7cb971fd35b16" });
+const stripePromise = loadStripe("pk_test_51RrJLQRx6E9RZt5ynBwc2dt3o7RT4YTwwij3O9xj3VdMwNKlI4GA9Yvbzkgwbxi0I5J9XnqPMlgY7bz2xHSgxmz000KCex9EiA");
 
-        setIsProcessing(true);
-        setError(null);
+// --- Stili (copiati e adattati da AziendaPage per coerenza) ---
+const RicaricaCreditiStyles = () => (
+  <style>{`
+    /* Stili base da AziendaPage */
+    .app-container-full { padding: 1rem; min-height: 100vh; background-color: #0f0f0f; }
+    .main-header-bar { display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1.5rem; padding: 1rem; background-color: #1a1a1a; border-radius: 0.75rem; border: 1px solid #333; }
+    .header-title { font-size: 1.5rem; font-weight: bold; color: #ffffff; text-align: center; }
+    .centered-container { display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 80vh; text-align: center; padding: 1rem; color: #fff; }
+    .web3-button { background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); color: white; padding: 1rem 1.5rem; border: none; border-radius: 0.75rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; font-size: 0.9rem; width: 100%; text-align: center; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3); }
+    .web3-button:hover { background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%); transform: translateY(-2px); box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4); }
+    .web3-button.secondary { background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%); box-shadow: 0 4px 15px rgba(107, 114, 128, 0.3); }
+    .web3-button.secondary:hover { background: linear-gradient(135deg, #4b5563 0%, #374151 100%); box-shadow: 0 6px 20px rgba(107, 114, 128, 0.4); }
+    .form-group { margin-bottom: 1rem; }
+    .form-group label { display: block; margin-bottom: 0.5rem; font-weight: 500; color: #f8f9fa; }
+    .form-input { width: 100%; padding: 0.75rem; border: 1px solid #495057; border-radius: 0.5rem; background-color: #212529; color: #f8f9fa; font-size: 0.9rem; }
+    
+    /* Stili specifici per la pagina di ricarica */
+    .recharge-container { max-width: 800px; margin: 0 auto; color: #fff; }
+    .user-info-card, .packages-card, .billing-card { background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%); border-radius: 1rem; padding: 1.5rem; margin-bottom: 1.5rem; border: 1px solid #333; box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3); }
+    .user-info-card h2 { margin-top: 0; }
+    .user-info-grid { display: grid; grid-template-columns: 1fr; gap: 1rem; }
+    .status-active-text { color: #10b981; }
+    .status-inactive-text { color: #f59e0b; }
 
-        const cardElement = elements.getElement(CardElement);
-        if (!cardElement) {
-            setError("Elemento carta non trovato.");
-            setIsProcessing(false);
-            return;
-        }
+    .credit-packages-table { width: 100%; border-collapse: collapse; }
+    .credit-packages-table th, .credit-packages-table td { padding: 1rem; text-align: left; border-bottom: 1px solid #333; }
+    .credit-packages-table tr { cursor: pointer; transition: background-color 0.2s ease; }
+    .credit-packages-table tr:hover { background-color: #3a3a3a; }
+    .credit-packages-table tr.selected { background-color: #3b82f6; }
+    .credit-packages-table th { font-size: 0.9rem; color: #a0a0a0; }
+    
+    .billing-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+    .billing-header h3 { margin: 0; }
+    .edit-button { background: none; border: none; color: #60a5fa; cursor: pointer; font-size: 0.9rem; }
 
-        const { error: paymentMethodError, paymentMethod } = await stripe.createPaymentMethod({
-            type: 'card',
-            card: cardElement,
-            billing_details: {
-                email: customerEmail,
-            },
-        });
+    @media (min-width: 768px) {
+      .main-header-bar { flex-direction: row; justify-content: space-between; align-items: center; padding: 1.5rem; }
+      .header-title { text-align: left; }
+      .user-info-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+  `}</style>
+);
 
-        if (paymentMethodError) {
-            setError(paymentMethodError.message || "Errore nella creazione del metodo di pagamento.");
-            setIsProcessing(false);
-            return;
-        }
+// --- Pacchetti Crediti (dall'immagine) ---
+const creditPackages: CreditPackage[] = [
+  { id: 'price_1', credits: 10, pricePerCredit: 0.20, totalPrice: 2.00, description: 'Pacchetto 10 crediti' },
+  { id: 'price_2', credits: 50, pricePerCredit: 0.12, totalPrice: 6.00, description: 'Pacchetto 50 crediti' },
+  { id: 'price_3', credits: 100, pricePerCredit: 0.10, totalPrice: 10.00, description: 'Pacchetto 100 crediti' },
+  { id: 'price_4', credits: 500, pricePerCredit: 0.09, totalPrice: 45.00, description: 'Pacchetto 500 crediti' },
+  { id: 'price_5', credits: 1000, pricePerCredit: 0.07, totalPrice: 70.00, description: 'Pacchetto 1000 crediti' },
+];
 
-        try {
-            // Sostituisci con l'URL della tua Cloud Function una volta deployata
-            const response = await fetch('https://us-central1-tuo-progetto-firebase.cloudfunctions.net/processStripePayment', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    paymentMethodId: paymentMethod.id,
-                    amount: Math.round(amount * 100), // Stripe lavora in centesimi, arrotonda per sicurezza
-                    customerEmail: customerEmail,
-                    creditsToPurchase: credits,
-                    walletAddress: walletAddress,
-                }),
-            });
+// --- Componente Form di Fatturazione ---
+const BillingForm: React.FC<{ initialDetails?: BillingDetails | null, onSave: (details: BillingDetails) => void }> = ({ initialDetails, onSave }) => {
+  const [type, setType] = useState<'azienda' | 'privato'>(initialDetails?.type || 'azienda');
+  const [formData, setFormData] = useState(initialDetails || {});
 
-            const paymentResult = await response.json();
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
+  };
 
-            if (!response.ok || paymentResult.error) {
-                setError(paymentResult.error || "Si è verificato un errore durante il pagamento.");
-            } else if (paymentResult.success) {
-                alert('Pagamento completato! Riceverai una fattura via email.');
-                onSuccessfulPayment();
-            }
-        } catch (err) {
-            setError('Impossibile connettersi al server di pagamento. Riprova più tardi.');
-        }
+  const handleSave = () => {
+    // Aggiungi validazione qui se necessario
+    onSave({ type, ...formData } as BillingDetails);
+  };
 
-        setIsProcessing(false);
-    };
-
-    return (
-        <form onSubmit={handleSubmit} className="space-y-6 bg-gray-100 p-6 rounded-lg">
-            <h3 className="text-lg font-semibold text-gray-800">Inserisci i dati della carta</h3>
-            <div className="p-3 bg-white rounded-md border">
-                <CardElement options={{ 
-                    style: { 
-                        base: { 
-                            fontSize: '16px',
-                            color: '#424770',
-                            '::placeholder': {
-                                color: '#aab7c4',
-                            },
-                        },
-                        invalid: {
-                            color: '#9e2146',
-                        },
-                    } 
-                }} />
-            </div>
-            {error && <div className="text-red-500 text-sm font-semibold text-center">{error}</div>}
-            <button 
-                type="submit" 
-                disabled={!stripe || isProcessing}
-                className="w-full px-6 py-3 bg-blue-600 text-white font-bold rounded-lg shadow-md hover:bg-blue-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
-            >
-                {isProcessing ? 'Pagamento in corso...' : `Paga ${amount.toFixed(2)} €`}
-            </button>
-        </form>
-    );
+  return (
+    <div className="billing-form">
+      <div className="form-group">
+        <label>Tipo di account</label>
+        <div style={{ display: 'flex', gap: '1rem' }}>
+          <label><input type="radio" value="azienda" checked={type === 'azienda'} onChange={() => setType('azienda')} /> Azienda</label>
+          <label><input type="radio" value="privato" checked={type === 'privato'} onChange={() => setType('privato')} /> Privato</label>
+        </div>
+      </div>
+      
+      {type === 'azienda' ? (
+        <>
+          <div className="form-group"><label>Denominazione Sociale</label><input type="text" name="ragioneSociale" value={formData.ragioneSociale || ''} onChange={handleInputChange} className="form-input" /></div>
+          <div className="form-group"><label>Indirizzo</label><input type="text" name="indirizzo" value={formData.indirizzo || ''} onChange={handleInputChange} className="form-input" /></div>
+          <div className="form-group"><label>Partita IVA / Codice Fiscale</label><input type="text" name="pIvaCf" value={formData.pIvaCf || ''} onChange={handleInputChange} className="form-input" /></div>
+          <div className="form-group"><label>Codice Univoco (SDI) o PEC</label><input type="text" name="sdiPec" value={formData.sdiPec || ''} onChange={handleInputChange} className="form-input" /></div>
+        </>
+      ) : (
+        <>
+          <div className="form-group"><label>Nome</label><input type="text" name="nome" value={formData.nome || ''} onChange={handleInputChange} className="form-input" /></div>
+          <div className="form-group"><label>Cognome</label><input type="text" name="cognome" value={formData.cognome || ''} onChange={handleInputChange} className="form-input" /></div>
+          <div className="form-group"><label>Indirizzo</label><input type="text" name="indirizzo" value={formData.indirizzo || ''} onChange={handleInputChange} className="form-input" /></div>
+          <div className="form-group"><label>Codice Fiscale</label><input type="text" name="cf" value={formData.cf || ''} onChange={handleInputChange} className="form-input" /></div>
+        </>
+      )}
+      <button onClick={handleSave} className="web3-button" style={{ marginTop: '1rem' }}>Salva Dati</button>
+    </div>
+  );
 };
 
+// --- Componente Checkout Stripe ---
+const StripeCheckoutForm: React.FC = () => {
+  const stripe = useStripe();
+  const elements = useElements();
+  const [message, setMessage] = useState<string | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
 
-// --- COMPONENTE PRINCIPALE ---
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!stripe || !elements) return;
 
-export default function RicaricaCreditiPage() {
-    const account = useActiveAccount();
-    const [userData, setUserData] = useState<{ nomeAzienda: string; crediti: number; stato: string; email: string; } | null>(null);
-    const [pacchettoScelto, setPacchettoScelto] = useState<{ id: string; crediti: number; prezzoTotale: number; } | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+    setIsProcessing(true);
 
-    const pacchetti = [
-        { id: '10', crediti: 10, prezzoTotale: 2.00 },
-        { id: '50', crediti: 50, prezzoTotale: 6.00 },
-        { id: '100', crediti: 100, prezzoTotale: 10.00 },
-        { id: '500', crediti: 500, prezzoTotale: 45.00 },
-        { id: '1000', crediti: 1000, prezzoTotale: 70.00 },
-    ];
+    const { error } = await stripe.confirmPayment({
+      elements,
+      confirmParams: {
+        return_url: `${window.location.origin}/pagamento-successo`,
+      },
+    });
 
-    const loadUserData = async () => {
-        if (!account || !account.address) {
-            setError("Per favore, connetti il tuo wallet per continuare.");
-            setIsLoading(false);
-            return;
-        }
+    if (error.type === "card_error" || error.type === "validation_error") {
+      setMessage(error.message || "Errore sconosciuto.");
+    } else {
+      setMessage("Un errore inaspettato è occorso.");
+    }
+
+    setIsProcessing(false);
+  };
+
+  return (
+    <form id="payment-form" onSubmit={handleSubmit}>
+      <PaymentElement id="payment-element" />
+      <button disabled={isProcessing || !stripe || !elements} id="submit" className="web3-button" style={{ width: '100%', marginTop: '2rem' }}>
+        <span id="button-text">
+          {isProcessing ? "Pagamento in corso..." : "Paga ora"}
+        </span>
+      </button>
+      {message && <div id="payment-message" style={{ color: 'red', marginTop: '1rem' }}>{message}</div>}
+    </form>
+  );
+};
+
+// --- Componente Principale Pagina ---
+const RicaricaCreditiPage: React.FC = () => {
+  const account = useActiveAccount();
+  
+  // Stati UI
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Stati Dati Utente
+  const [userData, setUserData] = useState<UserData | null>(null);
+  const [billingDetails, setBillingDetails] = useState<BillingDetails | null>(null);
+  
+  // Stati Pagamento
+  const [selectedPackage, setSelectedPackage] = useState<CreditPackage | null>(null);
+  const [clientSecret, setClientSecret] = useState<string | null>(null);
+  const [isEditingBilling, setIsEditingBilling] = useState(false);
+
+  useEffect(() => {
+    if (!account) {
+      setLoading(false);
+      setUserData(null);
+      setBillingDetails(null);
+      return;
+    }
+
+    const fetchUserData = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        // --- SIMULAZIONE CHIAMATA API ---
+        // In un'app reale, faresti una chiamata al tuo backend
+        // const response = await fetch(`/api/get-user-data?walletAddress=${account.address}`);
+        // const data = await response.json();
         
-        setIsLoading(true);
-        setError(null);
+        // Dati fittizi per l'esempio
+        const mockData = {
+          userData: {
+            companyName: "Azienda Prova S.R.L.",
+            credits: 5,
+            status: "active",
+            email: "utente@prova.com",
+          },
+          // Prova a impostarlo a 'null' per vedere il form di inserimento
+          billingDetails: { 
+            type: 'azienda',
+            ragioneSociale: 'Azienda Prova S.R.L.',
+            indirizzo: 'Via Roma 1, 00100 Roma (RM)',
+            pIvaCf: 'IT12345678901',
+            sdiPec: 'codice@pec.it'
+          }
+        };
 
-        try {
-            // --- LOGICA DATI REALI (DA DECOMMENTARE NEL TUO PROGETTO) ---
-            // const userRef = doc(db, 'companies', account.address);
-            // const userSnap = await getDoc(userRef);
-            // if (userSnap.exists()) {
-            //     const data = userSnap.data();
-            //     setUserData({
-            //         nomeAzienda: data.companyName,
-            //         crediti: data.credits,
-            //         stato: data.status === 'active' ? 'Attivo' : 'Non Attivo',
-            //         email: data.contactEmail,
-            //     });
-            // } else {
-            //     setError("Dati azienda non trovati.");
-            // }
+        setUserData(mockData.userData);
+        setBillingDetails(mockData.billingDetails);
 
-            // --- Logica di Esempio per la preview ---
-            // Rimuovi questo blocco quando usi i dati reali. Serve per evitare la pagina bianca.
-            setTimeout(() => {
-                setUserData({
-                    nomeAzienda: "Vino SFY",
-                    crediti: 193,
-                    stato: "Attivo",
-                    email: "vinokasjdfkajsdf@gmail.com",
-                });
-            }, 500);
-
-        } catch (e) {
-            setError("Errore nel caricamento dei dati.");
-            console.error(e);
-        } finally {
-            // Simula la fine del caricamento
-            setTimeout(() => setIsLoading(false), 500);
+        // Se non ci sono dati di fatturazione, mostra subito il form
+        if (!mockData.billingDetails) {
+          setIsEditingBilling(true);
         }
+
+      } catch (err) {
+        setError("Impossibile caricare i dati dell'utente.");
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
     };
 
-    useEffect(() => {
-        loadUserData();
-    }, [account]);
+    fetchUserData();
+  }, [account]);
+  
+  const handleSelectPackage = async (pkg: CreditPackage) => {
+    setSelectedPackage(pkg);
+    setClientSecret(null); // Resetta il client secret precedente
 
-    if (isLoading) {
-        return <div className="text-center p-10">Caricamento...</div>;
+    if (!billingDetails) {
+        setIsEditingBilling(true); // Forza l'inserimento dei dati se non presenti
+        return;
     }
 
-    if (error) {
-        return <div className="text-center p-10 text-red-500">{error}</div>;
+    try {
+        // Chiamata API per creare un Payment Intent su Stripe
+        const response = await fetch('/api/create-payment-intent', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                packageId: pkg.id,
+                amount: pkg.totalPrice * 100, // Stripe usa i centesimi
+                walletAddress: account?.address
+            }),
+        });
+        const data = await response.json();
+        setClientSecret(data.clientSecret);
+    } catch (error) {
+        console.error("Errore nella creazione del Payment Intent:", error);
+        setError("Non è stato possibile avviare il pagamento. Riprova.");
     }
+  };
 
-    if (!userData) {
-        return <div className="text-center p-10">Nessun dato trovato per questo account.</div>;
+  const handleSaveBilling = async (details: BillingDetails) => {
+    // Chiamata API per salvare i dati di fatturazione
+    // await fetch('/api/save-billing-details', { method: 'POST', ... });
+    console.log("Salvataggio dati fatturazione:", details);
+    
+    setBillingDetails(details);
+    setIsEditingBilling(false);
+
+    // Se un pacchetto era già stato selezionato, ora crea il payment intent
+    if (selectedPackage) {
+        await handleSelectPackage(selectedPackage);
     }
+  };
+
+  const renderContent = () => {
+    if (loading) return <div className="centered-container"><p>Caricamento dati utente...</p></div>;
+    if (error) return <div className="centered-container"><p style={{ color: "red" }}>{error}</p></div>;
+    if (!userData) return <div className="centered-container"><p>Nessun dato utente trovato per questo wallet.</p></div>;
 
     return (
-        <Elements stripe={stripePromise}>
-            <div className="bg-gray-50 min-h-screen p-4 sm:p-8">
-                <div className="max-w-2xl mx-auto bg-white rounded-xl shadow-lg">
-                    <div className="p-8">
-                        <header className="border-b pb-4 mb-6">
-                            <h1 className="text-3xl font-bold text-gray-800">{userData.nomeAzienda}</h1>
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4 text-gray-600">
-                                <p><strong>Email:</strong><br/>{userData.email}</p>
-                                <p><strong>Crediti:</strong><br/><span className="font-mono text-blue-600 text-lg">{userData.crediti}</span></p>
-                                <p><strong>Stato:</strong><br/><span className="font-semibold text-green-600">{userData.stato}</span></p>
-                            </div>
-                        </header>
+      <div className="recharge-container">
+        {/* Sezione Dati Utente */}
+        <div className="user-info-card">
+          <h2>Riepilogo Account</h2>
+          <div className="user-info-grid">
+            <p><strong>Nome Azienda:</strong> {userData.companyName}</p>
+            <p><strong>Email:</strong> {userData.email}</p>
+            <p><strong>Crediti Rimanenti:</strong> {userData.credits}</p>
+            <p><strong>Stato:</strong> <strong className={userData.status === 'active' ? 'status-active-text' : 'status-inactive-text'}>
+              {userData.status === 'active' ? 'ATTIVO' : 'NON ATTIVO'}
+            </strong></p>
+          </div>
+        </div>
 
-                        <main>
-                            <h2 className="text-xl font-semibold text-gray-700 mb-4">Ricarica Crediti</h2>
-                            <select
-                                id="credit-select" // Aggiunto ID per poterlo resettare
-                                onChange={(e) => setPacchettoScelto(pacchetti.find(p => p.id === e.target.value) || null)}
-                                defaultValue=""
-                                className="block w-full p-3 border border-gray-300 rounded-md shadow-sm"
-                            >
-                                <option value="" disabled>Seleziona un pacchetto...</option>
-                                {pacchetti.map(p => (
-                                    <option key={p.id} value={p.id}>
-                                        {p.crediti} crediti - {p.prezzoTotale.toFixed(2)} €
-                                    </option>
-                                ))}
-                            </select>
+        {/* Sezione Selezione Pacchetti */}
+        <div className="packages-card">
+          <h2>Seleziona un Pacchetto Crediti</h2>
+          <table className="credit-packages-table">
+            <thead>
+              <tr>
+                <th>Pacchetto</th>
+                <th>Prezzo per credito</th>
+                <th>Prezzo totale (€)</th>
+              </tr>
+            </thead>
+            <tbody>
+              {creditPackages.map(pkg => (
+                <tr key={pkg.id} onClick={() => handleSelectPackage(pkg)} className={selectedPackage?.id === pkg.id ? 'selected' : ''}>
+                  <td><strong>{pkg.credits} crediti</strong></td>
+                  <td>{pkg.pricePerCredit.toFixed(2)} €</td>
+                  <td><strong>{pkg.totalPrice.toFixed(2)} €</strong></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
 
-                            {pacchettoScelto && (
-                                <div className="mt-8">
-                                    <CheckoutForm 
-                                        amount={pacchettoScelto.prezzoTotale}
-                                        credits={pacchettoScelto.crediti}
-                                        customerEmail={userData.email}
-                                        walletAddress={account.address}
-                                        onSuccessfulPayment={() => {
-                                            // Ricarica i dati utente per mostrare i nuovi crediti
-                                            loadUserData();
-                                            // Resetta il select deselezionando il pacchetto
-                                            const selectElement = document.getElementById('credit-select') as HTMLSelectElement | null;
-                                            if(selectElement) selectElement.value = "";
-                                            setPacchettoScelto(null);
-                                        }}
-                                    />
-                                </div>
-                            )}
-                        </main>
-                    </div>
+        {/* Sezione Fatturazione e Pagamento */}
+        {selectedPackage && (
+          <div className="billing-card">
+            {billingDetails && !isEditingBilling ? (
+              // Visualizza dati esistenti
+              <div>
+                <div className="billing-header">
+                  <h3>Dati di Fatturazione</h3>
+                  <button className="edit-button" onClick={() => setIsEditingBilling(true)}>✏️ Modifica</button>
                 </div>
-            </div>
-        </Elements>
+                {billingDetails.type === 'azienda' ? (
+                  <>
+                    <p><strong>Ragione Sociale:</strong> {billingDetails.ragioneSociale}</p>
+                    <p><strong>Indirizzo:</strong> {billingDetails.indirizzo}</p>
+                    <p><strong>P.IVA/CF:</strong> {billingDetails.pIvaCf}</p>
+                    <p><strong>SDI/PEC:</strong> {billingDetails.sdiPec}</p>
+                  </>
+                ) : (
+                   <>
+                    <p><strong>Nome:</strong> {billingDetails.nome} {billingDetails.cognome}</p>
+                    <p><strong>Indirizzo:</strong> {billingDetails.indirizzo}</p>
+                    <p><strong>Codice Fiscale:</strong> {billingDetails.cf}</p>
+                  </>
+                )}
+              </div>
+            ) : (
+              // Mostra il form per inserire/modificare i dati
+              <div>
+                <h3>{billingDetails ? 'Modifica Dati di Fatturazione' : 'Inserisci i Dati di Fatturazione'}</h3>
+                <BillingForm initialDetails={billingDetails} onSave={handleSaveBilling} />
+              </div>
+            )}
+            
+            {/* Mostra Stripe solo se i dati sono stati salvati e abbiamo un clientSecret */}
+            {!isEditingBilling && clientSecret && (
+                <div style={{marginTop: '2rem'}}>
+                    <h3 style={{borderTop: '1px solid #444', paddingTop: '2rem'}}>Procedi con il Pagamento</h3>
+                     <Elements options={{ clientSecret }} stripe={stripePromise}>
+                        <StripeCheckoutForm />
+                    </Elements>
+                </div>
+            )}
+          </div>
+        )}
+      </div>
     );
-}
+  };
+
+  // Render Principale
+  return (
+    <>
+      <RicaricaCreditiStyles />
+      <div className="app-container-full">
+        <header className="main-header-bar">
+          <h1 className="header-title">EasyChain - Ricarica Crediti</h1>
+          <ConnectButton
+            client={client}
+            wallets={[inAppWallet()]}
+            chain={polygon}
+            accountAbstraction={{ chain: polygon, sponsorGas: true }}
+          />
+        </header>
+        <main>
+          {!account ? (
+            <div className="centered-container">
+              <h1>Connetti il Wallet</h1>
+              <p>Per ricaricare i crediti, connetti il tuo wallet.</p>
+            </div>
+          ) : (
+            renderContent()
+          )}
+        </main>
+      </div>
+    </>
+  );
+};
+
+export default RicaricaCreditiPage;
