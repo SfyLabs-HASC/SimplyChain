@@ -48,4 +48,29 @@
   .italy-gradient {
     background: linear-gradient(90deg, #009246 0%, #ffffff 50%, #ce2b37 100%);
   }
+
+  /* animations */
+  @keyframes float {
+    0% { transform: translateY(0) }
+    50% { transform: translateY(-10px) }
+    100% { transform: translateY(0) }
+  }
+  @keyframes float-slow {
+    0% { transform: translateY(0) }
+    50% { transform: translateY(-6px) }
+    100% { transform: translateY(0) }
+  }
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+  .animate-float-slow {
+    animation: float-slow 10s ease-in-out infinite;
+  }
+  @keyframes scan {
+    0% { background-position: 0% 0%, 0% 0% }
+    100% { background-position: 0% 24px, 24px 0% }
+  }
+  .animate-scan {
+    animation: scan 4s linear infinite;
+  }
 }

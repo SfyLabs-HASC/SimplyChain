@@ -104,7 +104,7 @@ export default function HomePage() {
                 </div>
                 <h3 className="text-2xl font-semibold mb-4">Verifica l'Autenticità</h3>
                 <p className="text-muted-foreground leading-relaxed">
-                  Consumatori e partner possono verificare istantaneamente ogni prodotto scansionando un QR Code.
+                  I consumatori possono verificare ogni prodotto scansionando un QR Code.
                 </p>
               </div>
             </div>
