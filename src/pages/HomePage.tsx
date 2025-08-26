@@ -1,4 +1,6 @@
 import { Link } from "react-router-dom";
+import { FilePlus2, GitBranchPlus, ShieldCheck, KeyRound, Link as LinkIcon, ShieldAlert, Shield, Lock } from 'lucide-react';
+import { HeroBackground } from "../components/HeroBackground";
 
 export default function HomePage() {
   return (
