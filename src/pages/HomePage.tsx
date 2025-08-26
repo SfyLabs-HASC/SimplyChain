@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { FilePlus2, GitBranchPlus, ShieldCheck, KeyRound, Link as LinkIcon, ShieldAlert, Shield, Lock } from 'lucide-react';
 
 export default function HomePage() {
   return (
@@ -27,9 +28,6 @@ export default function HomePage() {
                 <button className="primary-gradient text-lg px-8 py-4 rounded-xl blockchain-glow smooth-transition hover:scale-105 text-primary-foreground font-semibold">
                   ISCRIVITI / ACCEDI
                 </button>
-              </Link>
-              <Link to="/admin" className="text-muted-foreground hover:text-accent smooth-transition">
-                Accesso Amministratore
               </Link>
             </div>
             
@@ -68,9 +66,7 @@ export default function HomePage() {
           <div className="grid md:grid-cols-3 gap-8">
             <div className="text-center">
               <div className="glass-card rounded-3xl p-8 mb-6 smooth-transition hover:blockchain-glow">
-                <div className="w-16 h-16 accent-gradient rounded-2xl flex items-center justify-center mx-auto mb-6">
-                  <span className="text-2xl font-bold text-accent-foreground">1</span>
-                </div>
+                <FilePlus2 className="w-16 h-16 text-accent mx-auto mb-6" strokeWidth={1.5} />
                 <h3 className="text-2xl font-semibold mb-4">Registra i Tuoi Prodotti</h3>
                 <p className="text-muted-foreground leading-relaxed">
                   Carica le informazioni dei tuoi prodotti nella piattaforma EasyChain
@@ -80,9 +76,7 @@ export default function HomePage() {
             
             <div className="text-center">
               <div className="glass-card rounded-3xl p-8 mb-6 smooth-transition hover:blockchain-glow">
-                <div className="w-16 h-16 primary-gradient rounded-2xl flex items-center justify-center mx-auto mb-6">
-                  <span className="text-2xl font-bold text-primary-foreground">2</span>
-                </div>
+                <GitBranchPlus className="w-16 h-16 text-primary mx-auto mb-6" strokeWidth={1.5} />
                 <h3 className="text-2xl font-semibold mb-4">Traccia il Percorso</h3>
                 <p className="text-muted-foreground leading-relaxed">
                   Monitora ogni movimento e trasformazione lungo la supply chain
@@ -92,9 +86,7 @@ export default function HomePage() {
             
             <div className="text-center">
               <div className="glass-card rounded-3xl p-8 mb-6 smooth-transition hover:blockchain-glow">
-                <div className="w-16 h-16 accent-gradient rounded-2xl flex items-center justify-center mx-auto mb-6">
-                  <span className="text-2xl font-bold text-accent-foreground">3</span>
-                </div>
+                <ShieldCheck className="w-16 h-16 text-accent mx-auto mb-6" strokeWidth={1.5} />
                 <h3 className="text-2xl font-semibold mb-4">Verifica l'Autenticità</h3>
                 <p className="text-muted-foreground leading-relaxed">
                   Consumatori e partner possono verificare istantaneamente ogni prodotto
@@ -121,7 +113,9 @@ export default function HomePage() {
               <div className="space-y-6">
                 <div className="glass-card rounded-xl p-6 smooth-transition hover:blockchain-glow">
                   <div className="flex items-start gap-4">
-                    <div className="text-3xl flex-shrink-0">🔐</div>
+                    <div className="p-2 bg-primary/10 rounded-lg">
+                      <KeyRound className="w-6 h-6 text-primary" />
+                    </div>
                     <div>
                       <h3 className="text-lg font-semibold mb-2">Crittografia End-to-End</h3>
                       <p className="text-muted-foreground">
@@ -133,7 +127,9 @@ export default function HomePage() {
                 
                 <div className="glass-card rounded-xl p-6 smooth-transition hover:blockchain-glow">
                   <div className="flex items-start gap-4">
-                    <div className="text-3xl flex-shrink-0">⛓️</div>
+                    <div className="p-2 bg-primary/10 rounded-lg">
+                      <LinkIcon className="w-6 h-6 text-primary" />
+                    </div>
                     <div>
                       <h3 className="text-lg font-semibold mb-2">Blockchain Immutabile</h3>
                       <p className="text-muted-foreground">
@@ -145,7 +141,9 @@ export default function HomePage() {
                 
                 <div className="glass-card rounded-xl p-6 smooth-transition hover:blockchain-glow">
                   <div className="flex items-start gap-4">
-                    <div className="text-3xl flex-shrink-0">🛡️</div>
+                    <div className="p-2 bg-primary/10 rounded-lg">
+                      <ShieldAlert className="w-6 h-6 text-primary" />
+                    </div>
                     <div>
                       <h3 className="text-lg font-semibold mb-2">Audit Continuo</h3>
                       <p className="text-muted-foreground">
@@ -159,11 +157,11 @@ export default function HomePage() {
             
             <div className="relative">
               <div className="glass-card rounded-3xl p-8 blockchain-glow">
-                <div className="w-full h-80 bg-gradient-to-br from-primary/20 via-accent/10 to-primary/20 rounded-2xl flex items-center justify-center">
-                  <div className="text-center">
-                    <div className="text-6xl mb-4">🔒</div>
-                    <h4 className="text-xl font-semibold mb-2">Sicurezza Blockchain</h4>
-                    <p className="text-muted-foreground">Protezione di livello enterprise</p>
+                <div className="w-full h-80 bg-gradient-to-br from-primary/10 via-accent/5 to-primary/10 rounded-2xl flex items-center justify-center p-4">
+                  <div className="relative w-64 h-64 text-primary">
+                    <Shield className="absolute top-0 left-0 w-full h-full opacity-10 animate-pulse" strokeWidth={1} />
+                    <GitBranchPlus className="absolute w-48 h-48 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-accent opacity-50" strokeWidth={1} />
+                    <Lock className="absolute w-24 h-24 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-primary" strokeWidth={1.5} />
                   </div>
                 </div>
               </div>
@@ -239,7 +237,6 @@ export default function HomePage() {
               <h4 className="font-semibold mb-4">Piattaforma</h4>
               <ul className="space-y-2 text-muted-foreground">
                 <li><Link to="/azienda" className="hover:text-primary smooth-transition">Accesso Aziende</Link></li>
-                <li><Link to="/admin" className="hover:text-primary smooth-transition">Accesso Admin</Link></li>
                 <li><Link to="/contatti" className="hover:text-primary smooth-transition">Contatti</Link></li>
               </ul>
             </div>
