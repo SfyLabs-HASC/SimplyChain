@@ -45,4 +45,7 @@
   .smooth-transition {
     transition: all 200ms ease;
   }
+  .italy-gradient {
+    background: linear-gradient(90deg, #009246 0%, #ffffff 50%, #ce2b37 100%);
+  }
 }
