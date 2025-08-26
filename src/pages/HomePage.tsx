@@ -1,16 +1,13 @@
 import { Link } from "react-router-dom";
 import { FilePlus2, GitBranchPlus, ShieldCheck, KeyRound, Link as LinkIcon, ShieldAlert, Shield, Lock } from 'lucide-react';
+import { HeroBackground } from "../components/HeroBackground";
 
 export default function HomePage() {
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-        {/* Background with gradient */}
-        <div className="absolute inset-0 z-0">
-          <div className="absolute inset-0 hero-gradient opacity-90"></div>
-          <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-accent/10"></div>
-        </div>
+        <HeroBackground />
         
         {/* Content */}
         <div className="relative z-10 container mx-auto px-6 text-center">
