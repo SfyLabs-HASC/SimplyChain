@@ -1,15 +1,16 @@
 import { Link } from "react-router-dom";
-import { FilePlus2, GitBranchPlus, ShieldCheck, KeyRound, Link as LinkIcon, ShieldAlert, Shield, Lock } from 'lucide-react';
 import { HeroBackground } from "../components/HeroBackground";
+import React, { useState } from "react";
 
 export default function HomePage() {
+  const [isVideoOpen, setIsVideoOpen] = useState(false);
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
         {/* Background with gradient */}
         <div className="absolute inset-0 z-0">
-          <div className="absolute inset-0 hero-gradient opacity-90"></div>
+          <HeroBackground />
           <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-accent/10"></div>
         </div>
         
@@ -30,16 +31,20 @@ export default function HomePage() {
                   ISCRIVITI / ACCEDI
                 </button>
               </Link>
-              <Link to="/admin" className="text-muted-foreground hover:text-accent smooth-transition">
-                Accesso Amministratore
-              </Link>
+              <button
+                onClick={() => setIsVideoOpen(true)}
+                className="italy-gradient text-neutral-900 text-lg px-8 py-4 rounded-xl smooth-transition hover:scale-105 font-semibold"
+                aria-label="Guarda il video di presentazione"
+              >
+                Guarda il video
+              </button>
             </div>
             
             <div className="glass-card rounded-2xl p-6 max-w-2xl mx-auto">
               <div className="flex flex-col sm:flex-row items-center justify-center gap-6 text-sm">
                 <div className="flex items-center gap-2">
                   <div className="w-3 h-3 bg-accent rounded-full animate-pulse"></div>
-                  <span>50 Crediti Gratuiti</span>
+                  <span>Crediti Gratuiti</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="w-3 h-3 bg-primary rounded-full animate-pulse"></div>
@@ -99,7 +104,7 @@ export default function HomePage() {
                 </div>
                 <h3 className="text-2xl font-semibold mb-4">Verifica l'Autenticità</h3>
                 <p className="text-muted-foreground leading-relaxed">
-                  Consumatori e partner possono verificare istantaneamente ogni prodotto
+                  I consumatori possono verificare ogni prodotto scansionando un QR Code.
                 </p>
               </div>
             </div>
@@ -161,12 +166,11 @@ export default function HomePage() {
             
             <div className="relative">
               <div className="glass-card rounded-3xl p-8 blockchain-glow">
-                <div className="w-full h-80 bg-gradient-to-br from-primary/20 via-accent/10 to-primary/20 rounded-2xl flex items-center justify-center">
-                  <div className="text-center">
-                    <div className="text-6xl mb-4">🔒</div>
-                    <h4 className="text-xl font-semibold mb-2">Sicurezza Blockchain</h4>
-                    <p className="text-muted-foreground">Protezione di livello enterprise</p>
-                  </div>
+                <div className="w-full rounded-2xl overflow-hidden">
+                  <div className="italy-gradient h-2 w-full mb-6 rounded-full"></div>
+                  <p className="text-lg md:text-xl text-neutral-200 leading-relaxed">
+                    “Registrare su blockchain ogni prodotto, passaggio di filiera o contratto significa garantire trasparenza, fiducia e tutela. Ogni dato diventa immutabile e verificabile: il cliente sa da dove viene ciò che acquista, il produttore difende il proprio lavoro e il Made in Italy si rafforza contro contraffazioni e pratiche scorrette.”
+                  </p>
                 </div>
               </div>
               <div className="absolute -top-6 -right-6 w-24 h-24 accent-gradient rounded-full opacity-20 animate-pulse"></div>
@@ -185,7 +189,8 @@ export default function HomePage() {
             </h2>
             <p className="text-xl text-muted-foreground mb-12 leading-relaxed">
               Unisciti alle aziende che hanno già scelto EasyChain per certificare la loro 
-              filiera produttiva. Inizia oggi stesso con 50 crediti gratuiti!
+              filiera produttiva.
+              <span className="block mt-2">Inizia oggi stesso con 50 crediti gratuiti!</span>
             </p>
             
             <div className="glass-card rounded-3xl p-12 blockchain-glow">
@@ -217,7 +222,7 @@ export default function HomePage() {
       {/* Footer */}
       <footer className="bg-card/50 border-t border-border/50 py-16">
         <div className="container mx-auto px-6">
-          <div className="grid md:grid-cols-4 gap-8">
+          <div className="grid md:grid-cols-3 gap-8">
             {/* Brand */}
             <div className="col-span-2">
               <h3 className="text-2xl font-bold mb-4 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
@@ -236,16 +241,6 @@ export default function HomePage() {
               </div>
             </div>
             
-            {/* Links */}
-            <div>
-              <h4 className="font-semibold mb-4">Piattaforma</h4>
-              <ul className="space-y-2 text-muted-foreground">
-                <li><Link to="/azienda" className="hover:text-primary smooth-transition">Accesso Aziende</Link></li>
-                <li><Link to="/admin" className="hover:text-primary smooth-transition">Accesso Admin</Link></li>
-                <li><Link to="/contatti" className="hover:text-primary smooth-transition">Contatti</Link></li>
-              </ul>
-            </div>
-            
             {/* Legal */}
             <div>
               <h4 className="font-semibold mb-4">Legale</h4>
@@ -262,6 +257,34 @@ export default function HomePage() {
           </div>
         </div>
       </footer>
+
+      {/* Video Modal */}
+      {isVideoOpen && (
+        <div
+          className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4"
+          onClick={() => setIsVideoOpen(false)}
+        >
+          <div
+            className="relative w-full max-w-4xl aspect-video bg-black rounded-xl overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setIsVideoOpen(false)}
+              className="absolute -top-10 right-0 text-neutral-300 hover:text-white smooth-transition"
+              aria-label="Chiudi video"
+            >
+              ✕
+            </button>
+            <iframe
+              className="w-full h-full"
+              src="https://www.youtube.com/embed/BsrnmAe6HQQ?autoplay=1"
+              title="Video di presentazione EasyChain"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              allowFullScreen
+            ></iframe>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -10,6 +10,9 @@ import AziendaPage from "./pages/AziendaPage";
 import GestisciPage from "./pages/GestisciPage";
 import QRCodePage from "./pages/QRCodePage";
 import RicaricaCreditiPage from "./pages/RicaricaCreditiPage";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import TermsOfService from "./pages/TermsOfService";
+import CookiePolicy from "./pages/CookiePolicy";
 import './App.css';
 
 function App() {
@@ -27,6 +30,9 @@ function App() {
       <Route path="/gestisci/:batchId" element={<GestisciPage />} />
       <Route path="/qrcode" element={<QRCodePage />} />
       <Route path="/ricaricacrediti" element={<RicaricaCreditiPage />} />
+      <Route path="/privacy" element={<PrivacyPolicy />} />
+      <Route path="/terms" element={<TermsOfService />} />
+      <Route path="/cookies" element={<CookiePolicy />} />
       </Routes>
   );
 }
