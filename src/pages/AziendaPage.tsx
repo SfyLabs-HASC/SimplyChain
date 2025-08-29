@@ -8,61 +8,137 @@ import { createThirdwebClient, getContract, prepareContractCall } from "thirdweb
 import { polygon } from "thirdweb/chains";
 import { inAppWallet } from "thirdweb/wallets";
 import { supplyChainABI as abi } from "../abi/contractABI";
-import "../App.css";
-
-// Importa i componenti esterni
+import "../App.css"; // Mantieni il file CSS base se necessario, altrimenti rimuovi
+import { Shield, Zap, Cpu, Network, Lock, FileText, ArrowRight, X, Play, RefreshCw, Info, CheckCircle, Package, User } from 'lucide-react';
 import RegistrationForm from "../components/RegistrationForm";
 import TransactionStatusModal from "../components/TransactionStatusModal";
+import { Link } from "react-router-dom";
 
-// --- Stili Mobile-First ---
-const AziendaPageStyles = () => (
+// --- Nuovo blocco di stili CSS (Integrato per la coerenza) ---
+const CustomStyles = () => (
   <style>{`
-      /* Mobile-first base styles */
+      /* Background e Effetti Hero */
+      .hero-section {
+        position: relative;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+      }
+
+      .tech-pattern {
+        position: absolute;
+        inset: 0;
+        background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" fill="none" stroke="%23374151" stroke-width="0.5" stroke-dasharray="2 2"><path d="M0 0h100v100H0zM50 0v100M0 50h100" /></svg>');
+        opacity: 0.1;
+      }
+      
+      .hero-gradient {
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(circle, rgba(59, 130, 246, 0.1) 0%, rgba(107, 114, 128, 0.05) 50%, rgba(107, 114, 128, 0) 100%);
+      }
+
+      /* Animazioni */
+      @keyframes float {
+        0% { transform: translateY(0px) translateX(0px) rotate(0deg); }
+        50% { transform: translateY(-20px) translateX(-5px) rotate(5deg); }
+        100% { transform: translateY(0px) translateX(0px) rotate(0deg); }
+      }
+      .floating-animation {
+        animation: float 8s ease-in-out infinite;
+      }
+      
+      @keyframes pulse-glow {
+        0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.4); }
+        70% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(251, 191, 36, 0); }
+        100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(251, 191, 36, 0); }
+      }
+      .pulse-glow {
+        animation: pulse-glow 2s infinite;
+      }
+
+      /* Nuove classi da 1.tsx */
+      .bg-background { background-color: #0f0f0f; }
+      .text-primary { color: #3b82f6; }
+      .text-primary-foreground { color: #f8f9fa; }
+      .text-accent { color: #fbbf24; }
+      .text-accent-foreground { color: #f8f9fa; }
+      .text-muted-foreground { color: #a0a0a0; }
+      .bg-card { background-color: #1a1a1a; }
+      .border-border { border-color: #333; }
+      
+      .primary-gradient {
+        background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+      }
+      
+      .accent-gradient {
+        background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+      }
+      
+      .glass-card {
+        background-color: rgba(26, 26, 26, 0.6);
+        border: 1px solid rgba(51, 51, 51, 0.5);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+      }
+      
+      .tech-shadow {
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+      }
+      
+      .smooth-transition {
+        transition: all 0.3s ease-in-out;
+      }
+      
+      /* Stili aggiuntivi per il layout di AziendaPage */
       .app-container-full { 
-        padding: 1rem; 
+        padding: 2rem; 
         min-height: 100vh;
         background-color: #0f0f0f;
+        color: #f8f9fa;
       }
 
       .main-header-bar { 
         display: flex; 
         flex-direction: column;
         gap: 1rem;
-        margin-bottom: 1.5rem;
-        padding: 1rem;
+        margin-bottom: 2.5rem;
+        padding: 1.5rem;
         background-color: #1a1a1a;
-        border-radius: 0.75rem;
+        border-radius: 1rem;
         border: 1px solid #333;
+        align-items: center;
+        justify-content: space-between;
       }
 
       .header-title { 
-        font-size: 1.5rem; 
+        font-size: 2rem; 
         font-weight: bold; 
         color: #ffffff;
         text-align: center;
+        margin: 0;
       }
-
-      .login-container, .centered-container { 
-        display: flex; 
-        flex-direction: column; 
-        justify-content: center; 
-        align-items: center; 
-        min-height: 80vh; 
-        text-align: center;
-        padding: 1rem;
+      
+      @media (min-width: 768px) {
+        .main-header-bar {
+          flex-direction: row;
+        }
       }
-
-      .dashboard-header-card { 
-        background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
-        color: #ffffff; 
-        padding: 1.5rem; 
-        border-radius: 1rem; 
+      
+      /* Altri stili aggiornati per AziendaPage */
+      .dashboard-header-card {
+        background: rgba(26, 26, 26, 0.6);
+        border: 1px solid rgba(51, 51, 51, 0.5);
+        backdrop-filter: blur(10px);
+        padding: 2rem;
+        border-radius: 1.5rem;
         box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
-        border: 1px solid #333;
-        margin-bottom: 1.5rem; 
-        display: flex; 
+        margin-bottom: 2rem;
+        display: flex;
         flex-direction: column;
-        gap: 1rem;
+        gap: 1.5rem;
       }
 
       .dashboard-title-section {
@@ -71,9 +147,9 @@ const AziendaPageStyles = () => (
         gap: 1rem;
         flex-wrap: wrap;
       }
-
-      .dashboard-title { 
-        font-size: 1.5rem; 
+      
+      .dashboard-title {
+        font-size: 2rem;
         font-weight: 700;
         color: #ffffff;
         margin: 0;
@@ -94,43 +170,17 @@ const AziendaPageStyles = () => (
         font-weight: 600;
       }
 
-      .dashboard-icon {
-        font-size: 1.8rem;
-        width: 50px;
-        height: 50px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-
-      .status-icon {
-        font-size: 1.8rem;
-        width: 50px;
-        height: 50px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-
-      .status-active-text {
-        color: #10b981;
-      }
-
-      .status-inactive-text {
-        color: #f59e0b;
-      }
-
       .inscriptions-section-header {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        margin-bottom: 1rem;
+        margin-bottom: 1.5rem;
         flex-wrap: wrap;
         gap: 1rem;
       }
 
       .inscriptions-section-title {
-        font-size: 1.1rem;
+        font-size: 1.5rem;
         font-weight: 600;
         color: #ffffff;
         margin: 0;
@@ -253,14 +303,22 @@ const AziendaPageStyles = () => (
       .inscriptions-grid { 
         display: flex;
         flex-direction: column;
-        gap: 1rem;
+        gap: 1.5rem;
+      }
+      
+      @media (min-width: 768px) {
+        .inscriptions-grid { 
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+          gap: 1.5rem;
+        }
       }
 
       .inscription-card { 
         background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
-        border-radius: 1rem; 
-        padding: 1.5rem; 
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        border-radius: 1.5rem; 
+        padding: 2rem; 
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
         border: 1px solid #333;
         transition: all 0.3s ease;
         position: relative;
@@ -273,7 +331,7 @@ const AziendaPageStyles = () => (
       }
 
       .inscription-card h3 { 
-        font-size: 1.1rem; 
+        font-size: 1.5rem; 
         font-weight: 600; 
         color: #ffffff; 
         margin: 0 0 1rem 0;
@@ -313,6 +371,8 @@ const AziendaPageStyles = () => (
         margin-top: 1rem;
         padding-top: 1rem;
         border-top: 1px solid #333;
+        flex-wrap: wrap;
+        gap: 1rem;
       }
 
       .steps-count {
@@ -343,6 +403,22 @@ const AziendaPageStyles = () => (
 
       .add-step-button:hover {
         background: linear-gradient(135deg, #059669 0%, #047857 100%);
+        transform: translateY(-1px);
+      }
+
+      .finalize-button {
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        color: white;
+        border: none;
+        border-radius: 0.5rem;
+        padding: 0.5rem 1rem;
+        font-size: 0.8rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      .finalize-button:hover {
+        background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
         transform: translateY(-1px);
       }
 
@@ -396,188 +472,6 @@ const AziendaPageStyles = () => (
         transform: none;
       }
 
-      .tooltip {
-        position: absolute;
-        bottom: 100%;
-        left: 50%;
-        transform: translateX(-50%);
-        background-color: #1f2937;
-        color: white;
-        padding: 0.5rem;
-        border-radius: 0.25rem;
-        font-size: 0.75rem;
-        white-space: nowrap;
-        z-index: 1000;
-        opacity: 0;
-        pointer-events: none;
-        transition: opacity 0.2s;
-      }
-
-      .tooltip::after {
-        content: '';
-        position: absolute;
-        top: 100%;
-        left: 50%;
-        transform: translateX(-50%);
-        border: 4px solid transparent;
-        border-top-color: #1f2937;
-      }
-
-      .export-button:hover .tooltip {
-        opacity: 1;
-      }
-
-      .steps-modal-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background-color: rgba(0, 0, 0, 0.75);
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        z-index: 1000;
-        padding: 1rem;
-      }
-
-      .steps-modal-content {
-        background-color: #1a1a1a;
-        border-radius: 1rem;
-        border: 1px solid #333;
-        width: 100%;
-        max-width: 800px;
-        max-height: 90vh;
-        overflow-y: auto;
-        color: #ffffff;
-      }
-
-      .steps-modal-header {
-        padding: 1.5rem;
-        border-bottom: 1px solid #333;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-      }
-
-      .steps-modal-body {
-        padding: 1.5rem;
-      }
-
-      .step-card {
-        background: linear-gradient(135deg, #2a2a2a 0%, #3a3a3a 100%);
-        border-radius: 0.75rem;
-        padding: 1.5rem;
-        margin-bottom: 1rem;
-        border: 1px solid #444;
-      }
-
-      .step-card h4 {
-        color: #3b82f6;
-        margin: 0 0 1rem 0;
-        font-size: 1.1rem;
-      }
-
-      .step-card p {
-        margin: 0.5rem 0;
-        color: #a0a0a0;
-      }
-
-      .step-card strong {
-        color: #ffffff;
-      }
-
-      .export-modal-buttons {
-        display: flex;
-        gap: 1rem;
-        justify-content: center;
-        margin-top: 2rem;
-      }
-
-      .export-type-button {
-        background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-        color: white;
-        border: none;
-        border-radius: 0.5rem;
-        padding: 1rem 2rem;
-        font-size: 1rem;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        min-width: 150px;
-      }
-
-      .export-type-button:hover {
-        background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
-        transform: translateY(-2px);
-      }
-
-      .finalize-button {
-        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-        color: white;
-        border: none;
-        border-radius: 0.5rem;
-        padding: 0.5rem 1rem;
-        font-size: 0.8rem;
-        cursor: pointer;
-        transition: all 0.3s ease;
-      }
-
-      .finalize-button:hover {
-        background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
-        transform: translateY(-1px);
-      }
-
-      .closed-lock-icon {
-        color: #6b7280;
-        font-size: 1.2rem;
-      }
-
-      .loading-error-container { 
-        text-align: center; 
-        padding: 2rem 1rem; 
-        background-color: #1a1a1a; 
-        border-radius: 1rem;
-        border: 1px solid #333;
-        color: #a0a0a0;
-      }
-
-      .steps-container { 
-        margin-top: 1rem; 
-        border-top: 1px solid #333; 
-        padding-top: 1rem; 
-      }
-
-      .steps-container h4 { 
-        margin: 0 0 0.75rem 0; 
-        font-size: 0.9rem; 
-        font-weight: 600;
-        color: #ffffff;
-      }
-
-      .step-item { 
-        font-size: 0.8rem; 
-        padding: 0.75rem 0 0.75rem 1rem;
-        border-left: 2px solid #3b82f6; 
-        margin-bottom: 0.75rem;
-        background-color: rgba(59, 130, 246, 0.05);
-        border-radius: 0 0.5rem 0.5rem 0;
-      }
-
-      .step-item p {
-        margin: 0.25rem 0;
-        color: #a0a0a0;
-      }
-
-      .empty-state {
-        text-align: center;
-        padding: 3rem 1rem;
-        color: #a0a0a0;
-        background-color: #1a1a1a;
-        border-radius: 1rem;
-        border: 1px solid #333;
-      }
-
-      /* Modal styles */
       .modal-overlay {
         position: fixed;
         top: 0;
@@ -590,51 +484,71 @@ const AziendaPageStyles = () => (
         align-items: center;
         z-index: 1000;
         padding: 1rem;
+        backdrop-filter: blur(5px);
       }
-
+      
       .modal-content {
         background-color: #1a1a1a;
-        border-radius: 1rem;
+        border-radius: 1.5rem;
         border: 1px solid #333;
         width: 100%;
         max-width: 600px;
         max-height: 90vh;
         overflow-y: auto;
         color: #ffffff;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      }
+      
+      .steps-modal-content {
+        background-color: #1a1a1a;
+        border-radius: 1.5rem;
+        border: 1px solid #333;
+        width: 100%;
+        max-width: 800px;
+        max-height: 90vh;
+        overflow-y: auto;
+        color: #ffffff;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
       }
 
-      .modal-header {
+      .modal-header, .steps-modal-header {
         padding: 1.5rem;
         border-bottom: 1px solid #333;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
       }
-
-      .modal-header h2 {
+      
+      .modal-header h2, .steps-modal-header h2 {
         margin: 0;
-        font-size: 1.25rem;
+        font-size: 1.5rem;
         font-weight: 600;
+        color: #ffffff;
       }
 
-      .modal-body {
+      .modal-body, .steps-modal-body {
         padding: 1.5rem;
       }
-
+      
       .modal-footer {
         padding: 1.5rem;
         border-top: 1px solid #333;
         display: flex;
         justify-content: space-between;
         gap: 1rem;
+        flex-wrap: wrap;
       }
 
       .form-group {
-        margin-bottom: 1rem;
+        margin-bottom: 1.5rem;
       }
 
       .form-group label {
         display: block;
-        margin-bottom: 0.5rem;
+        margin-bottom: 0.75rem;
         font-weight: 500;
         color: #f8f9fa;
+        font-size: 1rem;
       }
 
       .form-input {
@@ -645,6 +559,7 @@ const AziendaPageStyles = () => (
         background-color: #212529;
         color: #f8f9fa;
         font-size: 0.9rem;
+        transition: all 0.3s ease;
       }
 
       .form-input:focus {
@@ -657,19 +572,21 @@ const AziendaPageStyles = () => (
         font-size: 0.75rem;
         color: #6c757d;
         margin-top: 0.25rem;
+        text-align: right;
+        display: block;
       }
 
       .recap-summary {
         text-align: left;
-        padding: 1rem;
+        padding: 1.5rem;
         background-color: #2a2a2a;
         border: 1px solid #444;
-        border-radius: 0.5rem;
-        margin-bottom: 1rem;
+        border-radius: 0.75rem;
+        margin-bottom: 1.5rem;
       }
 
       .recap-summary p {
-        margin: 0.5rem 0;
+        margin: 0.75rem 0;
         word-break: break-word;
       }
 
@@ -683,58 +600,83 @@ const AziendaPageStyles = () => (
         margin-top: 0.5rem;
       }
 
-      /* Image modal styles */
-      .image-modal-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background-color: rgba(0, 0, 0, 0.9);
+      .step-card {
+        background: linear-gradient(135deg, #2a2a2a 0%, #3a3a3a 100%);
+        border-radius: 1rem;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        border: 1px solid #444;
+      }
+
+      .step-card h4 {
+        color: #3b82f6;
+        margin: 0 0 1rem 0;
+        font-size: 1.25rem;
+      }
+
+      .step-card p {
+        margin: 0.5rem 0;
+        color: #a0a0a0;
+      }
+
+      .step-card strong {
+        color: #ffffff;
+      }
+      
+      .export-modal-buttons {
         display: flex;
+        gap: 1.5rem;
         justify-content: center;
-        align-items: center;
-        z-index: 1001;
-        padding: 2rem;
+        margin-top: 2rem;
+        flex-wrap: wrap;
       }
 
-      .image-modal-content {
-        max-width: 90%;
-        max-height: 90%;
-        border-radius: 0.5rem;
-        overflow: hidden;
-      }
-
-      .image-modal-content img {
-        width: 100%;
-        height: 100%;
-        object-fit: contain;
-      }
-
-      .image-modal-close {
-        position: absolute;
-        top: 1rem;
-        right: 1rem;
-        background: rgba(0, 0, 0, 0.7);
+      .export-type-button {
+        background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
         color: white;
         border: none;
-        border-radius: 50%;
-        width: 40px;
-        height: 40px;
+        border-radius: 0.75rem;
+        padding: 1.25rem 2.5rem;
+        font-size: 1.1rem;
         cursor: pointer;
-        font-size: 1.5rem;
+        transition: all 0.3s ease;
+        min-width: 200px;
+        box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
       }
 
-      /* Filtri per le iscrizioni */
+      .export-type-button:hover {
+        background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+      }
+
+      .loading-error-container, .empty-state, .centered-container {
+        text-align: center;
+        padding: 3rem 1.5rem;
+        background: rgba(26, 26, 26, 0.6);
+        border-radius: 1.5rem;
+        border: 1px solid rgba(51, 51, 51, 0.5);
+        color: #a0a0a0;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+      }
+
+      .loading-error-container p, .empty-state p {
+        font-size: 1.1rem;
+      }
+
+      .loading-error-container p.error-message {
+        color: #ef4444;
+      }
+
       .inscriptions-filters {
         display: flex;
         flex-wrap: wrap;
         gap: 1rem;
         margin-bottom: 1.5rem;
-        padding: 1rem;
-        background-color: #1a1a1a;
-        border-radius: 0.75rem;
-        border: 1px solid #333;
+        padding: 1.5rem;
+        background: rgba(26, 26, 26, 0.6);
+        border-radius: 1rem;
+        border: 1px solid rgba(51, 51, 51, 0.5);
       }
 
       .filter-group {
@@ -750,38 +692,23 @@ const AziendaPageStyles = () => (
         font-weight: 500;
         color: #ffffff;
       }
-
-      .filter-input {
-        padding: 0.75rem;
-        border: 1px solid #333;
-        border-radius: 0.5rem;
-        background-color: #2a2a2a;
-        color: #ffffff;
-        font-size: 0.9rem;
-      }
-
-      .filter-input:focus {
-        outline: none;
-        border-color: #3b82f6;
-        box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25);
-      }
-
-      /* Paginazione */
+      
       .pagination-container {
         display: flex;
         justify-content: center;
         align-items: center;
-        gap: 0.5rem;
-        margin-top: 2rem;
+        gap: 0.75rem;
+        margin-top: 2.5rem;
         padding: 1rem;
+        flex-wrap: wrap;
       }
 
       .pagination-button {
         background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
         color: white;
         border: none;
-        border-radius: 0.5rem;
-        padding: 0.75rem 1rem;
+        border-radius: 0.75rem;
+        padding: 0.75rem 1.25rem;
         cursor: pointer;
         transition: all 0.3s ease;
         font-size: 0.9rem;
@@ -791,7 +718,7 @@ const AziendaPageStyles = () => (
         background: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%);
         transform: translateY(-1px);
       }
-
+      
       .pagination-button:disabled {
         opacity: 0.6;
         cursor: not-allowed;
@@ -802,8 +729,8 @@ const AziendaPageStyles = () => (
         background-color: transparent;
         color: #ffffff;
         border: 1px solid #333;
-        border-radius: 0.5rem;
-        padding: 0.75rem 1rem;
+        border-radius: 0.75rem;
+        padding: 0.75rem 1.25rem;
         cursor: pointer;
         transition: all 0.3s ease;
         font-size: 0.9rem;
@@ -812,93 +739,55 @@ const AziendaPageStyles = () => (
       .pagination-number:hover {
         background-color: #333;
       }
-
+      
       .pagination-number.active {
         background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
         color: white;
         border-color: #6366f1;
       }
-
+      
       .pagination-info {
         color: #a0a0a0;
         font-size: 0.9rem;
         margin: 0 1rem;
       }
 
-      /* Tablet styles */
-      @media (min-width: 768px) {
-        .app-container-full { 
-          padding: 2rem; 
-        }
-
-        .main-header-bar { 
-          flex-direction: row;
-          justify-content: space-between;
-          align-items: center;
-          padding: 1.5rem;
-        }
-
-        .header-title { 
-          font-size: 1.75rem;
-          text-align: left;
-        }
-
-        .dashboard-header-card { 
-          flex-direction: row;
-          justify-content: space-between;
-          align-items: flex-start;
-          padding: 2rem;
-        }
-
-        .dashboard-title { 
-          font-size: 1.75rem;
-        }
-
-        .dashboard-info {
-          flex-direction: row;
-          gap: 2rem;
-        }
-
-        .web3-button {
-          width: auto;
-          min-width: 200px;
-        }
-
-        .inscriptions-grid { 
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-          gap: 1.5rem;
-        }
-
-        .inscription-card h3 { 
-          font-size: 1.25rem;
-        }
-
-        .loading-error-container { 
-          padding: 3rem; 
-        }
+      /* Stili per il login */
+      .login-container {
+        position: relative;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
       }
-
-      /* Desktop styles */
-      @media (min-width: 1024px) {
-        .app-container-full { 
-          max-width: 1200px;
-          margin: 0 auto;
-          padding: 2rem;
-        }
-
-        .inscriptions-grid { 
-          grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-          gap: 2rem;
-        }
-
-        .inscription-card { 
-          padding: 2rem; 
-        }
-
-        .dashboard-header-card { 
-          padding: 2.5rem;
-        }
+      
+      .login-card {
+        background: rgba(26, 26, 26, 0.6);
+        border: 1px solid rgba(51, 51, 51, 0.5);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border-radius: 1.5rem;
+        padding: 3rem;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+        text-align: center;
+        max-width: 500px;
+        width: 100%;
+      }
+      
+      .login-card h1 {
+        font-size: 2.5rem;
+        font-weight: bold;
+        margin-bottom: 1rem;
+        background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+      
+      .login-card p {
+        font-size: 1.1rem;
+        color: #a0a0a0;
+        margin-bottom: 2rem;
       }
   `}</style>
 );
@@ -961,11 +850,11 @@ const contract = getContract({
 // Componente modale per visualizzare immagini
 const ImageModal: React.FC<{ imageUrl: string; onClose: () => void }> = ({ imageUrl, onClose }) => {
   return (
-    <div className="image-modal-overlay" onClick={onClose}>
-      <div className="image-modal-content" onClick={(e) => e.stopPropagation()}>
-        <img src={imageUrl} alt="Immagine iscrizione" />
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '90%', maxHeight: '90%', overflow: 'hidden' }}>
+        <img src={imageUrl} alt="Immagine iscrizione" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
       </div>
-      <button className="image-modal-close" onClick={onClose}>×</button>
+      <button className="absolute top-4 right-4 z-10 w-10 h-10 bg-black/50 hover:bg-black/70 rounded-full flex items-center justify-center smooth-transition" onClick={onClose}><X className="w-6 h-6 text-white" /></button>
     </div>
   );
 };
@@ -1185,81 +1074,70 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
         <FullPageLoading message="Aggiornamento dati in corso..." />
       )}
 
-      <div className="dashboard-header-card">
-        <div>
-          <div className="dashboard-title-section">
-            <h2 className="dashboard-title">{currentCompanyData.companyName}</h2>
-          </div>
-          <div className="dashboard-info">
-            <div className="dashboard-info-item">
-              <span>
-                <a 
-                  href="/ricaricacrediti" 
-                  style={{ color: '#ffffff', textDecoration: 'none', cursor: 'pointer' }}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    window.location.href = '/ricaricacrediti';
-                  }}
-                >
-                  Crediti Rimanenti: <strong>{currentCompanyData.credits}</strong>
-                </a>
-              </span>
-            </div>
-            <div className="dashboard-info-item">
-              <span>Stato: <strong className={currentCompanyData.status === 'active' ? 'status-active-text' : 'status-inactive-text'}>
-                {currentCompanyData.status === 'active' ? 'ATTIVO' : 'NON ATTIVO'}
-              </strong></span>
+      <div className="glass-card rounded-3xl p-8 tech-shadow mb-8">
+        <div className="flex flex-col md:flex-row justify-between items-center md:items-start gap-4">
+          <div className="flex flex-col items-center md:items-start">
+            <h2 className="text-2xl md:text-3xl font-bold text-white mb-2">{currentCompanyData.companyName}</h2>
+            <div className="flex flex-col md:flex-row gap-2 md:gap-8 items-center md:items-start">
+              <div className="flex items-center gap-2 text-primary-foreground font-semibold">
+                <Package className="w-5 h-5 text-accent" />
+                <Link to="/ricaricacrediti" className="text-white hover:text-accent smooth-transition">
+                  Crediti Rimanenti: <strong className="text-accent">{currentCompanyData.credits}</strong>
+                </Link>
+              </div>
+              <div className="flex items-center gap-2 text-primary-foreground font-semibold">
+                <CheckCircle className={`w-5 h-5 ${currentCompanyData.status === 'active' ? 'text-green-500' : 'text-yellow-500'}`} />
+                <span className={`font-bold ${currentCompanyData.status === 'active' ? 'text-green-500' : 'text-yellow-500'}`}>
+                  {currentCompanyData.status === 'active' ? 'ATTIVO' : 'NON ATTIVO'}
+                </span>
+              </div>
             </div>
           </div>
+          <button onClick={() => setIsModalOpen(true)} className="group primary-gradient text-sm md:text-lg px-6 py-3 md:px-8 md:py-4 rounded-xl tech-shadow smooth-transition hover:scale-105 text-primary-foreground font-semibold flex items-center gap-2 w-full md:w-auto justify-center">
+            <ArrowRight className="w-4 h-4 md:w-5 md:h-5" />
+            Inizializza Nuova Iscrizione
+          </button>
         </div>
-        <button onClick={() => setIsModalOpen(true)} className="web3-button">+ Inizializza Nuova Iscrizione</button>
       </div>
 
       <div className="inscriptions-section-header">
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <h3 className="inscriptions-section-title">Le mie Iscrizioni su Blockchain</h3>
           <button 
-            className="info-button"
+            className="group glass-card rounded-full w-8 h-8 flex items-center justify-center tech-shadow smooth-transition hover:scale-110"
             onClick={() => setShowInfoModal(true)}
             style={{
-              background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
-              border: 'none',
-              borderRadius: '50%',
-              width: '30px',
-              height: '30px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
               cursor: 'pointer',
               color: 'white',
               fontSize: '14px',
               fontWeight: 'bold',
-              boxShadow: '0 4px 15px rgba(59, 130, 246, 0.3)'
             }}
           >
-            ℹ️
+            <Info className="w-4 h-4 text-primary group-hover:text-accent smooth-transition" />
           </button>
         </div>
         <div className="refresh-section">
           <button 
-            className="refresh-button"
+            className="group glass-card rounded-full w-12 h-12 flex items-center justify-center tech-shadow smooth-transition hover:scale-105 relative"
             onClick={handleRefresh}
             disabled={isRefreshing || refreshCounter === 0}
           >
-            <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPCEtLSBSZWZyZXNoIGNpcmN1bGFyIGFycm93cyAtLT4KPHBhdGggZD0iTTMgMTJBOSA5IDAgMCAxIDEyIDNWMUwxNiA1TDEyIDlWN0E3IDcgMCAwIDAgNSAxMkgzWiIgZmlsbD0id2hpdGUiLz4KPHBhdGggZD0iTTIxIDEyQTkgOSAwIDAgMSAxMiAyMVYyM0w4IDE5TDEyIDE1VjE3QTcgNyAwIDAgMCAxOSAxMkgyMVoiIGZpbGw9IndoaXRlIi8+Cjwvc3ZnPgo=" alt="refresh" className="refresh-icon" style={{width: '20px', height: '20px'}} />
+            <RefreshCw className="w-6 h-6 text-primary group-hover:text-accent smooth-transition" />
             {refreshCounter > 0 && (
-              <div className="refresh-counter">+{refreshCounter}</div>
+              <div className="absolute top-0 right-0 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center text-xs font-bold -translate-y-1/2 translate-x-1/2">
+                +{refreshCounter}
+              </div>
             )}
           </button>
         </div>
       </div>
 
-      <div className="inscriptions-filters">
+      <div className="inscriptions-filters glass-card rounded-xl p-6 tech-shadow mb-8">
         <div className="filter-group">
           <label className="filter-label">Nome</label>
           <input
             type="text"
-            className="filter-input"
+            className="form-input"
             value={nameFilter}
             onChange={(e) => setNameFilter(e.target.value)}
           />
@@ -1268,7 +1146,7 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
           <label className="filter-label">Luogo</label>
           <input
             type="text"
-            className="filter-input"
+            className="form-input"
             value={locationFilter}
             onChange={(e) => setLocationFilter(e.target.value)}
           />
@@ -1276,7 +1154,7 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
         <div className="filter-group">
           <label className="filter-label">Stato</label>
           <select
-            className="filter-input"
+            className="form-input"
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value as "Aperto" | "Chiuso" | "")}
           >
@@ -1288,20 +1166,20 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
       </div>
 
       {isLoadingBatches && !showFullPageLoading ? (
-        <div className="loading-error-container"><p>Caricamento delle tue iscrizioni...</p></div>
+        <div className="loading-error-container glass-card rounded-xl p-8 tech-shadow"><p>Caricamento delle tue iscrizioni...</p></div>
       ) : errorBatches ? (
-        <div className="loading-error-container"><p style={{ color: 'red' }}>{errorBatches}</p></div>
+        <div className="loading-error-container glass-card rounded-xl p-8 tech-shadow"><p className="text-red-500">{errorBatches}</p></div>
       ) : (
         <>
           <div className="inscriptions-grid">
             {currentItems.length > 0 ? (
               currentItems.map((batch) => (
-                <div key={batch.batchId} className="inscription-card">
-                  <h3>#{getBatchDisplayNumber(batch.batchId)} - {batch.name}</h3>
-                  <p><strong>Descrizione:</strong> {batch.description ? truncateText(batch.description, window.innerWidth < 768 ? 80 : 100) : "N/D"}</p>
-                  <p><strong>Data:</strong> {formatItalianDate(batch.date)}</p>
-                  <p><strong>Luogo:</strong> {batch.location || "N/D"}</p>
-                  <p><strong>Stato:</strong> <span className={batch.isClosed ? 'status-closed' : 'status-open'}>
+                <div key={batch.batchId} className="inscription-card glass-card rounded-2xl p-6 tech-shadow">
+                  <h3 className="text-xl font-bold text-white mb-4 border-b border-gray-700 pb-2">#{getBatchDisplayNumber(batch.batchId)} - {batch.name}</h3>
+                  <p className="text-sm text-gray-400 mb-2"><strong>Descrizione:</strong> {batch.description ? truncateText(batch.description, window.innerWidth < 768 ? 80 : 100) : "N/D"}</p>
+                  <p className="text-sm text-gray-400 mb-2"><strong>Data:</strong> {formatItalianDate(batch.date)}</p>
+                  <p className="text-sm text-gray-400 mb-2"><strong>Luogo:</strong> {batch.location || "N/D"}</p>
+                  <p className="text-sm mb-2"><strong>Stato:</strong> <span className={batch.isClosed ? 'status-closed' : 'status-open'}>
                     {batch.isClosed ? ' Chiuso' : ' Aperto'}
                   </span></p>
                   {batch.imageIpfsHash && batch.imageIpfsHash !== "N/A" && (
@@ -1312,16 +1190,18 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
                           e.preventDefault();
                           setSelectedImage(`https://musical-emerald-partridge.myfilebase.com/ipfs/${batch.imageIpfsHash}`);
                         }}
+                        className="text-primary hover:text-accent smooth-transition"
                       >
                         Apri L'immagine
                       </a>
                     </p>
                   )}
-                  <p><strong>Tx Hash:</strong>
+                  <p className="text-sm text-gray-400 mb-4"><strong>Tx Hash:</strong>
                     <a
                       href={`https://polygonscan.com/inputdatadecoder?tx=${batch.transactionHash}`}
                       target="_blank"
                       rel="noopener noreferrer"
+                      className="text-primary hover:text-accent smooth-transition ml-2"
                     >
                       {truncateText(batch.transactionHash, 15)}
                     </a>
@@ -1331,14 +1211,14 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
                     <div className="steps-count">
                       {batch.steps && batch.steps.length > 0 ? (
                         <button
-                          className="view-steps-button"
+                          className="view-steps-button primary-gradient text-white px-4 py-2 rounded-lg text-sm"
                           onClick={() => setSelectedBatchForSteps(batch)}
                         >
                           {batch.steps.length} steps
                         </button>
                       ) : (
                         <button
-                          className="view-steps-button disabled"
+                          className="view-steps-button disabled bg-gray-600 text-white px-4 py-2 rounded-lg text-sm"
                           disabled={true}
                         >
                           0 steps
@@ -1346,11 +1226,10 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
                       )}
                     </div>
 
-                    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                      {/* Pulsante Esporta - mostrato solo per batch chiusi */}
+                    <div className="flex gap-2 items-center">
                       {batch.isClosed && (
                         <button
-                          className="export-button"
+                          className="export-button bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-lg text-sm"
                           onClick={() => {
                             setSelectedBatchForExport(batch);
                             setShowExportModal(true);
@@ -1360,31 +1239,32 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
                         </button>
                       )}
 
-                      {/* Pulsanti Aggiungi Step e Finalizza per iscrizioni aperte, lucchetto per quelle chiuse */}
                       {!batch.isClosed ? (
                         <>
                           <button
-                            className="add-step-button"
+                            className="add-step-button bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg text-sm"
                             onClick={() => setSelectedBatchForStep(batch)}
                           >
                             Aggiungi Step
                           </button>
                           <button
-                            className="finalize-button"
+                            className="finalize-button bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg text-sm"
                             onClick={() => setSelectedBatchForFinalize(batch)}
                           >
                             Finalizza
                           </button>
                         </>
                       ) : (
-                        <span className="closed-lock-icon">🔒</span>
+                        <span className="text-gray-500 text-xl">
+                           <Lock />
+                        </span>
                       )}
                     </div>
                   </div>
                 </div>
               ))
             ) : (
-              <div className="empty-state">
+              <div className="empty-state glass-card rounded-2xl p-12 tech-shadow">
                 <p>Non hai ancora inizializzato nessuna iscrizione con questo account.</p>
                 <p style={{ fontSize: '0.8rem', marginTop: '0.5rem', opacity: 0.7 }}>
                   Clicca su "Inizializza Nuova Iscrizione" per iniziare
@@ -1429,7 +1309,6 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
         </>
       )}
 
-      {/* Modale per visualizzare immagini */}
       {selectedImage && (
         <ImageModal
           imageUrl={selectedImage}
@@ -1437,7 +1316,6 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
         />
       )}
 
-      {/* Modale per nuova iscrizione */}
       {isModalOpen && (
         <NewInscriptionModal
           onClose={() => setIsModalOpen(false)}
@@ -1451,7 +1329,6 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
         />
       )}
 
-      {/* Modale per aggiungere step */}
       {selectedBatchForStep && (
         <AddStepModal
           batch={selectedBatchForStep}
@@ -1466,7 +1343,6 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
         />
       )}
 
-      {/* Modale per finalizzare iscrizione */}
       {selectedBatchForFinalize && (
         <FinalizeModal
           batch={selectedBatchForFinalize}
@@ -1481,7 +1357,6 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
         />
       )}
 
-      {/* Modale per visualizzare steps */}
       {selectedBatchForSteps && (
         <StepsModal
           batch={selectedBatchForSteps}
@@ -1489,7 +1364,6 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
         />
       )}
 
-      {/* Modale per scelta tipo esportazione */}
       {showExportModal && selectedBatchForExport && (
         <ExportTypeModal
           batch={selectedBatchForExport}
@@ -1505,7 +1379,6 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
         />
       )}
 
-      {/* Modale per scelta banner */}
       {showBannerModal && selectedBatchForExport && selectedExportType && (
         <BannerSelectionModal
           batch={selectedBatchForExport}
@@ -1524,12 +1397,10 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
         />
       )}
 
-      {/* Modale Info */}
       {showInfoModal && (
         <InfoModal onClose={() => setShowInfoModal(false)} />
       )}
 
-      {/* Modale QR Code */}
       {showQRCodeModal && (
         <QRCodeOfferModal onClose={() => setShowQRCodeModal(false)} />
       )}
@@ -1724,7 +1595,7 @@ const AddStepModal: React.FC<{
                   />
                   <small className="char-counter">{formData.eventName.length} / 100</small>
                 </div>
-                <div style={helpTextStyle}>
+                <div className="glass-card rounded-2xl p-6">
                   <p><strong>ℹ️ Come scegliere il Nome Step Iscrizione</strong></p>
                   <p>Il Nome Step Iscrizione è un'etichetta descrittiva che ti aiuta a identificare con chiarezza un passaggio specifico della filiera o un evento rilevante che desideri registrare on-chain. Ad esempio:</p>
                   <ul style={{ textAlign: "left", paddingLeft: "20px" }}>
@@ -1755,7 +1626,7 @@ const AddStepModal: React.FC<{
                   ></textarea>
                   <small className="char-counter">{formData.description.length} / 500</small>
                 </div>
-                <div style={helpTextStyle}>
+                <div className="glass-card rounded-2xl p-6">
                   <p>Inserisci una descrizione dello step, come una fase produttiva, logistica, amministrativa o documentale. Fornisci tutte le informazioni utili per identificarlo chiaramente all'interno del processo o della filiera a cui appartiene.</p>
                 </div>
               </div>
@@ -1778,7 +1649,7 @@ const AddStepModal: React.FC<{
                   />
                   <small className="char-counter">{formData.location.length} / 100</small>
                 </div>
-                <div style={helpTextStyle}>
+                <div className="glass-card rounded-2xl p-6">
                   <p>Inserisci il luogo in cui si è svolto lo step, come una città, una regione, un'azienda agricola, uno stabilimento o un punto logistico. Serve a indicare con precisione dove è avvenuto il passaggio registrato.</p>
                 </div>
               </div>
@@ -1800,7 +1671,7 @@ const AddStepModal: React.FC<{
                     max={today}
                   />
                 </div>
-                <div style={helpTextStyle}>
+                <div className="glass-card rounded-2xl p-6">
                   <p>Inserisci una data, puoi utilizzare il giorno attuale o una data precedente alla conferma di questo step.</p>
                 </div>
               </div>
@@ -1828,7 +1699,7 @@ const AddStepModal: React.FC<{
                     <p className="file-name-preview">File: {selectedFile.name}</p>
                   )}
                 </div>
-                <div style={helpTextStyle}>
+                <div className="glass-card rounded-2xl p-6">
                   <p>Carica un'immagine rappresentativa dello step, come una foto della fase produttiva, di un documento firmato, di un certificato o di un controllo effettuato. Rispetta i formati e i limiti di peso.</p>
                 </div>
               </div>
@@ -1836,7 +1707,7 @@ const AddStepModal: React.FC<{
 
             {currentStep === 6 && (
               <div>
-                <h4>Riepilogo Dati</h4>
+                <h4 className="text-xl font-bold mb-4">Riepilogo Dati</h4>
                 <div className="recap-summary">
                   <p><strong>Nome Evento:</strong> {truncateText(formData.eventName, 40) || "N/D"}</p>
                   <p><strong>Descrizione:</strong> {truncateText(formData.description, 60) || "N/D"}</p>
@@ -1856,7 +1727,7 @@ const AddStepModal: React.FC<{
                 </button>
               )}
             </div>
-            <div style={{ display: 'flex', gap: '1rem' }}>
+            <div className="flex gap-4">
               <button onClick={onClose} className="web3-button secondary" disabled={isProcessing}>
                 Chiudi
               </button>
@@ -1983,8 +1854,8 @@ const FinalizeModal: React.FC<{
             <h2>Finalizza Iscrizione</h2>
           </div>
           <div className="modal-body">
-            <p>Sei sicuro di voler finalizzare l'iscrizione "{batch.name}"?</p>
-            <p style={{ color: '#f59e0b', fontSize: '0.9rem', marginTop: '1rem' }}>
+            <p className="text-lg">Sei sicuro di voler finalizzare l'iscrizione "{batch.name}"?</p>
+            <p className="text-yellow-500 text-sm mt-4">
               ⚠️ Attenzione: Una volta finalizzata, non potrai più aggiungere step a questa iscrizione.
             </p>
           </div>
@@ -2020,7 +1891,7 @@ const StepsModal: React.FC<{
 
   return (
     <>
-      <div className="steps-modal-overlay" onClick={onClose}>
+      <div className="modal-overlay" onClick={onClose}>
         <div className="steps-modal-content" onClick={(e) => e.stopPropagation()}>
           <div className="steps-modal-header">
             <h2>Steps - {batch.name}</h2>
@@ -2028,31 +1899,31 @@ const StepsModal: React.FC<{
           <div className="steps-modal-body">
             {batch.steps && batch.steps.length > 0 ? (
               batch.steps.map((step, index) => (
-                <div key={index} className="step-card">
-                  <h4>Step {index + 1}: {step.eventName}</h4>
-                  <p><strong>📄 Descrizione:</strong> {step.description || "N/D"}</p>
-                  <p><strong>📅 Data:</strong> {formatItalianDate(step.date)}</p>
-                  <p><strong>📍 Luogo:</strong> {step.location || "N/D"}</p>
+                <div key={index} className="step-card glass-card rounded-lg p-6 mb-4">
+                  <h4 className="text-primary font-bold mb-4 text-lg">Step {index + 1}: {step.eventName}</h4>
+                  <p className="text-gray-400 mb-1"><strong>📄 Descrizione:</strong> {step.description || "N/D"}</p>
+                  <p className="text-gray-400 mb-1"><strong>📅 Data:</strong> {formatItalianDate(step.date)}</p>
+                  <p className="text-gray-400 mb-1"><strong>📍 Luogo:</strong> {step.location || "N/D"}</p>
                   {step.attachmentsIpfsHash && step.attachmentsIpfsHash !== "N/A" && (
-                    <p>
+                    <p className="text-gray-400 mb-1">
                       <strong>📎 Allegati:</strong>
                       <a
                         href={`https://musical-emerald-partridge.myfilebase.com/ipfs/${step.attachmentsIpfsHash}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        style={{ marginLeft: '0.5rem' }}
+                        className="text-primary hover:text-accent smooth-transition ml-2"
                       >
                         Visualizza
                       </a>
                     </p>
                   )}
-                  <p>
+                  <p className="text-gray-400">
                     <strong>🔗 Verifica su Blockchain:</strong>
                     <a
                       href={`https://polygonscan.com/inputdatadecoder?tx=${step.transactionHash}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      style={{ marginLeft: '0.5rem' }}
+                      className="text-primary hover:text-accent smooth-transition ml-2"
                     >
                       {truncateText(step.transactionHash, 15)}
                     </a>
@@ -2060,9 +1931,9 @@ const StepsModal: React.FC<{
                 </div>
               ))
             ) : (
-              <p>Nessuno step disponibile per questa iscrizione.</p>
+              <p className="text-center text-gray-500">Nessuno step disponibile per questa iscrizione.</p>
             )}
-            <div style={{ textAlign: 'center', marginTop: '2rem' }}>
+            <div className="text-center mt-8">
               <button onClick={onClose} className="web3-button">
                 Indietro
               </button>
@@ -2263,7 +2134,7 @@ const NewInscriptionModal: React.FC<{
                   />
                   <small className="char-counter">{formData.name.length} / 100</small>
                 </div>
-                <div style={helpTextStyle}>
+                <div className="glass-card rounded-2xl p-6">
                   <p><strong>ℹ️ Come scegliere il Nome Iscrizione</strong></p>
                   <p>Il Nome Iscrizione è un'etichetta descrittiva che ti aiuta a identificare in modo chiaro ciò che stai registrando on-chain. Ad esempio:</p>
                   <ul style={{ textAlign: "left", paddingLeft: "20px" }}>
@@ -2293,7 +2164,7 @@ const NewInscriptionModal: React.FC<{
                   ></textarea>
                   <small className="char-counter">{formData.description.length} / 500</small>
                 </div>
-                <div style={helpTextStyle}>
+                <div className="glass-card rounded-2xl p-6">
                   <p>Inserisci una descrizione dettagliata di ciò che stai registrando. Fornisci tutte le informazioni utili per identificare chiaramente il prodotto, il servizio o il processo a cui appartiene questa iscrizione.</p>
                 </div>
               </div>
@@ -2316,7 +2187,7 @@ const NewInscriptionModal: React.FC<{
                   />
                   <small className="char-counter">{formData.location.length} / 100</small>
                 </div>
-                <div style={helpTextStyle}>
+                <div className="glass-card rounded-2xl p-6">
                   <p>Inserisci il luogo di origine o produzione, come una città, una regione, un'azienda agricola o uno stabilimento. Serve a indicare con precisione dove ha avuto origine ciò che stai registrando.</p>
                 </div>
               </div>
@@ -2338,7 +2209,7 @@ const NewInscriptionModal: React.FC<{
                     max={today}
                   />
                 </div>
-                <div style={helpTextStyle}>
+                <div className="glass-card rounded-2xl p-6">
                   <p>Inserisci una data di origine, puoi utilizzare il giorno attuale o una data precedente alla registrazione di questa iscrizione.</p>
                 </div>
               </div>
@@ -2365,7 +2236,7 @@ const NewInscriptionModal: React.FC<{
                     <p className="file-name-preview">File: {selectedFile.name}</p>
                   )}
                 </div>
-                <div style={helpTextStyle}>
+                <div className="glass-card rounded-2xl p-6">
                   <p>Carica un'immagine rappresentativa di ciò che stai registrando, come una foto del prodotto, del luogo di produzione o di un documento. Rispetta i formati e i limiti di peso.</p>
                 </div>
               </div>
@@ -2373,7 +2244,7 @@ const NewInscriptionModal: React.FC<{
 
             {currentStep === 6 && (
               <div>
-                <h4>Riepilogo Dati</h4>
+                <h4 className="text-xl font-bold mb-4">Riepilogo Dati</h4>
                 <div className="recap-summary">
                   <p><strong>Nome:</strong> {truncateText(formData.name, 40) || "N/D"}</p>
                   <p><strong>Descrizione:</strong> {truncateText(formData.description, 60) || "N/D"}</p>
@@ -2393,7 +2264,7 @@ const NewInscriptionModal: React.FC<{
                 </button>
               )}
             </div>
-            <div style={{ display: 'flex', gap: '1rem' }}>
+            <div className="flex gap-4">
               <button onClick={onClose} className="web3-button secondary" disabled={isProcessing}>
                 Chiudi
               </button>
@@ -2437,7 +2308,7 @@ const ExportTypeModal: React.FC<{
           <h2>Informazioni Esportazione</h2>
         </div>
         <div className="modal-body">
-          <div style={{ marginBottom: '2rem' }}>
+          <div className="glass-card rounded-2xl p-6" style={{ marginBottom: '2rem' }}>
             <p>Se hai completato con successo la tua iscrizione (solo dopo la finalizzazione), potrai esportare:</p>
             <ul style={{ textAlign: 'left', paddingLeft: '20px', margin: '1rem 0' }}>
               <li>Un certificato EasyChain in formato PDF, utile all'azienda per uso interno o documentale. Questo file può essere archiviato, stampato o condiviso con terzi per attestare l'iscrizione e l'autenticità del prodotto, senza necessariamente passare per il QR Code.</li>
@@ -2449,13 +2320,13 @@ const ExportTypeModal: React.FC<{
               className="export-type-button"
               onClick={() => onSelectType('pdf')}
             >
-              📄 Esporta PDF
+              <FileText className="inline-block mr-2" /> Esporta PDF
             </button>
             <button 
               className="export-type-button"
               onClick={() => onSelectType('html')}
             >
-              🌐 Esporta HTML
+              <Globe className="inline-block mr-2" /> Esporta HTML
             </button>
           </div>
         </div>
@@ -2499,7 +2370,7 @@ const QRCodeOfferModal: React.FC<{
           <h2>Crea QR Code</h2>
         </div>
         <div className="modal-body">
-          <p style={{ marginBottom: '2rem', textAlign: 'center' }}>
+          <p className="text-lg text-center mb-8">
             Vuoi creare anche un QrCode da usare per l'etichetta del tuo prodotto?
           </p>
         </div>
@@ -2527,25 +2398,25 @@ const InfoModal: React.FC<{
           <h2>Informazioni Iscrizioni</h2>
         </div>
         <div className="modal-body">
-          <div style={{ textAlign: 'left' }}>
-            <h4>COME FUNZIONA</h4>
-            <ul style={{ paddingLeft: '20px', margin: '1rem 0' }}>
+          <div className="glass-card rounded-2xl p-6 text-white text-left">
+            <h4 className="font-bold mb-4 text-xl">COME FUNZIONA</h4>
+            <ul className="list-disc list-inside space-y-2 mb-8">
               <li><strong>Inizializza Nuova Iscrizione:</strong> Crea una nuova iscrizione con i dati base del prodotto</li>
               <li><strong>Aggiungi Steps:</strong> Registra ogni fase della filiera produttiva</li>
               <li><strong>Finalizza:</strong> Chiudi l'iscrizione quando completata, non potrai aggiungere nuovi steps</li>
               <li><strong>Esporta:</strong> Genera certificati PDF o HTML per i tuoi clienti</li>
             </ul>
 
-            <h4>Stati dell'iscrizione:</h4>
-            <ul style={{ paddingLeft: '20px', margin: '1rem 0' }}>
-              <li><span style={{ color: '#10b981' }}>Aperto</span>: Puoi aggiungere nuovi step</li>
-              <li><span style={{ color: '#ef4444' }}>Chiuso</span>: Finalizzato, pronto per l'esportazione</li>
+            <h4 className="font-bold mb-4 text-xl">Stati dell'iscrizione:</h4>
+            <ul className="list-disc list-inside space-y-2 mb-8">
+              <li><span className="text-green-500">Aperto</span>: Puoi aggiungere nuovi step</li>
+              <li><span className="text-red-500">Chiuso</span>: Finalizzato, pronto per l'esportazione</li>
             </ul>
 
-            <h4>Riguardo i Costi:</h4>
+            <h4 className="font-bold mb-4 text-xl">Riguardo i Costi:</h4>
             <p>Dopo l'attivazione del tuo account avrai a disposizione crediti gratuiti per avviare la tua attività di certificazione su Blockchain.</p>
             <p>Ogni operazione (nuova iscrizione, aggiunta step, finalizzazione) consuma 1 credito.</p>
-            <p>Se hai bisogno di piu' crediti per le tue operazioni vai alla pagina <a href="/ricaricacrediti" style={{ color: '#3b82f6', textDecoration: 'none' }}>Ricarica Crediti</a>.</p>
+            <p className="mt-4">Se hai bisogno di piu' crediti per le tue operazioni vai alla pagina <a href="/ricaricacrediti" className="text-primary hover:text-accent smooth-transition">Ricarica Crediti</a>.</p>
           </div>
         </div>
         <div className="modal-footer">
@@ -2617,7 +2488,7 @@ const AziendaPage: React.FC = () => {
     }
 
     if (companyStatus.error) {
-      return <div className="centered-container"><p style={{ color: "red" }}>{companyStatus.error}</p></div>;
+      return <div className="centered-container"><p className="text-red-500">{companyStatus.error}</p></div>;
     }
 
     if (companyStatus.isActive && companyStatus.data) {
@@ -2628,14 +2499,15 @@ const AziendaPage: React.FC = () => {
       return <RegistrationForm walletAddress={account.address} />;
     }
 
-    return <div className="centered-container"><p>Connetti il wallet per continuare.</p></div>;
-  };
-
-  if (!account) {
     return (
       <div className="login-container">
-        <AziendaPageStyles />
-        <div style={{ textAlign: "center" }}>
+        <div className="tech-pattern"></div>
+        <div className="hero-gradient"></div>
+        <div className="absolute top-20 left-10 w-20 h-20 primary-gradient rounded-full opacity-20 floating-animation"></div>
+        <div className="absolute top-40 right-20 w-16 h-16 accent-gradient rounded-full opacity-30 floating-animation" style={{animationDelay: '2s'}}></div>
+        <div className="absolute bottom-40 left-20 w-12 h-12 primary-gradient rounded-full opacity-25 floating-animation" style={{animationDelay: '4s'}}></div>
+        
+        <div className="login-card">
           <h1>Benvenuto</h1>
           <p>Connetti il tuo wallet per accedere.</p>
           <ConnectButton 
@@ -2647,25 +2519,29 @@ const AziendaPage: React.FC = () => {
         </div>
       </div>
     );
-  }
+  };
 
   return (
-    <>
-      <AziendaPageStyles />
-      <div className="app-container-full">
-        <header className="main-header-bar">
-          <h1 className="header-title">EasyChain - Area Privata</h1>
-          <ConnectButton 
-            client={client}
-            chain={polygon}
-            accountAbstraction={{ chain: polygon, sponsorGas: true }}
-          />
-        </header>
-        <main>
-          {renderContent()}
-        </main>
-      </div>
-    </>
+    <div className="bg-background">
+      <CustomStyles />
+      {account ? (
+        <div className="app-container-full">
+          <header className="main-header-bar">
+            <h1 className="header-title">EasyChain - Area Privata</h1>
+            <ConnectButton 
+              client={client}
+              chain={polygon}
+              accountAbstraction={{ chain: polygon, sponsorGas: true }}
+            />
+          </header>
+          <main>
+            {renderContent()}
+          </main>
+        </div>
+      ) : (
+        renderContent()
+      )}
+    </div>
   );
 };
 
