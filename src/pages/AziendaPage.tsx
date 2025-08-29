@@ -1,258 +1,907 @@
 // FILE: src/pages/AziendaPage.tsx
 // DESCRIZIONE: Versione aggiornata che utilizza Firebase per i dati azienda,
 // implementa il sistema di refresh on-chain e gestisce le iscrizioni con numerazione incrementale.
-// Stili adattati dal file 1.tsx
-// Correzioni: Reintroduzione di mock per thirdweb e componenti locali per risolvere errori di compilazione.
 
 import React, { useState, useEffect } from "react";
-// Importazioni originali di thirdweb e componenti locali commentate per il mocking
-// import { ConnectButton, useActiveAccount, useReadContract, useSendTransaction } from "thirdweb/react";
-// import { createThirdwebClient, getContract, prepareContractCall } from "thirdweb";
-// import { polygon } from "thirdweb/chains";
-// import { inAppWallet } from "thirdweb/wallets";
-// import { supplyChainABI as abi } from "../abi/contractABI";
-// import "../App.css";
+import { ConnectButton, useActiveAccount, useReadContract, useSendTransaction } from "thirdweb/react";
+import { createThirdwebClient, getContract, prepareContractCall } from "thirdweb";
+import { polygon } from "thirdweb/chains";
+import { inAppWallet } from "thirdweb/wallets";
+import { supplyChainABI as abi } from "../abi/contractABI";
+import "../App.css";
 
-// Importa le icone da lucide-react per coerenza con 1.tsx
-import { ArrowRight, CheckCircle, Sparkles, Cpu, Network, Lock, FileText, X, Play, RefreshCw, Info, QrCode, LogOut, Wallet } from 'lucide-react';
+// Importa i componenti esterni
+import RegistrationForm from "../components/RegistrationForm";
+import TransactionStatusModal from "../components/TransactionStatusModal";
 
-// --- MOCK DI DIPENDENZE ESTERNE E LOCALI PER LA COMPILAZIONE ---
-// Queste implementazioni mock permettono al codice di compilare e alla UI di rendersi,
-// ma le funzionalità blockchain e le interazioni con i componenti locali saranno simulate.
-
-// Mock per thirdweb/react
-const useActiveAccount = () => {
-  const [account, setAccount] = useState<{ address: string } | null>(null);
-  useEffect(() => {
-    // Simula la connessione di un account dopo un breve ritardo
-    const timer = setTimeout(() => {
-      setAccount({ address: "0xMockWalletAddress1234567890abcdef" });
-    }, 1000);
-    return () => clearTimeout(timer);
-  }, []);
-  return account;
-};
-
-const useReadContract = ({ queryOptions }: any) => {
-  const [data, setData] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  useEffect(() => {
-    if (queryOptions?.enabled) {
-      setLoading(true);
-      // Simula il fetching dei dati dal contratto
-      const timer = setTimeout(() => {
-        setData(["Mock Company Name", 100, true]); // Esempio: [companyName, credits, isActive]
-        setLoading(false);
-      }, 500);
-      return () => clearTimeout(timer);
-    }
-  }, [queryOptions?.enabled]);
-  const refetch = () => {
-    // Simula il refetch
-    console.log("Mock refetch triggered");
-    return { data: ["Mock Company Name Refetched", 105, true] }; // Dati di esempio per il refetch
-  };
-  return { data, isLoading: loading, refetch };
-};
-
-const useSendTransaction = () => {
-  const [isPending, setIsPending] = useState(false);
-  const mutate = (transaction: any, options: any) => {
-    setIsPending(true);
-    console.log("Mock transaction sent:", transaction);
-    // Simula una transazione riuscita o fallita
-    setTimeout(() => {
-      setIsPending(false);
-      if (Math.random() > 0.1) { // 90% successo
-        options.onSuccess({ transactionHash: "0xMockTxHash" + Math.random().toString(16).substring(2,10) });
-      } else { // 10% fallimento
-        options.onError(new Error("Mock transaction failed (insufficient funds)"));
+// --- Stili Mobile-First ---
+const AziendaPageStyles = () => (
+  <style>{`
+      /* Mobile-first base styles */
+      .app-container-full { 
+        padding: 1rem; 
+        min-height: 100vh;
+        background-color: #0f0f0f;
       }
-    }, 2000);
-  };
-  return { mutate, isPending };
-};
 
-// Mock per thirdweb
-const createThirdwebClient = (config: any) => {
-  console.log("Mock createThirdwebClient called with config:", config);
-  return { clientId: config.clientId };
-};
-const getContract = (config: any) => {
-  console.log("Mock getContract called with config:", config);
-  return { address: config.address, abi: config.abi };
-};
-const prepareContractCall = (config: any) => {
-  console.log("Mock prepareContractCall called with config:", config);
-  return { ...config, mock: true };
-};
-
-// Mock per thirdweb/chains
-const polygon = {
-  chainId: 137,
-  name: "Polygon Mainnet (Mock)",
-  rpc: "https://mock-rpc-polygon.thirdweb.com",
-  nativeCurrency: { name: "MATIC", symbol: "MATIC", decimals: 18 },
-  blockExplorers: [{ name: "Polygonscan (Mock)", url: "https://polygonscan.com" }],
-};
-
-// Mock per thirdweb/wallets
-const inAppWallet = () => {
-  console.log("Mock InAppWallet called");
-  return { name: "Mock InApp Wallet" };
-};
-
-// Mock per ConnectButton - per ora un semplice bottone
-const ConnectButton: React.FC<any> = ({ client, wallets, chain, accountAbstraction, className }) => {
-  const account = useActiveAccount();
-  return (
-    <button
-      onClick={() => console.log("Mock ConnectButton clicked")}
-      className={`${className} flex items-center justify-center gap-2`}
-    >
-      <Wallet className="w-5 h-5" /> {account?.address ? truncateText(account.address, 10) : "Connetti Wallet"}
-    </button>
-  );
-};
-
-
-// Mock ABI - In un'applicazione reale, questo verrebbe importato da '../abi/contractABI'.
-const abi: any[] = [
-  {
-    "type": "function",
-    "name": "getContributorInfo",
-    "inputs": [{"name":"_contributor","type":"address","internalType":"address"}],
-    "outputs": [{"name":"","type":"string","internalType":"string"},{"name":"","type":"uint256","internalType":"uint256"},{"name":"","type":"bool","internalType":"bool"}],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "addStepToBatch",
-    "inputs": [{"name":"_batchId","type":"uint256","internalType":"uint256"},{"name":"_eventName","type":"string","internalType":"string"},{"name":"_description","type":"string","internalType":"string"},{"name":"_date","type":"string","internalType":"string"},{"name":"_location","type":"string","internalType":"string"},{"name":"_attachmentsIpfsHash","type":"string","internalType":"string"}],
-    "outputs": [],
-    "stateMutability": "nonpayable"
-  },
-  {
-    "type": "function",
-    "name": "closeBatch",
-    "inputs": [{"name":"_batchId","type":"uint256","internalType":"uint256"}],
-    "outputs": [],
-    "stateMutability": "nonpayable"
-  },
-  {
-    "type": "function",
-    "name": "initializeBatch",
-    "inputs": [{"name":"_name","type":"string","internalType":"string"},{"name":"_description","type":"string","internalType":"string"},{"name":"_date","type":"string","internalType":"string"},{"name":"_location","type":"string","internalType":"string"},{"name":"_imageIpfsHash","type":"string","internalType":"string"}],
-    "outputs": [{"name":"","type":"uint256","internalType":"uint256"}],
-    "stateMutability": "nonpayable"
-  },
-];
-
-// Mock per RegistrationForm.tsx
-const RegistrationForm: React.FC<{ walletAddress: string }> = ({ walletAddress }) => {
-  const [companyName, setCompanyName] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
-
-  const handleRegistration = async () => {
-    if (!companyName.trim()) {
-      setError("Il nome dell'azienda è obbligatorio.");
-      return;
-    }
-    setIsLoading(true);
-    setError(null);
-    setSuccess(null);
-
-    try {
-      // Simulazione di una chiamata API
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      if (Math.random() > 0.1) { // 90% successo
-        setSuccess("Registrazione avvenuta con successo! Potrebbe essere necessario un refresh per vedere i cambiamenti.");
-      } else { // 10% fallimento
-        throw new Error('Errore simulato durante la registrazione.');
+      .main-header-bar { 
+        display: flex; 
+        flex-direction: column;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+        padding: 1rem;
+        background-color: #1a1a1a;
+        border-radius: 0.75rem;
+        border: 1px solid #333;
       }
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
-  return (
-    <div className="min-h-[60vh] flex items-center justify-center p-4">
-      <div className="glass-card rounded-3xl p-8 md:p-12 text-center tech-shadow max-w-lg w-full">
-        <h2 className="text-3xl font-bold mb-6 text-foreground">Registra la tua Azienda</h2>
-        <p className="text-lg text-muted-foreground mb-8">Inserisci il nome della tua azienda per completare la registrazione.</p>
-        <div className="mb-6">
-          <input
-            type="text"
-            className="w-full p-3 border border-border rounded-lg bg-card text-foreground focus:ring-2 focus:ring-primary focus:border-transparent smooth-transition"
-            placeholder="Nome della tua azienda"
-            value={companyName}
-            onChange={(e) => setCompanyName(e.target.value)}
-            disabled={isLoading}
-          />
-        </div>
-        <button
-          onClick={handleRegistration}
-          className="group primary-gradient text-primary-foreground text-xl px-8 py-4 rounded-xl tech-shadow hover:scale-105 smooth-transition w-full"
-          disabled={isLoading}
-        >
-          {isLoading ? "Registrazione in corso..." : "Registra Azienda"}
-          {isLoading ? <Cpu className="w-5 h-5 animate-spin ml-2" /> : <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 smooth-transition" />}
-        </button>
-        {error && <p className="text-red-500 mt-4">{error}</p>}
-        {success && <p className="text-green-500 mt-4">{success}</p>}
-      </div>
-    </div>
-  );
-};
+      .header-title { 
+        font-size: 1.5rem; 
+        font-weight: bold; 
+        color: #ffffff;
+        text-align: center;
+      }
 
-// Mock per TransactionStatusModal.tsx
-const TransactionStatusModal: React.FC<{
-  isOpen: boolean;
-  status: "success" | "error" | "loading";
-  message: string;
-  onClose: () => void;
-}> = ({ isOpen, status, message, onClose }) => {
-  if (!isOpen) return null;
+      .login-container, .centered-container { 
+        display: flex; 
+        flex-direction: column; 
+        justify-content: center; 
+        align-items: center; 
+        min-height: 80vh; 
+        text-align: center;
+        padding: 1rem;
+      }
 
-  let icon, title, textColor;
-  switch (status) {
-    case "success":
-      icon = <CheckCircle className="w-12 h-12 text-green-500" />;
-      title = "Successo!";
-      textColor = "text-green-500";
-      break;
-    case "error":
-      icon = <X className="w-12 h-12 text-red-500" />;
-      title = "Errore!";
-      textColor = "text-red-500";
-      break;
-    case "loading":
-    default:
-      icon = <Cpu className="w-12 h-12 text-primary animate-spin" />;
-      title = "In corso...";
-      textColor = "text-primary";
-      break;
-  }
+      .dashboard-header-card { 
+        background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+        color: #ffffff; 
+        padding: 1.5rem; 
+        border-radius: 1rem; 
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        border: 1px solid #333;
+        margin-bottom: 1.5rem; 
+        display: flex; 
+        flex-direction: column;
+        gap: 1rem;
+      }
 
-  return (
-    <div className="fixed inset-0 z-[1001] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-      <div className="glass-card rounded-3xl p-8 md:p-12 text-center tech-shadow max-w-md w-full">
-        <div className="flex justify-center mb-6">{icon}</div>
-        <h2 className={`text-3xl font-bold mb-4 ${textColor}`}>{title}</h2>
-        <p className="text-lg text-muted-foreground mb-8">{message}</p>
-        {status !== "loading" && (
-          <button onClick={onClose} className="group primary-gradient text-primary-foreground px-6 py-3 rounded-xl tech-shadow hover:scale-105 smooth-transition">
-            Chiudi
-          </button>
-        )}
-      </div>
-    </div>
-  );
-};
+      .dashboard-title-section {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        flex-wrap: wrap;
+      }
+
+      .dashboard-title { 
+        font-size: 1.5rem; 
+        font-weight: 700;
+        color: #ffffff;
+        margin: 0;
+      }
+
+      .dashboard-info {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+      }
+
+      .dashboard-info-item {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        color: #ffffff;
+        font-size: 1.1rem;
+        font-weight: 600;
+      }
+
+      .dashboard-icon {
+        font-size: 1.8rem;
+        width: 50px;
+        height: 50px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .status-icon {
+        font-size: 1.8rem;
+        width: 50px;
+        height: 50px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .status-active-text {
+        color: #10b981;
+      }
+
+      .status-inactive-text {
+        color: #f59e0b;
+      }
+
+      .inscriptions-section-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 1rem;
+        flex-wrap: wrap;
+        gap: 1rem;
+      }
+
+      .inscriptions-section-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #ffffff;
+        margin: 0;
+      }
+
+      .refresh-section {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .refresh-button {
+        background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+        border: none;
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        position: relative;
+        box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+      }
+
+      .refresh-button:hover {
+        background: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+      }
+
+      .refresh-button:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      .refresh-icon {
+        color: white;
+        font-size: 1.5rem;
+      }
+
+      .refresh-counter {
+        color: #10b981;
+        border-radius: 50%;
+        width: 20px;
+        height: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.7rem;
+        font-weight: bold;
+        position: absolute;
+        top: -5px;
+        right: -5px;
+      }
+
+      .full-page-loading {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0, 0, 0, 0.9);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+        color: white;
+      }
+
+      .loading-spinner {
+        width: 60px;
+        height: 60px;
+        border: 4px solid #333;
+        border-top: 4px solid #3b82f6;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-bottom: 1rem;
+      }
+
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+
+      .web3-button { 
+        background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+        color: white; 
+        padding: 1rem 1.5rem; 
+        border: none; 
+        border-radius: 0.75rem; 
+        font-weight: 600; 
+        cursor: pointer; 
+        transition: all 0.3s ease;
+        font-size: 0.9rem;
+        width: 100%;
+        text-align: center;
+        box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+      }
+
+      .web3-button:hover { 
+        background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+      }
+
+      .web3-button.secondary {
+        background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+        box-shadow: 0 4px 15px rgba(107, 114, 128, 0.3);
+      }
+
+      .web3-button.secondary:hover {
+        background: linear-gradient(135deg, #4b5563 0%, #374151 100%);
+        box-shadow: 0 6px 20px rgba(107, 114, 128, 0.4);
+      }
+
+      .inscriptions-grid { 
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+      }
+
+      .inscription-card { 
+        background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+        border-radius: 1rem; 
+        padding: 1.5rem; 
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        border: 1px solid #333;
+        transition: all 0.3s ease;
+        position: relative;
+      }
+
+      .inscription-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+        border-color: #3b82f6;
+      }
+
+      .inscription-card h3 { 
+        font-size: 1.1rem; 
+        font-weight: 600; 
+        color: #ffffff; 
+        margin: 0 0 1rem 0;
+        border-bottom: 1px solid #333; 
+        padding-bottom: 0.75rem;
+        word-wrap: break-word; 
+      }
+
+      .inscription-card p { 
+        margin: 0.75rem 0; 
+        color: #a0a0a0; 
+        font-size: 0.85rem; 
+        line-height: 1.5;
+        word-wrap: break-word; 
+      }
+
+      .inscription-card strong { 
+        color: #ffffff; 
+        font-weight: 600;
+      }
+
+      .inscription-card a { 
+        color: #60a5fa; 
+        text-decoration: none; 
+        font-weight: 500;
+        transition: color 0.2s ease;
+      }
+
+      .inscription-card a:hover {
+        color: #3b82f6;
+      }
+
+      .inscription-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 1px solid #333;
+      }
+
+      .steps-count {
+        font-size: 0.8rem;
+        color: #a0a0a0;
+      }
+
+      .status-open {
+        color: #10b981;
+        font-weight: 600;
+      }
+
+      .status-closed {
+        color: #ef4444;
+        font-weight: 600;
+      }
+
+      .add-step-button {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: white;
+        border: none;
+        border-radius: 0.5rem;
+        padding: 0.5rem 1rem;
+        font-size: 0.8rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      .add-step-button:hover {
+        background: linear-gradient(135deg, #059669 0%, #047857 100%);
+        transform: translateY(-1px);
+      }
+
+      .export-button {
+        background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+        color: white;
+        border: none;
+        border-radius: 0.5rem;
+        padding: 0.5rem 1rem;
+        font-size: 0.8rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        position: relative;
+      }
+
+      .export-button:hover:not(:disabled) {
+        background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+        transform: translateY(-1px);
+      }
+
+      .export-button:disabled {
+        background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+        cursor: not-allowed;
+        opacity: 0.6;
+      }
+
+      .view-steps-button {
+        background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+        color: white;
+        border: none;
+        border-radius: 0.5rem;
+        padding: 0.5rem 1rem;
+        font-size: 0.8rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      .view-steps-button:hover {
+        background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+        transform: translateY(-1px);
+      }
+
+      .view-steps-button.disabled {
+        background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+        cursor: not-allowed;
+        opacity: 0.6;
+      }
+
+      .view-steps-button.disabled:hover {
+        background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+        transform: none;
+      }
+
+      .tooltip {
+        position: absolute;
+        bottom: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        background-color: #1f2937;
+        color: white;
+        padding: 0.5rem;
+        border-radius: 0.25rem;
+        font-size: 0.75rem;
+        white-space: nowrap;
+        z-index: 1000;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.2s;
+      }
+
+      .tooltip::after {
+        content: '';
+        position: absolute;
+        top: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        border: 4px solid transparent;
+        border-top-color: #1f2937;
+      }
+
+      .export-button:hover .tooltip {
+        opacity: 1;
+      }
+
+      .steps-modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0, 0, 0, 0.75);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+        padding: 1rem;
+      }
+
+      .steps-modal-content {
+        background-color: #1a1a1a;
+        border-radius: 1rem;
+        border: 1px solid #333;
+        width: 100%;
+        max-width: 800px;
+        max-height: 90vh;
+        overflow-y: auto;
+        color: #ffffff;
+      }
+
+      .steps-modal-header {
+        padding: 1.5rem;
+        border-bottom: 1px solid #333;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .steps-modal-body {
+        padding: 1.5rem;
+      }
+
+      .step-card {
+        background: linear-gradient(135deg, #2a2a2a 0%, #3a3a3a 100%);
+        border-radius: 0.75rem;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        border: 1px solid #444;
+      }
+
+      .step-card h4 {
+        color: #3b82f6;
+        margin: 0 0 1rem 0;
+        font-size: 1.1rem;
+      }
+
+      .step-card p {
+        margin: 0.5rem 0;
+        color: #a0a0a0;
+      }
+
+      .step-card strong {
+        color: #ffffff;
+      }
+
+      .export-modal-buttons {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        margin-top: 2rem;
+      }
+
+      .export-type-button {
+        background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+        color: white;
+        border: none;
+        border-radius: 0.5rem;
+        padding: 1rem 2rem;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        min-width: 150px;
+      }
+
+      .export-type-button:hover {
+        background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+        transform: translateY(-2px);
+      }
+
+      .finalize-button {
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        color: white;
+        border: none;
+        border-radius: 0.5rem;
+        padding: 0.5rem 1rem;
+        font-size: 0.8rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      .finalize-button:hover {
+        background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+        transform: translateY(-1px);
+      }
+
+      .closed-lock-icon {
+        color: #6b7280;
+        font-size: 1.2rem;
+      }
+
+      .loading-error-container { 
+        text-align: center; 
+        padding: 2rem 1rem; 
+        background-color: #1a1a1a; 
+        border-radius: 1rem;
+        border: 1px solid #333;
+        color: #a0a0a0;
+      }
+
+      .steps-container { 
+        margin-top: 1rem; 
+        border-top: 1px solid #333; 
+        padding-top: 1rem; 
+      }
+
+      .steps-container h4 { 
+        margin: 0 0 0.75rem 0; 
+        font-size: 0.9rem; 
+        font-weight: 600;
+        color: #ffffff;
+      }
+
+      .step-item { 
+        font-size: 0.8rem; 
+        padding: 0.75rem 0 0.75rem 1rem;
+        border-left: 2px solid #3b82f6; 
+        margin-bottom: 0.75rem;
+        background-color: rgba(59, 130, 246, 0.05);
+        border-radius: 0 0.5rem 0.5rem 0;
+      }
+
+      .step-item p {
+        margin: 0.25rem 0;
+        color: #a0a0a0;
+      }
+
+      .empty-state {
+        text-align: center;
+        padding: 3rem 1rem;
+        color: #a0a0a0;
+        background-color: #1a1a1a;
+        border-radius: 1rem;
+        border: 1px solid #333;
+      }
+
+      /* Modal styles */
+      .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0, 0, 0, 0.75);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+        padding: 1rem;
+      }
+
+      .modal-content {
+        background-color: #1a1a1a;
+        border-radius: 1rem;
+        border: 1px solid #333;
+        width: 100%;
+        max-width: 600px;
+        max-height: 90vh;
+        overflow-y: auto;
+        color: #ffffff;
+      }
+
+      .modal-header {
+        padding: 1.5rem;
+        border-bottom: 1px solid #333;
+      }
+
+      .modal-header h2 {
+        margin: 0;
+        font-size: 1.25rem;
+        font-weight: 600;
+      }
+
+      .modal-body {
+        padding: 1.5rem;
+      }
+
+      .modal-footer {
+        padding: 1.5rem;
+        border-top: 1px solid #333;
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+      }
+
+      .form-group {
+        margin-bottom: 1rem;
+      }
+
+      .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 500;
+        color: #f8f9fa;
+      }
+
+      .form-input {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #495057;
+        border-radius: 0.5rem;
+        background-color: #212529;
+        color: #f8f9fa;
+        font-size: 0.9rem;
+      }
+
+      .form-input:focus {
+        outline: none;
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25);
+      }
+
+      .char-counter {
+        font-size: 0.75rem;
+        color: #6c757d;
+        margin-top: 0.25rem;
+      }
+
+      .recap-summary {
+        text-align: left;
+        padding: 1rem;
+        background-color: #2a2a2a;
+        border: 1px solid #444;
+        border-radius: 0.5rem;
+        margin-bottom: 1rem;
+      }
+
+      .recap-summary p {
+        margin: 0.5rem 0;
+        word-break: break-word;
+      }
+
+      .recap-summary p strong {
+        color: #f8f9fa;
+      }
+
+      .file-name-preview {
+        color: #3b82f6;
+        font-size: 0.85rem;
+        margin-top: 0.5rem;
+      }
+
+      /* Image modal styles */
+      .image-modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0, 0, 0, 0.9);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1001;
+        padding: 2rem;
+      }
+
+      .image-modal-content {
+        max-width: 90%;
+        max-height: 90%;
+        border-radius: 0.5rem;
+        overflow: hidden;
+      }
+
+      .image-modal-content img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+      }
+
+      .image-modal-close {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        background: rgba(0, 0, 0, 0.7);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        cursor: pointer;
+        font-size: 1.5rem;
+      }
+
+      /* Filtri per le iscrizioni */
+      .inscriptions-filters {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+        padding: 1rem;
+        background-color: #1a1a1a;
+        border-radius: 0.75rem;
+        border: 1px solid #333;
+      }
+
+      .filter-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        min-width: 200px;
+        flex: 1;
+      }
+
+      .filter-label {
+        font-size: 0.9rem;
+        font-weight: 500;
+        color: #ffffff;
+      }
+
+      .filter-input {
+        padding: 0.75rem;
+        border: 1px solid #333;
+        border-radius: 0.5rem;
+        background-color: #2a2a2a;
+        color: #ffffff;
+        font-size: 0.9rem;
+      }
+
+      .filter-input:focus {
+        outline: none;
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25);
+      }
+
+      /* Paginazione */
+      .pagination-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 0.5rem;
+        margin-top: 2rem;
+        padding: 1rem;
+      }
+
+      .pagination-button {
+        background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+        color: white;
+        border: none;
+        border-radius: 0.5rem;
+        padding: 0.75rem 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 0.9rem;
+      }
+
+      .pagination-button:hover:not(:disabled) {
+        background: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%);
+        transform: translateY(-1px);
+      }
+
+      .pagination-button:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      .pagination-number {
+        background-color: transparent;
+        color: #ffffff;
+        border: 1px solid #333;
+        border-radius: 0.5rem;
+        padding: 0.75rem 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 0.9rem;
+      }
+
+      .pagination-number:hover {
+        background-color: #333;
+      }
+
+      .pagination-number.active {
+        background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+        color: white;
+        border-color: #6366f1;
+      }
+
+      .pagination-info {
+        color: #a0a0a0;
+        font-size: 0.9rem;
+        margin: 0 1rem;
+      }
+
+      /* Tablet styles */
+      @media (min-width: 768px) {
+        .app-container-full { 
+          padding: 2rem; 
+        }
+
+        .main-header-bar { 
+          flex-direction: row;
+          justify-content: space-between;
+          align-items: center;
+          padding: 1.5rem;
+        }
+
+        .header-title { 
+          font-size: 1.75rem;
+          text-align: left;
+        }
+
+        .dashboard-header-card { 
+          flex-direction: row;
+          justify-content: space-between;
+          align-items: flex-start;
+          padding: 2rem;
+        }
+
+        .dashboard-title { 
+          font-size: 1.75rem;
+        }
+
+        .dashboard-info {
+          flex-direction: row;
+          gap: 2rem;
+        }
+
+        .web3-button {
+          width: auto;
+          min-width: 200px;
+        }
+
+        .inscriptions-grid { 
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+          gap: 1.5rem;
+        }
+
+        .inscription-card h3 { 
+          font-size: 1.25rem;
+        }
+
+        .loading-error-container { 
+          padding: 3rem; 
+        }
+      }
+
+      /* Desktop styles */
+      @media (min-width: 1024px) {
+        .app-container-full { 
+          max-width: 1200px;
+          margin: 0 auto;
+          padding: 2rem;
+        }
+
+        .inscriptions-grid { 
+          grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+          gap: 2rem;
+        }
+
+        .inscription-card { 
+          padding: 2rem; 
+        }
+
+        .dashboard-header-card { 
+          padding: 2.5rem;
+        }
+      }
+  `}</style>
+);
 
 const truncateText = (text: string, maxLength: number) => {
   if (!text || text.length <= maxLength) return text;
@@ -267,37 +916,37 @@ const formatItalianDate = (dateString: string) => {
 };
 
 // Interfacce per i dati
-interface Step {
-  stepIndex: string;
-  eventName: string;
-  description: string;
-  date: string;
-  location: string;
-  attachmentsIpfsHash: string;
+interface Step { 
+  stepIndex: string; 
+  eventName: string; 
+  description: string; 
+  date: string; 
+  location: string; 
+  attachmentsIpfsHash: string; 
   transactionHash?: string;
 }
 
-interface Batch {
-  batchId: string;
-  name: string;
-  description: string;
-  date: string;
-  location: string;
-  imageIpfsHash: string;
-  isClosed: boolean;
-  transactionHash: string;
-  steps: Step[];
+interface Batch { 
+  batchId: string; 
+  name: string; 
+  description: string; 
+  date: string; 
+  location: string; 
+  imageIpfsHash: string; 
+  isClosed: boolean; 
+  transactionHash: string; 
+  steps: Step[]; 
 }
 
-interface CompanyData {
-  companyName: string;
+interface CompanyData { 
+  companyName: string; 
   credits: number;
   status: string;
 }
 
 const client = createThirdwebClient({ clientId: "023dd6504a82409b2bc7cb971fd35b16" });
 
-// Configura Polygon con RPC Thirdweb (Mock)
+// Configura Polygon con RPC Thirdweb
 const polygonWithRPC = {
   ...polygon,
   rpc: `https://137.rpc.thirdweb.com/023dd6504a82409b2bc7cb971fd35b16`,
@@ -312,22 +961,11 @@ const contract = getContract({
 // Componente modale per visualizzare immagini
 const ImageModal: React.FC<{ imageUrl: string; onClose: () => void }> = ({ imageUrl, onClose }) => {
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"
-      onClick={onClose}
-    >
-      <div
-        className="relative w-full max-w-5xl mx-4 bg-background rounded-2xl overflow-hidden tech-shadow"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 z-10 w-10 h-10 bg-black/50 hover:bg-black/70 rounded-full flex items-center justify-center smooth-transition"
-        >
-          <X className="w-6 h-6 text-white" />
-        </button>
-        <img src={imageUrl} alt="Immagine iscrizione" className="w-full h-full object-contain" />
+    <div className="image-modal-overlay" onClick={onClose}>
+      <div className="image-modal-content" onClick={(e) => e.stopPropagation()}>
+        <img src={imageUrl} alt="Immagine iscrizione" />
       </div>
+      <button className="image-modal-close" onClick={onClose}>×</button>
     </div>
   );
 };
@@ -335,9 +973,9 @@ const ImageModal: React.FC<{ imageUrl: string; onClose: () => void }> = ({ image
 // Componente per il loading a pagina piena
 const FullPageLoading: React.FC<{ message: string }> = ({ message }) => {
   return (
-    <div className="fixed inset-0 bg-background/90 backdrop-blur-sm flex flex-col justify-center items-center z-[1000] text-foreground p-4">
-      <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-primary mb-4"></div>
-      <p className="text-xl font-medium">{message}</p>
+    <div className="full-page-loading">
+      <div className="loading-spinner"></div>
+      <p>{message}</p>
     </div>
   );
 };
@@ -395,28 +1033,15 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
     setErrorBatches(null);
 
     try {
-      // Mock della chiamata API
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      const mockBatches: Batch[] = [
-        {
-          batchId: "1", name: "Pomodori San Marzano 2025", description: "Coltivazione biologica in campo aperto, Italia", date: "2025-05-10", location: "Salerno, Italia", imageIpfsHash: "QmSampleImageHash1", isClosed: false, transactionHash: "0xMockTxHashBatch1", steps: [
-            { stepIndex: "1", eventName: "Semina", description: "Inizio semina in serra", date: "2024-02-15", location: "Salerno", attachmentsIpfsHash: "QmStepAttach1", transactionHash: "0xMockTxStep1" },
-            { stepIndex: "2", eventName: "Raccolta", description: "Raccolta manuale dei pomodori maturi", date: "2025-08-01", location: "Salerno", attachmentsIpfsHash: "QmStepAttach2", transactionHash: "0xMockTxStep2" }
-          ]
-        },
-        {
-          batchId: "2", name: "Olio Extravergine d'Oliva", description: "Olio di oliva DOP, prima spremitura a freddo", date: "2024-11-20", location: "Puglia, Italia", imageIpfsHash: "QmSampleImageHash2", isClosed: true, transactionHash: "0xMockTxHashBatch2", steps: [
-            { stepIndex: "1", eventName: "Raccolta Olive", description: "Raccolta meccanizzata", date: "2024-10-25", location: "Foggia", attachmentsIpfsHash: "QmStepAttach3", transactionHash: "0xMockTxStep3" },
-            { stepIndex: "2", eventName: "Frangitura", description: "Frangitura a freddo entro 12h dalla raccolta", date: "2024-10-26", location: "Bari", attachmentsIpfsHash: "QmStepAttach4", transactionHash: "0xMockTxStep4" },
-            { stepIndex: "3", eventName: "Imbottigliamento", description: "Imbottigliamento in bottiglie scure", date: "2024-11-20", location: "Bari", attachmentsIpfsHash: "QmStepAttach5", transactionHash: "0xMockTxStep5" }
-          ]
-        },
-        {
-          batchId: "3", name: "Mozzarella di Bufala Campana", description: "Produzione giornaliera di mozzarella", date: "2025-01-15", location: "Caserta, Italia", imageIpfsHash: "QmSampleImageHash3", isClosed: false, transactionHash: "0xMockTxHashBatch3", steps: []
-        },
-      ];
+      const response = await fetch(`/api/get-contract-events?userAddress=${account.address}`);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || `Errore dal server: ${response.status}`);
+      }
+      const data = await response.json();
+      const readyBatches: Batch[] = data.events || [];
+      const sortedBatches = readyBatches.sort((a, b) => parseInt(b.batchId) - parseInt(a.batchId));
 
-      const sortedBatches = mockBatches.sort((a, b) => parseInt(b.batchId) - parseInt(a.batchId));
       setBatches(sortedBatches);
       setRefreshCounter(0); // Reset counter dopo il refresh
       setCurrentPage(1); // Reset alla prima pagina
@@ -436,14 +1061,22 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
     setShowFullPageLoading(true);
 
     try {
-      // 1. Controlla i crediti on-chain (Mock)
+      // 1. Controlla i crediti on-chain
       const refetchedData = await refetchContractData();
       if (refetchedData.data) {
         const [, onChainCredits] = refetchedData.data;
         const creditsNumber = Number(onChainCredits);
 
-        // 2. Aggiorna Firebase con i crediti corretti (Mock)
-        await new Promise(resolve => setTimeout(resolve, 500)); // Simula API call
+        // 2. Aggiorna Firebase con i crediti corretti
+        await fetch('/api/activate-company', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'setCredits',
+            walletAddress: account.address,
+            credits: creditsNumber,
+          }),
+        });
 
         // 3. Aggiorna i dati locali
         setCurrentCompanyData(prev => ({
@@ -515,27 +1148,34 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
 
   const handleExport = async (batch: Batch, exportType: 'pdf' | 'html', bannerId: string) => {
     try {
-      // Mock della chiamata API
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      console.log(`Mock Export batch ${batch.name} as ${exportType} with banner ${bannerId}`);
+      const response = await fetch('/api/export-batch', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          batch,
+          exportType,
+          companyName: currentCompanyData.companyName
+        }),
+      });
 
-      // Simula il download
-      const mockBlob = new Blob([`Contenuto mock del ${exportType} per ${batch.name}`], { type: `text/${exportType}` });
-      const url = window.URL.createObjectURL(mockBlob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${batch.name}_export.${exportType}`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${batch.name}_export.${exportType}`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
 
-      // Se è un export HTML, mostra il popup per il QR Code
-      if (exportType === 'html') {
-        setShowQRCodeModal(true);
+        // Se è un export HTML, mostra il popup per il QR Code
+        if (exportType === 'html') {
+          setShowQRCodeModal(true);
+        }
       }
     } catch (error) {
-      console.error('Errore durante l\'esportazione (mock):', error);
+      console.error('Errore durante l\'esportazione:', error);
     }
   };
 
@@ -545,90 +1185,98 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
         <FullPageLoading message="Aggiornamento dati in corso..." />
       )}
 
-      <div className="glass-card rounded-3xl p-6 md:p-8 tech-shadow mb-8 flex flex-col md:flex-row justify-between items-center gap-6">
-        <div className="flex-1">
-          <div className="flex items-center gap-3 mb-2">
-            <h2 className="text-3xl font-bold text-foreground">{currentCompanyData.companyName}</h2>
+      <div className="dashboard-header-card">
+        <div>
+          <div className="dashboard-title-section">
+            <h2 className="dashboard-title">{currentCompanyData.companyName}</h2>
           </div>
-          <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-6 text-muted-foreground text-lg">
-            <div className="flex items-center gap-2">
-              <span className="font-semibold">
-                <a
-                  href="/ricaricacrediti"
-                  className="text-primary hover:text-accent smooth-transition underline decoration-primary/50 hover:decoration-accent"
+          <div className="dashboard-info">
+            <div className="dashboard-info-item">
+              <span>
+                <a 
+                  href="/ricaricacrediti" 
+                  style={{ color: '#ffffff', textDecoration: 'none', cursor: 'pointer' }}
                   onClick={(e) => {
                     e.preventDefault();
                     window.location.href = '/ricaricacrediti';
                   }}
                 >
-                  Crediti Rimanenti: <strong className="text-foreground">{currentCompanyData.credits}</strong>
+                  Crediti Rimanenti: <strong>{currentCompanyData.credits}</strong>
                 </a>
               </span>
             </div>
-            <div className="flex items-center gap-2">
-              <span>Stato: <strong className={currentCompanyData.status === 'active' ? 'text-green-500' : 'text-orange-400'}>
+            <div className="dashboard-info-item">
+              <span>Stato: <strong className={currentCompanyData.status === 'active' ? 'status-active-text' : 'status-inactive-text'}>
                 {currentCompanyData.status === 'active' ? 'ATTIVO' : 'NON ATTIVO'}
               </strong></span>
             </div>
           </div>
         </div>
-        <button onClick={() => setIsModalOpen(true)} className="group primary-gradient text-xl px-6 py-3 rounded-xl tech-shadow smooth-transition hover:scale-105 text-primary-foreground font-semibold flex items-center gap-3">
-          + Nuova Iscrizione
-          <ArrowRight className="w-5 h-5 group-hover:translate-x-1 smooth-transition" />
-        </button>
+        <button onClick={() => setIsModalOpen(true)} className="web3-button">+ Inizializza Nuova Iscrizione</button>
       </div>
 
-      <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-8">
-        <div className="flex items-center gap-3">
-          <h3 className="text-2xl font-bold text-foreground">Le mie Iscrizioni su Blockchain</h3>
-          <button
-            className="w-8 h-8 rounded-full bg-primary/20 text-primary flex items-center justify-center hover:bg-primary/30 smooth-transition"
+      <div className="inscriptions-section-header">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <h3 className="inscriptions-section-title">Le mie Iscrizioni su Blockchain</h3>
+          <button 
+            className="info-button"
             onClick={() => setShowInfoModal(true)}
+            style={{
+              background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+              border: 'none',
+              borderRadius: '50%',
+              width: '30px',
+              height: '30px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              color: 'white',
+              fontSize: '14px',
+              fontWeight: 'bold',
+              boxShadow: '0 4px 15px rgba(59, 130, 246, 0.3)'
+            }}
           >
-            <Info className="w-4 h-4" />
+            ℹ️
           </button>
         </div>
-        <div className="relative">
-          <button
-            className="group relative w-12 h-12 rounded-full primary-gradient flex items-center justify-center tech-shadow hover:scale-105 smooth-transition"
+        <div className="refresh-section">
+          <button 
+            className="refresh-button"
             onClick={handleRefresh}
             disabled={isRefreshing || refreshCounter === 0}
           >
-            <RefreshCw className="w-6 h-6 text-primary-foreground group-hover:rotate-180 smooth-transition" />
+            <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPCEtLSBSZWZyZXNoIGNpcmN1bGFyIGFycm93cyAtLT4KPHBhdGggZD0iTTMgMTJBOSA5IDAgMCAxIDEyIDNWMUwxNiA1TDEyIDlWN0E3IDcgMCAwIDAgNSAxMkgzWiIgZmlsbD0id2hpdGUiLz4KPHBhdGggZD0iTTIxIDEyQTkgOSAwIDAgMSAxMiAyMVYyM0w4IDE5TDEyIDE1VjE3QTcgNyAwIDAgMCAxOSAxMkgyMVoiIGZpbGw9IndoaXRlIi8+Cjwvc3ZnPgo=" alt="refresh" className="refresh-icon" style={{width: '20px', height: '20px'}} />
             {refreshCounter > 0 && (
-              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
-                {refreshCounter}
-              </span>
+              <div className="refresh-counter">+{refreshCounter}</div>
             )}
           </button>
         </div>
       </div>
 
-      <div className="glass-card rounded-2xl p-6 tech-shadow mb-8 grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="flex flex-col gap-2">
-          <label className="text-muted-foreground font-medium">Nome</label>
+      <div className="inscriptions-filters">
+        <div className="filter-group">
+          <label className="filter-label">Nome</label>
           <input
             type="text"
-            className="form-input bg-card border border-border rounded-lg px-4 py-2 text-foreground focus:ring-2 focus:ring-primary focus:border-transparent smooth-transition"
+            className="filter-input"
             value={nameFilter}
             onChange={(e) => setNameFilter(e.target.value)}
-            placeholder="Filtra per nome"
           />
         </div>
-        <div className="flex flex-col gap-2">
-          <label className="text-muted-foreground font-medium">Luogo</label>
+        <div className="filter-group">
+          <label className="filter-label">Luogo</label>
           <input
             type="text"
-            className="form-input bg-card border border-border rounded-lg px-4 py-2 text-foreground focus:ring-2 focus:ring-primary focus:border-transparent smooth-transition"
+            className="filter-input"
             value={locationFilter}
             onChange={(e) => setLocationFilter(e.target.value)}
-            placeholder="Filtra per luogo"
           />
         </div>
-        <div className="flex flex-col gap-2">
-          <label className="text-muted-foreground font-medium">Stato</label>
+        <div className="filter-group">
+          <label className="filter-label">Stato</label>
           <select
-            className="form-input bg-card border border-border rounded-lg px-4 py-2 text-foreground focus:ring-2 focus:ring-primary focus:border-transparent smooth-transition appearance-none cursor-pointer"
+            className="filter-input"
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value as "Aperto" | "Chiuso" | "")}
           >
@@ -640,76 +1288,69 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
       </div>
 
       {isLoadingBatches && !showFullPageLoading ? (
-        <div className="glass-card rounded-2xl p-8 text-center text-muted-foreground tech-shadow">
-          <p>Caricamento delle tue iscrizioni...</p>
-        </div>
+        <div className="loading-error-container"><p>Caricamento delle tue iscrizioni...</p></div>
       ) : errorBatches ? (
-        <div className="glass-card rounded-2xl p-8 text-center text-red-500 tech-shadow">
-          <p>{errorBatches}</p>
-        </div>
+        <div className="loading-error-container"><p style={{ color: 'red' }}>{errorBatches}</p></div>
       ) : (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="inscriptions-grid">
             {currentItems.length > 0 ? (
               currentItems.map((batch) => (
-                <div key={batch.batchId} className="glass-card rounded-3xl p-6 tech-shadow hover:scale-[1.02] smooth-transition relative">
-                  <h3 className="text-xl font-bold mb-3 text-primary">#{getBatchDisplayNumber(batch.batchId)} - {batch.name}</h3>
-                  <p className="text-muted-foreground text-sm mb-2"><strong>Descrizione:</strong> {batch.description ? truncateText(batch.description, window.innerWidth < 768 ? 80 : 100) : "N/D"}</p>
-                  <p className="text-muted-foreground text-sm mb-2"><strong>Data:</strong> {formatItalianDate(batch.date)}</p>
-                  <p className="text-muted-foreground text-sm mb-2"><strong>Luogo:</strong> {batch.location || "N/D"}</p>
-                  <p className="text-muted-foreground text-sm mb-4">
-                    <strong>Stato:</strong> <span className={batch.isClosed ? 'text-red-500' : 'text-green-500'}>
-                      {batch.isClosed ? 'Chiuso' : 'Aperto'}
-                    </span>
-                  </p>
-
+                <div key={batch.batchId} className="inscription-card">
+                  <h3>#{getBatchDisplayNumber(batch.batchId)} - {batch.name}</h3>
+                  <p><strong>Descrizione:</strong> {batch.description ? truncateText(batch.description, window.innerWidth < 768 ? 80 : 100) : "N/D"}</p>
+                  <p><strong>Data:</strong> {formatItalianDate(batch.date)}</p>
+                  <p><strong>Luogo:</strong> {batch.location || "N/D"}</p>
+                  <p><strong>Stato:</strong> <span className={batch.isClosed ? 'status-closed' : 'status-open'}>
+                    {batch.isClosed ? ' Chiuso' : ' Aperto'}
+                  </span></p>
                   {batch.imageIpfsHash && batch.imageIpfsHash !== "N/A" && (
-                    <p className="mb-4">
+                    <p>
                       <a
                         href="#"
                         onClick={(e) => {
                           e.preventDefault();
                           setSelectedImage(`https://musical-emerald-partridge.myfilebase.com/ipfs/${batch.imageIpfsHash}`);
                         }}
-                        className="text-accent hover:underline text-sm font-medium flex items-center gap-1"
                       >
-                        <Play className="w-4 h-4" /> Apri Immagine
+                        Apri L'immagine
                       </a>
                     </p>
                   )}
-                  <p className="text-muted-foreground text-xs mb-4">
-                    <strong>Tx Hash:</strong>
+                  <p><strong>Tx Hash:</strong>
                     <a
-                      href={`https://polygonscan.com/tx/${batch.transactionHash}`}
+                      href={`https://polygonscan.com/inputdatadecoder?tx=${batch.transactionHash}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-blue-400 hover:underline ml-1"
                     >
                       {truncateText(batch.transactionHash, 15)}
                     </a>
                   </p>
 
-                  <div className="border-t border-border/50 pt-4 flex flex-wrap justify-between items-center gap-3">
-                    <div className="flex items-center gap-2">
+                  <div className="inscription-footer">
+                    <div className="steps-count">
                       {batch.steps && batch.steps.length > 0 ? (
                         <button
-                          className="px-4 py-2 bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-lg text-sm font-semibold hover:scale-105 smooth-transition shadow-md"
+                          className="view-steps-button"
                           onClick={() => setSelectedBatchForSteps(batch)}
                         >
-                          {batch.steps.length} Steps
+                          {batch.steps.length} steps
                         </button>
                       ) : (
-                        <span className="px-4 py-2 bg-muted/20 text-muted-foreground rounded-lg text-sm font-semibold cursor-not-allowed">
-                          0 Steps
-                        </span>
+                        <button
+                          className="view-steps-button disabled"
+                          disabled={true}
+                        >
+                          0 steps
+                        </button>
                       )}
                     </div>
 
-                    <div className="flex gap-2">
+                    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                       {/* Pulsante Esporta - mostrato solo per batch chiusi */}
                       {batch.isClosed && (
                         <button
-                          className="px-4 py-2 primary-gradient text-primary-foreground rounded-lg text-sm font-semibold hover:scale-105 smooth-transition shadow-md"
+                          className="export-button"
                           onClick={() => {
                             setSelectedBatchForExport(batch);
                             setShowExportModal(true);
@@ -723,40 +1364,40 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
                       {!batch.isClosed ? (
                         <>
                           <button
-                            className="px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-lg text-sm font-semibold hover:scale-105 smooth-transition shadow-md"
+                            className="add-step-button"
                             onClick={() => setSelectedBatchForStep(batch)}
                           >
                             Aggiungi Step
                           </button>
                           <button
-                            className="px-4 py-2 bg-gradient-to-r from-orange-500 to-yellow-600 text-white rounded-lg text-sm font-semibold hover:scale-105 smooth-transition shadow-md"
+                            className="finalize-button"
                             onClick={() => setSelectedBatchForFinalize(batch)}
                           >
                             Finalizza
                           </button>
                         </>
                       ) : (
-                        <div className="w-8 h-8 rounded-full bg-muted/20 text-muted-foreground flex items-center justify-center">
-                          <Lock className="w-4 h-4" />
-                        </div>
+                        <span className="closed-lock-icon">🔒</span>
                       )}
                     </div>
                   </div>
                 </div>
               ))
             ) : (
-              <div className="glass-card rounded-2xl p-8 text-center text-muted-foreground col-span-full tech-shadow">
-                <p className="text-lg mb-2">Non hai ancora inizializzato nessuna iscrizione con questo account.</p>
-                <p className="text-sm opacity-70">Clicca su "Nuova Iscrizione" per iniziare</p>
+              <div className="empty-state">
+                <p>Non hai ancora inizializzato nessuna iscrizione con questo account.</p>
+                <p style={{ fontSize: '0.8rem', marginTop: '0.5rem', opacity: 0.7 }}>
+                  Clicca su "Inizializza Nuova Iscrizione" per iniziare
+                </p>
               </div>
             )}
           </div>
 
           {/* Paginazione */}
           {filteredBatches.length > itemsPerPage && (
-            <div className="flex justify-center items-center gap-3 mt-12">
+            <div className="pagination-container">
               <button
-                className="px-4 py-2 primary-gradient text-primary-foreground rounded-lg hover:scale-105 smooth-transition disabled:opacity-50 disabled:scale-100 disabled:cursor-not-allowed"
+                className="pagination-button"
                 onClick={handlePreviousPage}
                 disabled={currentPage === 1}
               >
@@ -766,7 +1407,7 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
               {Array.from({ length: totalPages }, (_, i) => i + 1).map(number => (
                 <button
                   key={number}
-                  className={`px-4 py-2 rounded-lg text-foreground hover:bg-muted/30 smooth-transition ${currentPage === number ? 'bg-primary/20 text-primary font-bold' : 'bg-card'}`}
+                  className={`pagination-number ${currentPage === number ? 'active' : ''}`}
                   onClick={() => paginate(number)}
                 >
                   {number}
@@ -774,13 +1415,13 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
               ))}
 
               <button
-                className="px-4 py-2 primary-gradient text-primary-foreground rounded-lg hover:scale-105 smooth-transition disabled:opacity-50 disabled:scale-100 disabled:cursor-not-allowed"
+                className="pagination-button"
                 onClick={handleNextPage}
                 disabled={currentPage === totalPages}
               >
                 &gt;
               </button>
-              <span className="text-muted-foreground text-sm hidden sm:block">
+              <span className="pagination-info">
                 Pagina {currentPage} di {totalPages}
               </span>
             </div>
@@ -927,16 +1568,14 @@ const AddStepModal: React.FC<{
 
   const handleNextStep = () => {
     if (currentStep === 1 && !formData.eventName.trim()) {
-      setTxResult({ status: "error", message: "Il campo 'Nome Evento' è obbligatorio." });
+      alert("Il campo 'Nome Evento' è obbligatorio.");
       return;
     }
-    setTxResult(null); // Clear previous error
     if (currentStep < 6) setCurrentStep(prev => prev + 1);
   };
 
   const handlePrevStep = () => {
     if (currentStep > 1) setCurrentStep(prev => prev - 1);
-    setTxResult(null); // Clear error when going back
   };
 
   const handleSubmit = async () => {
@@ -950,11 +1589,20 @@ const AddStepModal: React.FC<{
 
     if (selectedFile) {
       try {
-        // Mock della chiamata API di upload
-        await new Promise(resolve => setTimeout(resolve, 500));
-        attachmentsIpfsHash = "QmMockIpfsHash" + Math.random().toString(16).substring(2,10);
+        const uploadFormData = new FormData();
+        uploadFormData.append('file', selectedFile);
+
+        const uploadResponse = await fetch('/api/upload', {
+          method: 'POST',
+          body: uploadFormData,
+        });
+
+        if (uploadResponse.ok) {
+          const uploadResult = await uploadResponse.json();
+          attachmentsIpfsHash = uploadResult.cid;
+        }
       } catch (error) {
-        console.error("Errore upload file (mock):", error);
+        console.error("Errore upload file:", error);
       }
     }
 
@@ -978,25 +1626,49 @@ const AddStepModal: React.FC<{
         clearTimeout(timeoutId);
         setTxResult({ status: "success", message: "Step aggiunto! Aggiorno i dati..." });
 
-        console.log("Transaction hash per step (mock):", result.transactionHash);
+        // Salva il transaction hash dello step
+        console.log("Transaction hash per step:", result.transactionHash);
 
-        // Aggiorna i crediti localmente dopo la transazione (Mock)
+        // Aggiorna i crediti localmente dopo la transazione
         if (account?.address) {
           try {
-            await new Promise(resolve => setTimeout(resolve, 200));
-            // Qui dovresti avere un modo per ottenere i crediti aggiornati dal tuo backend
-            // Per ora, simulo un decremento
-            onCreditsUpdate(prevCredits => prevCredits - 1); // Questo richiede che onCreditsUpdate accetti un updater function
+            const creditsResponse = await fetch(`/api/get-company-status?walletAddress=${account.address}`);
+            const creditsData = creditsResponse.ok ? await creditsResponse.json() : { credits: 0 };
+            onCreditsUpdate(creditsData.credits);
           } catch (error) {
-            console.error("Errore durante l'aggiornamento dei crediti (mock):", error);
+            console.error("Errore durante l'aggiornamento dei crediti:", error);
           }
         }
 
-        // Aggiungi l'evento al cache Firebase (Mock)
+        // Aggiungi l'evento al cache Firebase
         try {
-          await new Promise(resolve => setTimeout(resolve, 200));
+          // Ottieni i crediti correnti
+          const creditsResponse = await fetch(`/api/get-company-status?walletAddress=${account.address}`);
+          const creditsData = creditsResponse.ok ? await creditsResponse.json() : { credits: 0 };
+
+          await fetch('/api/add-single-event', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              userAddress: account.address,
+              eventType: 'BatchStepAdded',
+              eventData: {
+                batchId: batch.batchId,
+                stepData: {
+                  stepIndex: "0", // Verrà aggiornato dall'indexer
+                  eventName: formData.eventName,
+                  description: formData.description || "",
+                  date: formData.date || "",
+                  location: formData.location || "",
+                  attachmentsIpfsHash: attachmentsIpfsHash,
+                  transactionHash: result.transactionHash
+                }
+              },
+              newCredits: creditsData.credits - 1
+            }),
+          });
         } catch (error) {
-          console.error("Errore aggiunta evento al cache (mock):", error);
+          console.error("Errore aggiunta evento al cache:", error);
         }
 
         setTimeout(() => {
@@ -1008,7 +1680,7 @@ const AddStepModal: React.FC<{
         clearTimeout(timeoutId);
         setTxResult({
           status: "error",
-          message: err.message.toLowerCase().includes("insufficient funds") ? "Crediti Insufficienti (mock)" : "Errore nella transazione (mock)."
+          message: err.message.toLowerCase().includes("insufficient funds") ? "Crediti Insufficienti" : "Errore nella transazione."
         });
         setLoadingMessage("");
       },
@@ -1017,51 +1689,51 @@ const AddStepModal: React.FC<{
 
   const isProcessing = loadingMessage !== "" || isPending;
   const today = new Date().toISOString().split("T")[0];
-
-  const helpCardStyle = "glass-card rounded-xl p-4 mt-4 text-sm text-muted-foreground tech-shadow";
-  const labelStyle = "block mb-1 font-medium text-foreground";
-  const inputStyle = "form-input w-full p-3 border border-border rounded-lg bg-card text-foreground focus:ring-2 focus:ring-primary focus:border-transparent smooth-transition";
-  const charCounterStyle = "text-xs text-muted-foreground mt-1";
-
+  const helpTextStyle = {
+    backgroundColor: "#343a40",
+    border: "1px solid #495057",
+    borderRadius: "8px",
+    padding: "16px",
+    marginTop: "16px",
+    fontSize: "0.9rem",
+    color: "#f8f9fa"
+  };
 
   return (
     <>
-      <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4" onClick={onClose}>
-        <div className="glass-card rounded-3xl p-6 md:p-8 tech-shadow w-full max-w-2xl max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl md:text-3xl font-bold text-foreground">Aggiungi step all'iscrizione <span className="text-primary">({currentStep}/6)</span></h2>
-            <button onClick={onClose} className="w-8 h-8 rounded-full bg-card/50 text-muted-foreground flex items-center justify-center hover:bg-card smooth-transition">
-              <X className="w-5 h-5" />
-            </button>
+      <div className="modal-overlay" onClick={onClose}>
+        <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+          <div className="modal-header">
+            <h2>Aggiungi step all'iscrizione ({currentStep}/6)</h2>
           </div>
-
-          <div className="min-h-[300px] mb-6">
+          <div className="modal-body" style={{ minHeight: "350px" }}>
             {currentStep === 1 && (
               <div>
                 <div className="form-group">
-                  <label className={labelStyle}>
-                    Nome Evento <span className="text-red-500 font-bold">* Obbligatorio</span>
+                  <label>
+                    Nome Evento
+                    <span style={{ color: "red", fontWeight: "bold" }}> * Obbligatorio</span>
                   </label>
                   <input
                     type="text"
                     name="eventName"
                     value={formData.eventName}
                     onChange={handleInputChange}
-                    className={inputStyle}
+                    className="form-input"
                     maxLength={100}
                   />
-                  <small className={charCounterStyle}>{formData.eventName.length} / 100</small>
+                  <small className="char-counter">{formData.eventName.length} / 100</small>
                 </div>
-                <div className={helpCardStyle}>
-                  <p className="font-semibold text-primary mb-2">ℹ️ Come scegliere il Nome Step Iscrizione</p>
+                <div style={helpTextStyle}>
+                  <p><strong>ℹ️ Come scegliere il Nome Step Iscrizione</strong></p>
                   <p>Il Nome Step Iscrizione è un'etichetta descrittiva che ti aiuta a identificare con chiarezza un passaggio specifico della filiera o un evento rilevante che desideri registrare on-chain. Ad esempio:</p>
-                  <ul className="list-disc list-inside mt-2 ml-2">
+                  <ul style={{ textAlign: "left", paddingLeft: "20px" }}>
                     <li>Una fase produttiva: <em>Raccolta uva – Vigna 3, Inizio mungitura – Allevamento Nord</em></li>
                     <li>Un'attività logistica: <em>Spedizione lotto LT1025 – 15/05/2025</em></li>
                     <li>Un controllo o verifica: <em>Ispezione qualità – Stabilimento A, Audit ICEA 2025</em></li>
                     <li>Un evento documentale: <em>Firma contratto fornitura – Cliente COOP, Approvazione certificato biologico</em></li>
                   </ul>
-                  <p className="mt-4 font-semibold text-accent">📌 Consiglio: scegli un nome breve ma significativo, che ti permetta di ritrovare facilmente lo step anche dopo mesi o anni.</p>
+                  <p style={{ marginTop: "1rem" }}><strong>📌 Consiglio:</strong> scegli un nome breve ma significativo, che ti permetta di ritrovare facilmente lo step anche dopo mesi o anni.</p>
                 </div>
               </div>
             )}
@@ -1069,20 +1741,21 @@ const AddStepModal: React.FC<{
             {currentStep === 2 && (
               <div>
                 <div className="form-group">
-                  <label className={labelStyle}>
-                    Descrizione <span className="text-muted-foreground">Non obbligatorio</span>
+                  <label>
+                    Descrizione
+                    <span style={{ color: "#6c757d" }}> Non obbligatorio</span>
                   </label>
                   <textarea
                     name="description"
                     value={formData.description}
                     onChange={handleInputChange}
-                    className={inputStyle}
+                    className="form-input"
                     rows={4}
                     maxLength={500}
                   ></textarea>
-                  <small className={charCounterStyle}>{formData.description.length} / 500</small>
+                  <small className="char-counter">{formData.description.length} / 500</small>
                 </div>
-                <div className={helpCardStyle}>
+                <div style={helpTextStyle}>
                   <p>Inserisci una descrizione dello step, come una fase produttiva, logistica, amministrativa o documentale. Fornisci tutte le informazioni utili per identificarlo chiaramente all'interno del processo o della filiera a cui appartiene.</p>
                 </div>
               </div>
@@ -1091,20 +1764,21 @@ const AddStepModal: React.FC<{
             {currentStep === 3 && (
               <div>
                 <div className="form-group">
-                  <label className={labelStyle}>
-                    Luogo <span className="text-muted-foreground">Non obbligatorio</span>
+                  <label>
+                    Luogo
+                    <span style={{ color: "#6c757d" }}> Non obbligatorio</span>
                   </label>
                   <input
                     type="text"
                     name="location"
                     value={formData.location}
                     onChange={handleInputChange}
-                    className={inputStyle}
+                    className="form-input"
                     maxLength={100}
                   />
-                  <small className={charCounterStyle}>{formData.location.length} / 100</small>
+                  <small className="char-counter">{formData.location.length} / 100</small>
                 </div>
-                <div className={helpCardStyle}>
+                <div style={helpTextStyle}>
                   <p>Inserisci il luogo in cui si è svolto lo step, come una città, una regione, un'azienda agricola, uno stabilimento o un punto logistico. Serve a indicare con precisione dove è avvenuto il passaggio registrato.</p>
                 </div>
               </div>
@@ -1113,19 +1787,20 @@ const AddStepModal: React.FC<{
             {currentStep === 4 && (
               <div>
                 <div className="form-group">
-                  <label className={labelStyle}>
-                    Data <span className="text-muted-foreground">Non obbligatorio</span>
+                  <label>
+                    Data
+                    <span style={{ color: "#6c757d" }}> Non obbligatorio</span>
                   </label>
                   <input
                     type="date"
                     name="date"
                     value={formData.date}
                     onChange={handleInputChange}
-                    className={inputStyle}
+                    className="form-input"
                     max={today}
                   />
                 </div>
-                <div className={helpCardStyle}>
+                <div style={helpTextStyle}>
                   <p>Inserisci una data, puoi utilizzare il giorno attuale o una data precedente alla conferma di questo step.</p>
                 </div>
               </div>
@@ -1134,25 +1809,26 @@ const AddStepModal: React.FC<{
             {currentStep === 5 && (
               <div>
                 <div className="form-group">
-                  <label className={labelStyle}>
-                    Immagini / Documenti <span className="text-muted-foreground">Non obbligatorio</span>
+                  <label>
+                    Immagini / Documenti
+                    <span style={{ color: "#6c757d" }}> Non obbligatorio</span>
                   </label>
                   <input
                     type="file"
                     name="attachments"
                     onChange={handleFileChange}
-                    className={`${inputStyle} file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/20 file:text-primary hover:file:bg-primary/30 cursor-pointer`}
+                    className="form-input"
                     accept="image/png, image/jpeg, image/webp, application/pdf, application/msword, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/vnd.oasis.opendocument.text, text/csv, application/vnd.ms-excel, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
                   />
-                  <small className="block text-xs text-muted-foreground mt-2">
+                  <small style={{ marginTop: "4px" }}>
                     Formati immagini: PNG, JPG, WEBP. Max: 5 MB.<br />
                     Formati documenti: PDF, DOC, DOCX, ODT, CSV, XLS, XLSX. Max 10 MB.
                   </small>
                   {selectedFile && (
-                    <p className="text-primary text-sm mt-2">File selezionato: {selectedFile.name}</p>
+                    <p className="file-name-preview">File: {selectedFile.name}</p>
                   )}
                 </div>
-                <div className={helpCardStyle}>
+                <div style={helpTextStyle}>
                   <p>Carica un'immagine rappresentativa dello step, come una foto della fase produttiva, di un documento firmato, di un certificato o di un controllo effettuato. Rispetta i formati e i limiti di peso.</p>
                 </div>
               </div>
@@ -1160,40 +1836,38 @@ const AddStepModal: React.FC<{
 
             {currentStep === 6 && (
               <div>
-                <h4 className="text-xl font-bold mb-4 text-primary">Riepilogo Dati</h4>
-                <div className="glass-card rounded-xl p-4 tech-shadow text-muted-foreground text-sm">
-                  <p className="mb-1"><strong>Nome Evento:</strong> <span className="text-foreground">{truncateText(formData.eventName, 40) || "N/D"}</span></p>
-                  <p className="mb-1"><strong>Descrizione:</strong> <span className="text-foreground">{truncateText(formData.description, 60) || "N/D"}</span></p>
-                  <p className="mb-1"><strong>Luogo:</strong> <span className="text-foreground">{truncateText(formData.location, 40) || "N/D"}</span></p>
-                  <p className="mb-1"><strong>Data:</strong> <span className="text-foreground">{formData.date ? formData.date.split("-").reverse().join("/") : "N/D"}</span></p>
-                  <p className="mb-1"><strong>File:</strong> <span className="text-foreground">{truncateText(selectedFile?.name || "", 40) || "Nessuno"}</span></p>
+                <h4>Riepilogo Dati</h4>
+                <div className="recap-summary">
+                  <p><strong>Nome Evento:</strong> {truncateText(formData.eventName, 40) || "N/D"}</p>
+                  <p><strong>Descrizione:</strong> {truncateText(formData.description, 60) || "N/D"}</p>
+                  <p><strong>Luogo:</strong> {truncateText(formData.location, 40) || "N/D"}</p>
+                  <p><strong>Data:</strong> {formData.date ? formData.date.split("-").reverse().join("/") : "N/D"}</p>
+                  <p><strong>File:</strong> {truncateText(selectedFile?.name || "", 40) || "Nessuno"}</p>
                 </div>
-                <p className="mt-6 text-lg text-foreground text-center">Vuoi confermare e registrare questo step sulla blockchain?</p>
+                <p>Vuoi confermare e registrare questo step sulla blockchain?</p>
               </div>
             )}
           </div>
-
-          <div className="flex justify-between items-center mt-6 pt-4 border-t border-border/50">
-            {currentStep > 1 && (
-              <button onClick={handlePrevStep} className="group secondary-gradient text-foreground px-6 py-3 rounded-xl tech-shadow smooth-transition hover:scale-105 flex items-center gap-2" disabled={isProcessing}>
-                <ArrowRight className="w-5 h-5 rotate-180 group-hover:-translate-x-1 smooth-transition" />
-                Indietro
-              </button>
-            )}
-            <div className="flex-1 flex justify-end gap-4">
-              <button onClick={onClose} className="group secondary-gradient text-foreground px-6 py-3 rounded-xl tech-shadow smooth-transition hover:scale-105 flex items-center gap-2" disabled={isProcessing}>
+          <div className="modal-footer">
+            <div>
+              {currentStep > 1 && (
+                <button onClick={handlePrevStep} className="web3-button secondary" disabled={isProcessing}>
+                  Indietro
+                </button>
+              )}
+            </div>
+            <div style={{ display: 'flex', gap: '1rem' }}>
+              <button onClick={onClose} className="web3-button secondary" disabled={isProcessing}>
                 Chiudi
               </button>
               {currentStep < 6 && (
-                <button onClick={handleNextStep} className="group primary-gradient text-primary-foreground px-6 py-3 rounded-xl tech-shadow smooth-transition hover:scale-105 flex items-center gap-2">
+                <button onClick={handleNextStep} className="web3-button">
                   Avanti
-                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 smooth-transition" />
                 </button>
               )}
               {currentStep === 6 && (
-                <button onClick={handleSubmit} disabled={isProcessing} className="group primary-gradient text-primary-foreground px-6 py-3 rounded-xl tech-shadow smooth-transition hover:scale-105 flex items-center gap-2">
+                <button onClick={handleSubmit} disabled={isProcessing} className="web3-button">
                   {isProcessing ? "Conferma..." : "Conferma e Registra"}
-                  {isProcessing ? <Cpu className="w-5 h-5 animate-spin" /> : <CheckCircle className="w-5 h-5" />}
                 </button>
               )}
             </div>
@@ -1201,12 +1875,12 @@ const AddStepModal: React.FC<{
         </div>
       </div>
 
-      {txResult && (
+      {isProcessing && (
         <TransactionStatusModal
           isOpen={true}
-          status={txResult.status}
-          message={txResult.message}
-          onClose={() => { setTxResult(null); setLoadingMessage(""); }}
+          status={txResult?.status === "success" ? "success" : txResult?.status === "error" ? "error" : "loading"}
+          message={txResult?.message || loadingMessage}
+          onClose={() => {}}
         />
       )}
     </>
@@ -1247,23 +1921,40 @@ const FinalizeModal: React.FC<{
         clearTimeout(timeoutId);
         setTxResult({ status: "success", message: "Iscrizione finalizzata con successo!" });
 
+        // Salva il transaction hash della finalizzazione
         console.log("Transaction hash per finalizzazione:", result.transactionHash);
 
-        // Aggiorna i crediti localmente dopo la transazione (Mock)
+        // Aggiorna i crediti localmente dopo la transazione
         if (account?.address) {
           try {
-            await new Promise(resolve => setTimeout(resolve, 200));
-            onCreditsUpdate(prevCredits => prevCredits - 1); // Mock: decrementa i crediti
+            const creditsResponse = await fetch(`/api/get-company-status?walletAddress=${account.address}`);
+            const creditsData = creditsResponse.ok ? await creditsResponse.json() : { credits: 0 };
+            onCreditsUpdate(creditsData.credits);
           } catch (error) {
-            console.error("Errore durante l'aggiornamento dei crediti (mock):", error);
+            console.error("Errore durante l'aggiornamento dei crediti:", error);
           }
         }
 
-        // Aggiungi l'evento al cache Firebase (Mock)
+        // Aggiungi l'evento al cache Firebase
         try {
-          await new Promise(resolve => setTimeout(resolve, 200));
+          // Ottieni i crediti correnti
+          const creditsResponse = await fetch(`/api/get-company-status?walletAddress=${account.address}`);
+          const creditsData = creditsResponse.ok ? await creditsResponse.json() : { credits: 0 };
+
+          await fetch('/api/add-single-event', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              userAddress: account.address,
+              eventType: 'BatchClosed',
+              eventData: {
+                batchId: batch.batchId
+              },
+              newCredits: creditsData.credits - 1
+            }),
+          });
         } catch (error) {
-          console.error("Errore aggiunta evento al cache (mock):", error);
+          console.error("Errore aggiunta evento al cache:", error);
         }
 
         setTimeout(() => {
@@ -1275,7 +1966,7 @@ const FinalizeModal: React.FC<{
         clearTimeout(timeoutId);
         setTxResult({
           status: "error",
-          message: err.message.toLowerCase().includes("insufficient funds") ? "Crediti Insufficienti (mock)" : "Errore nella transazione (mock)."
+          message: err.message.toLowerCase().includes("insufficient funds") ? "Crediti Insufficienti" : "Errore nella transazione."
         });
         setLoadingMessage("");
       },
@@ -1286,38 +1977,34 @@ const FinalizeModal: React.FC<{
 
   return (
     <>
-      <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4" onClick={onClose}>
-        <div className="glass-card rounded-3xl p-6 md:p-8 tech-shadow w-full max-w-lg" onClick={(e) => e.stopPropagation()}>
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl md:text-3xl font-bold text-foreground">Finalizza Iscrizione</h2>
-            <button onClick={onClose} className="w-8 h-8 rounded-full bg-card/50 text-muted-foreground flex items-center justify-center hover:bg-card smooth-transition">
-              <X className="w-5 h-5" />
-            </button>
+      <div className="modal-overlay" onClick={onClose}>
+        <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+          <div className="modal-header">
+            <h2>Finalizza Iscrizione</h2>
           </div>
-          <div className="mb-6 text-center">
-            <p className="text-lg text-foreground mb-4">Sei sicuro di voler finalizzare l'iscrizione "<span className="font-semibold text-primary">{batch.name}</span>"?</p>
-            <p className="text-orange-400 text-sm font-medium">
+          <div className="modal-body">
+            <p>Sei sicuro di voler finalizzare l'iscrizione "{batch.name}"?</p>
+            <p style={{ color: '#f59e0b', fontSize: '0.9rem', marginTop: '1rem' }}>
               ⚠️ Attenzione: Una volta finalizzata, non potrai più aggiungere step a questa iscrizione.
             </p>
           </div>
-          <div className="flex justify-end gap-4 pt-4 border-t border-border/50">
-            <button onClick={onClose} className="group secondary-gradient text-foreground px-6 py-3 rounded-xl tech-shadow smooth-transition hover:scale-105 flex items-center gap-2" disabled={isProcessing}>
+          <div className="modal-footer">
+            <button onClick={onClose} className="web3-button secondary" disabled={isProcessing}>
               Annulla
             </button>
-            <button onClick={handleFinalize} disabled={isProcessing} className="group primary-gradient text-primary-foreground px-6 py-3 rounded-xl tech-shadow smooth-transition hover:scale-105 flex items-center gap-2">
+            <button onClick={handleFinalize} disabled={isProcessing} className="web3-button">
               {isProcessing ? "Finalizzazione..." : "Finalizza"}
-              {isProcessing ? <Cpu className="w-5 h-5 animate-spin" /> : <Lock className="w-5 h-5" />}
             </button>
           </div>
         </div>
       </div>
 
-      {txResult && (
+      {isProcessing && (
         <TransactionStatusModal
           isOpen={true}
-          status={txResult.status}
-          message={txResult.message}
-          onClose={() => {setTxResult(null); setLoadingMessage("");}}
+          status={txResult?.status === "success" ? "success" : txResult?.status === "error" ? "error" : "loading"}
+          message={txResult?.message || loadingMessage}
+          onClose={() => {}}
         />
       )}
     </>
@@ -1333,42 +2020,39 @@ const StepsModal: React.FC<{
 
   return (
     <>
-      <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4" onClick={onClose}>
-        <div className="glass-card rounded-3xl p-6 md:p-8 tech-shadow w-full max-w-3xl max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl md:text-3xl font-bold text-foreground">Steps - <span className="text-primary">{batch.name}</span></h2>
-            <button onClick={onClose} className="w-8 h-8 rounded-full bg-card/50 text-muted-foreground flex items-center justify-center hover:bg-card smooth-transition">
-              <X className="w-5 h-5" />
-            </button>
+      <div className="steps-modal-overlay" onClick={onClose}>
+        <div className="steps-modal-content" onClick={(e) => e.stopPropagation()}>
+          <div className="steps-modal-header">
+            <h2>Steps - {batch.name}</h2>
           </div>
-          <div className="space-y-4">
+          <div className="steps-modal-body">
             {batch.steps && batch.steps.length > 0 ? (
               batch.steps.map((step, index) => (
-                <div key={index} className="glass-card rounded-2xl p-4 tech-shadow">
-                  <h4 className="text-xl font-bold mb-2 text-accent">Step {index + 1}: {step.eventName}</h4>
-                  <p className="text-muted-foreground text-sm mb-1"><strong>📄 Descrizione:</strong> <span className="text-foreground">{step.description || "N/D"}</span></p>
-                  <p className="text-muted-foreground text-sm mb-1"><strong>📅 Data:</strong> <span className="text-foreground">{formatItalianDate(step.date)}</span></p>
-                  <p className="text-muted-foreground text-sm mb-1"><strong>📍 Luogo:</strong> <span className="text-foreground">{step.location || "N/D"}</span></p>
+                <div key={index} className="step-card">
+                  <h4>Step {index + 1}: {step.eventName}</h4>
+                  <p><strong>📄 Descrizione:</strong> {step.description || "N/D"}</p>
+                  <p><strong>📅 Data:</strong> {formatItalianDate(step.date)}</p>
+                  <p><strong>📍 Luogo:</strong> {step.location || "N/D"}</p>
                   {step.attachmentsIpfsHash && step.attachmentsIpfsHash !== "N/A" && (
-                    <p className="text-muted-foreground text-sm mb-1">
+                    <p>
                       <strong>📎 Allegati:</strong>
                       <a
                         href={`https://musical-emerald-partridge.myfilebase.com/ipfs/${step.attachmentsIpfsHash}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-primary hover:underline ml-1"
+                        style={{ marginLeft: '0.5rem' }}
                       >
                         Visualizza
                       </a>
                     </p>
                   )}
-                  <p className="text-muted-foreground text-xs">
+                  <p>
                     <strong>🔗 Verifica su Blockchain:</strong>
                     <a
-                      href={`https://polygonscan.com/tx/${step.transactionHash}`}
+                      href={`https://polygonscan.com/inputdatadecoder?tx=${step.transactionHash}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-blue-400 hover:underline ml-1"
+                      style={{ marginLeft: '0.5rem' }}
                     >
                       {truncateText(step.transactionHash, 15)}
                     </a>
@@ -1376,14 +2060,13 @@ const StepsModal: React.FC<{
                 </div>
               ))
             ) : (
-              <p className="text-center text-muted-foreground text-lg p-8">Nessuno step disponibile per questa iscrizione.</p>
+              <p>Nessuno step disponibile per questa iscrizione.</p>
             )}
-          </div>
-          <div className="text-center mt-8 pt-4 border-t border-border/50">
-            <button onClick={onClose} className="group primary-gradient text-primary-foreground px-6 py-3 rounded-xl tech-shadow smooth-transition hover:scale-105 flex items-center gap-2 mx-auto">
-              Indietro
-              <ArrowRight className="w-5 h-5 rotate-180 group-hover:-translate-x-1 smooth-transition" />
-            </button>
+            <div style={{ textAlign: 'center', marginTop: '2rem' }}>
+              <button onClick={onClose} className="web3-button">
+                Indietro
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -1402,7 +2085,7 @@ const StepsModal: React.FC<{
 const NewInscriptionModal: React.FC<{
   onClose: () => void;
   onSuccess: () => void;
-  onCreditsUpdate: (credits: number | ((prev: number) => number)) => void; // Aggiornato per accettare una funzione
+  onCreditsUpdate: (credits: number) => void;
 }> = ({ onClose, onSuccess, onCreditsUpdate }) => {
   const account = useActiveAccount();
   const { mutate: sendTransaction, isPending } = useSendTransaction();
@@ -1428,16 +2111,14 @@ const NewInscriptionModal: React.FC<{
 
   const handleNextStep = () => {
     if (currentStep === 1 && !formData.name.trim()) {
-      setTxResult({ status: "error", message: "Il campo 'Nome Iscrizione' è obbligatorio." });
+      alert("Il campo 'Nome Iscrizione' è obbligatorio.");
       return;
     }
-    setTxResult(null); // Clear previous error
     if (currentStep < 6) setCurrentStep(prev => prev + 1);
   };
 
   const handlePrevStep = () => {
     if (currentStep > 1) setCurrentStep(prev => prev - 1);
-    setTxResult(null); // Clear error when going back
   };
 
   const handleSubmit = async () => {
@@ -1451,11 +2132,20 @@ const NewInscriptionModal: React.FC<{
 
     if (selectedFile) {
       try {
-        // Mock della chiamata API di upload
-        await new Promise(resolve => setTimeout(resolve, 500));
-        imageIpfsHash = "QmMockIpfsHash" + Math.random().toString(16).substring(2,10);
+        const uploadFormData = new FormData();
+        uploadFormData.append('file', selectedFile);
+
+        const uploadResponse = await fetch('/api/upload', {
+          method: 'POST',
+          body: uploadFormData,
+        });
+
+        if (uploadResponse.ok) {
+          const uploadResult = await uploadResponse.json();
+          imageIpfsHash = uploadResult.cid;
+        }
       } catch (error) {
-        console.error("Errore upload file (mock):", error);
+        console.error("Errore upload file:", error);
       }
     }
 
@@ -1479,21 +2169,45 @@ const NewInscriptionModal: React.FC<{
         clearTimeout(timeoutId);
         setTxResult({ status: "success", message: "Iscrizione creata! Aggiorno i dati..." });
 
-        // Aggiorna i crediti localmente dopo la transazione (Mock)
+        // Aggiorna i crediti localmente dopo la transazione
         if (account?.address) {
           try {
-            await new Promise(resolve => setTimeout(resolve, 200));
-            onCreditsUpdate(prevCredits => prevCredits - 1); // Mock: decrementa i crediti
+            const creditsResponse = await fetch(`/api/get-company-status?walletAddress=${account.address}`);
+            const creditsData = creditsResponse.ok ? await creditsResponse.json() : { credits: 0 };
+            onCreditsUpdate(creditsData.credits);
           } catch (error) {
-            console.error("Errore durante l'aggiornamento dei crediti (mock):", error);
+            console.error("Errore durante l'aggiornamento dei crediti:", error);
           }
         }
 
-        // Aggiungi l'evento al cache Firebase (Mock)
+        // Aggiungi l'evento al cache Firebase
         try {
-          await new Promise(resolve => setTimeout(resolve, 200));
+          // Ottieni i crediti correnti
+          const creditsResponse = await fetch(`/api/get-company-status?walletAddress=${account.address}`);
+          const creditsData = creditsResponse.ok ? await creditsResponse.json() : { credits: 0 };
+
+          await fetch('/api/add-single-event', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              userAddress: account.address,
+              eventType: 'BatchInitialized',
+              eventData: {
+                batchId: result.transactionHash, // Useremo il tx hash temporaneamente
+                name: formData.name,
+                description: formData.description || "",
+                date: formData.date || "",
+                location: formData.location || "",
+                imageIpfsHash: imageIpfsHash,
+                isClosed: false,
+                transactionHash: result.transactionHash,
+                steps: []
+              },
+              newCredits: creditsData.credits - 1
+            }),
+          });
         } catch (error) {
-          console.error("Errore aggiunta evento al cache (mock):", error);
+          console.error("Errore aggiunta evento al cache:", error);
         }
 
         setTimeout(() => {
@@ -1505,7 +2219,7 @@ const NewInscriptionModal: React.FC<{
         clearTimeout(timeoutId);
         setTxResult({
           status: "error",
-          message: err.message.toLowerCase().includes("insufficient funds") ? "Crediti Insufficienti (mock)" : "Errore nella transazione (mock)."
+          message: err.message.toLowerCase().includes("insufficient funds") ? "Crediti Insufficienti" : "Errore nella transazione."
         });
         setLoadingMessage("");
       },
@@ -1514,49 +2228,50 @@ const NewInscriptionModal: React.FC<{
 
   const isProcessing = loadingMessage !== "" || isPending;
   const today = new Date().toISOString().split("T")[0];
-
-  const helpCardStyle = "glass-card rounded-xl p-4 mt-4 text-sm text-muted-foreground tech-shadow";
-  const labelStyle = "block mb-1 font-medium text-foreground";
-  const inputStyle = "form-input w-full p-3 border border-border rounded-lg bg-card text-foreground focus:ring-2 focus:ring-primary focus:border-transparent smooth-transition";
-  const charCounterStyle = "text-xs text-muted-foreground mt-1";
+  const helpTextStyle = {
+    backgroundColor: "#343a40",
+    border: "1px solid #495057",
+    borderRadius: "8px",
+    padding: "16px",
+    marginTop: "16px",
+    fontSize: "0.9rem",
+    color: "#f8f9fa"
+  };
 
   return (
     <>
-      <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4" onClick={onClose}>
-        <div className="glass-card rounded-3xl p-6 md:p-8 tech-shadow w-full max-w-2xl max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl md:text-3xl font-bold text-foreground">Nuova Iscrizione <span className="text-primary">({currentStep}/6)</span></h2>
-            <button onClick={onClose} className="w-8 h-8 rounded-full bg-card/50 text-muted-foreground flex items-center justify-center hover:bg-card smooth-transition">
-              <X className="w-5 h-5" />
-            </button>
+      <div className="modal-overlay" onClick={onClose}>
+        <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+          <div className="modal-header">
+            <h2>Nuova Iscrizione ({currentStep}/6)</h2>
           </div>
-
-          <div className="min-h-[300px] mb-6">
+          <div className="modal-body" style={{ minHeight: "350px" }}>
             {currentStep === 1 && (
               <div>
                 <div className="form-group">
-                  <label className={labelStyle}>
-                    Nome Iscrizione <span className="text-red-500 font-bold">* Obbligatorio</span>
+                  <label>
+                    Nome Iscrizione 
+                    <span style={{ color: "red", fontWeight: "bold" }}> * Obbligatorio</span>
                   </label>
-                  <input
-                    type="text"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleInputChange}
-                    className={inputStyle}
-                    maxLength={100}
+                  <input 
+                    type="text" 
+                    name="name" 
+                    value={formData.name} 
+                    onChange={handleInputChange} 
+                    className="form-input" 
+                    maxLength={100} 
                   />
-                  <small className={charCounterStyle}>{formData.name.length} / 100</small>
+                  <small className="char-counter">{formData.name.length} / 100</small>
                 </div>
-                <div className={helpCardStyle}>
-                  <p className="font-semibold text-primary mb-2">ℹ️ Come scegliere il Nome Iscrizione</p>
+                <div style={helpTextStyle}>
+                  <p><strong>ℹ️ Come scegliere il Nome Iscrizione</strong></p>
                   <p>Il Nome Iscrizione è un'etichetta descrittiva che ti aiuta a identificare in modo chiaro ciò che stai registrando on-chain. Ad esempio:</p>
-                  <ul className="list-disc list-inside mt-2 ml-2">
+                  <ul style={{ textAlign: "left", paddingLeft: "20px" }}>
                     <li>Il nome di un prodotto o varietà: <em>Pomodori San Marzano 2025, Olio Extravergine Frantoio</em></li>
                     <li>Un lotto o una produzione: <em>Lotto Pasta Artigianale LT1025, Produzione Vino Rosso 2024</em></li>
                     <li>Un servizio o processo: <em>Trasporto Merci Roma-Milano, Certificazione Biologico 2025</em></li>
                   </ul>
-                  <p className="mt-4 font-semibold text-accent">📌 Consiglio: scegli un nome breve ma significativo, che ti permetta di ritrovare facilmente l'iscrizione anche dopo mesi o anni.</p>
+                  <p style={{ marginTop: "1rem" }}><strong>📌 Consiglio:</strong> scegli un nome breve ma significativo, che ti permetta di ritrovare facilmente l'iscrizione anche dopo mesi o anni.</p>
                 </div>
               </div>
             )}
@@ -1564,20 +2279,21 @@ const NewInscriptionModal: React.FC<{
             {currentStep === 2 && (
               <div>
                 <div className="form-group">
-                  <label className={labelStyle}>
-                    Descrizione <span className="text-muted-foreground">Non obbligatorio</span>
+                  <label>
+                    Descrizione
+                    <span style={{ color: "#6c757d" }}> Non obbligatorio</span>
                   </label>
                   <textarea
                     name="description"
                     value={formData.description}
                     onChange={handleInputChange}
-                    className={inputStyle}
+                    className="form-input"
                     rows={4}
                     maxLength={500}
                   ></textarea>
-                  <small className={charCounterStyle}>{formData.description.length} / 500</small>
+                  <small className="char-counter">{formData.description.length} / 500</small>
                 </div>
-                <div className={helpCardStyle}>
+                <div style={helpTextStyle}>
                   <p>Inserisci una descrizione dettagliata di ciò che stai registrando. Fornisci tutte le informazioni utili per identificare chiaramente il prodotto, il servizio o il processo a cui appartiene questa iscrizione.</p>
                 </div>
               </div>
@@ -1586,20 +2302,21 @@ const NewInscriptionModal: React.FC<{
             {currentStep === 3 && (
               <div>
                 <div className="form-group">
-                  <label className={labelStyle}>
-                    Luogo di Produzione <span className="text-muted-foreground">Non obbligatorio</span>
+                  <label>
+                    Luogo di Produzione
+                    <span style={{ color: "#6c757d" }}> Non obbligatorio</span>
                   </label>
                   <input
                     type="text"
                     name="location"
                     value={formData.location}
                     onChange={handleInputChange}
-                    className={inputStyle}
+                    className="form-input"
                     maxLength={100}
                   />
-                  <small className={charCounterStyle}>{formData.location.length} / 100</small>
+                  <small className="char-counter">{formData.location.length} / 100</small>
                 </div>
-                <div className={helpCardStyle}>
+                <div style={helpTextStyle}>
                   <p>Inserisci il luogo di origine o produzione, come una città, una regione, un'azienda agricola o uno stabilimento. Serve a indicare con precisione dove ha avuto origine ciò che stai registrando.</p>
                 </div>
               </div>
@@ -1608,19 +2325,20 @@ const NewInscriptionModal: React.FC<{
             {currentStep === 4 && (
               <div>
                 <div className="form-group">
-                  <label className={labelStyle}>
-                    Data di Origine <span className="text-muted-foreground">Non obbligatorio</span>
+                  <label>
+                    Data di Origine
+                    <span style={{ color: "#6c757d" }}> Non obbligatorio</span>
                   </label>
                   <input
                     type="date"
                     name="date"
                     value={formData.date}
                     onChange={handleInputChange}
-                    className={inputStyle}
+                    className="form-input"
                     max={today}
                   />
                 </div>
-                <div className={helpCardStyle}>
+                <div style={helpTextStyle}>
                   <p>Inserisci una data di origine, puoi utilizzare il giorno attuale o una data precedente alla registrazione di questa iscrizione.</p>
                 </div>
               </div>
@@ -1629,24 +2347,25 @@ const NewInscriptionModal: React.FC<{
             {currentStep === 5 && (
               <div>
                 <div className="form-group">
-                  <label className={labelStyle}>
-                    Immagine Prodotto <span className="text-muted-foreground">Non obbligatorio</span>
+                  <label>
+                    Immagine Prodotto
+                    <span style={{ color: "#6c757d" }}> Non obbligatorio</span>
                   </label>
                   <input
                     type="file"
                     name="image"
                     onChange={handleFileChange}
-                    className={`${inputStyle} file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/20 file:text-primary hover:file:bg-primary/30 cursor-pointer`}
+                    className="form-input"
                     accept="image/png, image/jpeg, image/webp"
                   />
-                  <small className="block text-xs text-muted-foreground mt-2">
+                  <small style={{ marginTop: "4px" }}>
                     Formati supportati: PNG, JPG, WEBP. Dimensione massima: 5 MB.
                   </small>
                   {selectedFile && (
-                    <p className="text-primary text-sm mt-2">File selezionato: {selectedFile.name}</p>
+                    <p className="file-name-preview">File: {selectedFile.name}</p>
                   )}
                 </div>
-                <div className={helpCardStyle}>
+                <div style={helpTextStyle}>
                   <p>Carica un'immagine rappresentativa di ciò che stai registrando, come una foto del prodotto, del luogo di produzione o di un documento. Rispetta i formati e i limiti di peso.</p>
                 </div>
               </div>
@@ -1654,40 +2373,38 @@ const NewInscriptionModal: React.FC<{
 
             {currentStep === 6 && (
               <div>
-                <h4 className="text-xl font-bold mb-4 text-primary">Riepilogo Dati</h4>
-                <div className="glass-card rounded-xl p-4 tech-shadow text-muted-foreground text-sm">
-                  <p className="mb-1"><strong>Nome:</strong> <span className="text-foreground">{truncateText(formData.name, 40) || "N/D"}</span></p>
-                  <p className="mb-1"><strong>Descrizione:</strong> <span className="text-foreground">{truncateText(formData.description, 60) || "N/D"}</span></p>
-                  <p className="mb-1"><strong>Luogo:</strong> <span className="text-foreground">{truncateText(formData.location, 40) || "N/D"}</span></p>
-                  <p className="mb-1"><strong>Data:</strong> <span className="text-foreground">{formData.date ? formData.date.split("-").reverse().join("/") : "N/D"}</span></p>
-                  <p className="mb-1"><strong>Immagine:</strong> <span className="text-foreground">{truncateText(selectedFile?.name || "", 40) || "Nessuna"}</span></p>
+                <h4>Riepilogo Dati</h4>
+                <div className="recap-summary">
+                  <p><strong>Nome:</strong> {truncateText(formData.name, 40) || "N/D"}</p>
+                  <p><strong>Descrizione:</strong> {truncateText(formData.description, 60) || "N/D"}</p>
+                  <p><strong>Luogo:</strong> {truncateText(formData.location, 40) || "N/D"}</p>
+                  <p><strong>Data:</strong> {formData.date ? formData.date.split("-").reverse().join("/") : "N/D"}</p>
+                  <p><strong>Immagine:</strong> {truncateText(selectedFile?.name || "", 40) || "Nessuna"}</p>
                 </div>
-                <p className="mt-6 text-lg text-foreground text-center">Vuoi confermare e registrare questa iscrizione sulla blockchain?</p>
+                <p>Vuoi confermare e registrare questa iscrizione sulla blockchain?</p>
               </div>
             )}
           </div>
-
-          <div className="flex justify-between items-center mt-6 pt-4 border-t border-border/50">
-            {currentStep > 1 && (
-              <button onClick={handlePrevStep} className="group secondary-gradient text-foreground px-6 py-3 rounded-xl tech-shadow smooth-transition hover:scale-105 flex items-center gap-2" disabled={isProcessing}>
-                <ArrowRight className="w-5 h-5 rotate-180 group-hover:-translate-x-1 smooth-transition" />
-                Indietro
-              </button>
-            )}
-            <div className="flex-1 flex justify-end gap-4">
-              <button onClick={onClose} className="group secondary-gradient text-foreground px-6 py-3 rounded-xl tech-shadow smooth-transition hover:scale-105 flex items-center gap-2" disabled={isProcessing}>
+          <div className="modal-footer">
+            <div>
+              {currentStep > 1 && (
+                <button onClick={handlePrevStep} className="web3-button secondary" disabled={isProcessing}>
+                  Indietro
+                </button>
+              )}
+            </div>
+            <div style={{ display: 'flex', gap: '1rem' }}>
+              <button onClick={onClose} className="web3-button secondary" disabled={isProcessing}>
                 Chiudi
               </button>
               {currentStep < 6 && (
-                <button onClick={handleNextStep} className="group primary-gradient text-primary-foreground px-6 py-3 rounded-xl tech-shadow smooth-transition hover:scale-105 flex items-center gap-2">
+                <button onClick={handleNextStep} className="web3-button">
                   Avanti
-                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 smooth-transition" />
                 </button>
               )}
               {currentStep === 6 && (
-                <button onClick={handleSubmit} disabled={isProcessing} className="group primary-gradient text-primary-foreground px-6 py-3 rounded-xl tech-shadow smooth-transition hover:scale-105 flex items-center gap-2">
+                <button onClick={handleSubmit} disabled={isProcessing} className="web3-button">
                   {isProcessing ? "Conferma..." : "Conferma e Registra"}
-                  {isProcessing ? <Cpu className="w-5 h-5 animate-spin" /> : <CheckCircle className="w-5 h-5" />}
                 </button>
               )}
             </div>
@@ -1695,12 +2412,12 @@ const NewInscriptionModal: React.FC<{
         </div>
       </div>
 
-      {txResult && (
+      {isProcessing && (
         <TransactionStatusModal
           isOpen={true}
-          status={txResult.status}
-          message={txResult.message}
-          onClose={() => {setTxResult(null); setLoadingMessage("");}}
+          status={txResult?.status === "success" ? "success" : txResult?.status === "error" ? "error" : "loading"}
+          message={txResult?.message || loadingMessage}
+          onClose={() => {}}
         />
       )}
     </>
@@ -1714,39 +2431,36 @@ const ExportTypeModal: React.FC<{
   onSelectType: (type: 'pdf' | 'html') => void;
 }> = ({ batch, onClose, onSelectType }) => {
   return (
-    <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4" onClick={onClose}>
-      <div className="glass-card rounded-3xl p-6 md:p-8 tech-shadow w-full max-w-2xl" onClick={(e) => e.stopPropagation()}>
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl md:text-3xl font-bold text-foreground">Informazioni Esportazione</h2>
-          <button onClick={onClose} className="w-8 h-8 rounded-full bg-card/50 text-muted-foreground flex items-center justify-center hover:bg-card smooth-transition">
-            <X className="w-5 h-5" />
-          </button>
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-header">
+          <h2>Informazioni Esportazione</h2>
         </div>
-        <div className="mb-8 text-muted-foreground text-base leading-relaxed">
-          <p className="mb-4">Se hai completato con successo la tua iscrizione (solo dopo la finalizzazione), potrai esportare:</p>
-          <ul className="list-disc list-inside mb-6 space-y-2">
-            <li>Un certificato EasyChain in formato <strong className="text-primary">PDF</strong>, utile all'azienda per uso interno o documentale. Questo file può essere archiviato, stampato o condiviso con terzi per attestare l'iscrizione e l'autenticità del prodotto, senza necessariamente passare per il QR Code.</li>
-            <li>Un certificato EasyChain in formato <strong className="text-primary">HTML</strong>, pensato per la pubblicazione online. Caricalo su uno spazio web (privato o pubblico), copia il link e usalo per generare un QR Code da applicare all'etichetta del tuo prodotto. Inquadrando il QR Code, chiunque potrà visualizzare il certificato direttamente online.</li>
-          </ul>
+        <div className="modal-body">
+          <div style={{ marginBottom: '2rem' }}>
+            <p>Se hai completato con successo la tua iscrizione (solo dopo la finalizzazione), potrai esportare:</p>
+            <ul style={{ textAlign: 'left', paddingLeft: '20px', margin: '1rem 0' }}>
+              <li>Un certificato EasyChain in formato PDF, utile all'azienda per uso interno o documentale. Questo file può essere archiviato, stampato o condiviso con terzi per attestare l'iscrizione e l'autenticità del prodotto, senza necessariamente passare per il QR Code.</li>
+              <li>Un certificato EasyChain in formato HTML, pensato per la pubblicazione online. Caricalo su uno spazio web (privato o pubblico), copia il link e usalo per generare un QR Code da applicare all'etichetta del tuo prodotto. Inquadrando il QR Code, chiunque potrà visualizzare il certificato direttamente online.</li>
+            </ul>
+          </div>
+          <div className="export-modal-buttons">
+            <button 
+              className="export-type-button"
+              onClick={() => onSelectType('pdf')}
+            >
+              📄 Esporta PDF
+            </button>
+            <button 
+              className="export-type-button"
+              onClick={() => onSelectType('html')}
+            >
+              🌐 Esporta HTML
+            </button>
+          </div>
         </div>
-        <div className="flex justify-center gap-6 pt-4 border-t border-border/50">
-          <button
-            className="group primary-gradient text-primary-foreground px-8 py-4 rounded-xl tech-shadow smooth-transition hover:scale-105 flex flex-col items-center gap-2 min-w-[150px]"
-            onClick={() => onSelectType('pdf')}
-          >
-            <FileText className="w-6 h-6" />
-            <span className="font-semibold text-lg">Esporta PDF</span>
-          </button>
-          <button
-            className="group primary-gradient text-primary-foreground px-8 py-4 rounded-xl tech-shadow smooth-transition hover:scale-105 flex flex-col items-center gap-2 min-w-[150px]"
-            onClick={() => onSelectType('html')}
-          >
-            <Globe className="w-6 h-6" />
-            <span className="font-semibold text-lg">Esporta HTML</span>
-          </button>
-        </div>
-        <div className="text-center mt-6">
-          <button onClick={onClose} className="group secondary-gradient text-foreground px-6 py-3 rounded-xl tech-shadow smooth-transition hover:scale-105">
+        <div className="modal-footer">
+          <button onClick={onClose} className="web3-button secondary">
             Chiudi
           </button>
         </div>
@@ -1779,24 +2493,22 @@ const QRCodeOfferModal: React.FC<{
   };
 
   return (
-    <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4" onClick={onClose}>
-      <div className="glass-card rounded-3xl p-6 md:p-8 tech-shadow w-full max-w-lg" onClick={(e) => e.stopPropagation()}>
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl md:text-3xl font-bold text-foreground">Crea QR Code</h2>
-          <button onClick={onClose} className="w-8 h-8 rounded-full bg-card/50 text-muted-foreground flex items-center justify-center hover:bg-card smooth-transition">
-            <X className="w-5 h-5" />
-          </button>
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-header">
+          <h2>Crea QR Code</h2>
         </div>
-        <div className="mb-8 text-center text-lg text-foreground">
-          <p>Vuoi creare anche un <span className="font-semibold text-primary">QRCode</span> da usare per l'etichetta del tuo prodotto?</p>
+        <div className="modal-body">
+          <p style={{ marginBottom: '2rem', textAlign: 'center' }}>
+            Vuoi creare anche un QrCode da usare per l'etichetta del tuo prodotto?
+          </p>
         </div>
-        <div className="flex justify-end gap-4 pt-4 border-t border-border/50">
-          <button onClick={onClose} className="group secondary-gradient text-foreground px-6 py-3 rounded-xl tech-shadow smooth-transition hover:scale-105">
+        <div className="modal-footer">
+          <button onClick={onClose} className="web3-button secondary">
             No Grazie
           </button>
-          <button onClick={handleGenerateQRCode} className="group primary-gradient text-primary-foreground px-6 py-3 rounded-xl tech-shadow smooth-transition hover:scale-105 flex items-center gap-2">
+          <button onClick={handleGenerateQRCode} className="web3-button">
             Genera QrCode
-            <QrCode className="w-5 h-5" />
           </button>
         </div>
       </div>
@@ -1809,36 +2521,35 @@ const InfoModal: React.FC<{
   onClose: () => void;
 }> = ({ onClose }) => {
   return (
-    <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4" onClick={onClose}>
-      <div className="glass-card rounded-3xl p-6 md:p-8 tech-shadow w-full max-w-2xl max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl md:text-3xl font-bold text-foreground">Informazioni Iscrizioni</h2>
-          <button onClick={onClose} className="w-8 h-8 rounded-full bg-card/50 text-muted-foreground flex items-center justify-center hover:bg-card smooth-transition">
-            <X className="w-5 h-5" />
-          </button>
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-header">
+          <h2>Informazioni Iscrizioni</h2>
         </div>
-        <div className="text-muted-foreground text-base leading-relaxed">
-          <h4 className="text-xl font-bold mb-3 text-primary">COME FUNZIONA</h4>
-          <ul className="list-disc list-inside mb-6 space-y-2">
-            <li><strong>Inizializza Nuova Iscrizione:</strong> Crea una nuova iscrizione con i dati base del prodotto</li>
-            <li><strong>Aggiungi Steps:</strong> Registra ogni fase della filiera produttiva</li>
-            <li><strong>Finalizza:</strong> Chiudi l'iscrizione quando completata, non potrai aggiungere nuovi steps</li>
-            <li><strong>Esporta:</strong> Genera certificati PDF o HTML per i tuoi clienti</li>
-          </ul>
+        <div className="modal-body">
+          <div style={{ textAlign: 'left' }}>
+            <h4>COME FUNZIONA</h4>
+            <ul style={{ paddingLeft: '20px', margin: '1rem 0' }}>
+              <li><strong>Inizializza Nuova Iscrizione:</strong> Crea una nuova iscrizione con i dati base del prodotto</li>
+              <li><strong>Aggiungi Steps:</strong> Registra ogni fase della filiera produttiva</li>
+              <li><strong>Finalizza:</strong> Chiudi l'iscrizione quando completata, non potrai aggiungere nuovi steps</li>
+              <li><strong>Esporta:</strong> Genera certificati PDF o HTML per i tuoi clienti</li>
+            </ul>
 
-          <h4 className="text-xl font-bold mb-3 text-primary">Stati dell'iscrizione:</h4>
-          <ul className="list-disc list-inside mb-6 space-y-2">
-            <li><span className="text-green-500 font-semibold">Aperto</span>: Puoi aggiungere nuovi step</li>
-            <li><span className="text-red-500 font-semibold">Chiuso</span>: Finalizzato, pronto per l'esportazione</li>
-          </ul>
+            <h4>Stati dell'iscrizione:</h4>
+            <ul style={{ paddingLeft: '20px', margin: '1rem 0' }}>
+              <li><span style={{ color: '#10b981' }}>Aperto</span>: Puoi aggiungere nuovi step</li>
+              <li><span style={{ color: '#ef4444' }}>Chiuso</span>: Finalizzato, pronto per l'esportazione</li>
+            </ul>
 
-          <h4 className="text-xl font-bold mb-3 text-primary">Riguardo i Costi:</h4>
-          <p className="mb-2">Dopo l'attivazione del tuo account avrai a disposizione crediti gratuiti per avviare la tua attività di certificazione su Blockchain.</p>
-          <p className="mb-4">Ogni operazione (nuova iscrizione, aggiunta step, finalizzazione) consuma 1 credito.</p>
-          <p>Se hai bisogno di piu' crediti per le tue operazioni vai alla pagina <a href="/ricaricacrediti" className="text-primary hover:underline font-medium">Ricarica Crediti</a>.</p>
+            <h4>Riguardo i Costi:</h4>
+            <p>Dopo l'attivazione del tuo account avrai a disposizione crediti gratuiti per avviare la tua attività di certificazione su Blockchain.</p>
+            <p>Ogni operazione (nuova iscrizione, aggiunta step, finalizzazione) consuma 1 credito.</p>
+            <p>Se hai bisogno di piu' crediti per le tue operazioni vai alla pagina <a href="/ricaricacrediti" style={{ color: '#3b82f6', textDecoration: 'none' }}>Ricarica Crediti</a>.</p>
+          </div>
         </div>
-        <div className="text-center mt-8 pt-4 border-t border-border/50">
-          <button onClick={onClose} className="group primary-gradient text-primary-foreground px-6 py-3 rounded-xl tech-shadow smooth-transition hover:scale-105">
+        <div className="modal-footer">
+          <button onClick={onClose} className="web3-button">
             Ho capito
           </button>
         </div>
@@ -1863,14 +2574,6 @@ const AziendaPage: React.FC = () => {
     error: null,
   });
 
-  // currentCompanyData è ora inizializzato con i dati di companyStatus.data
-  const [currentCompanyData, setCurrentCompanyData] = useState<CompanyData>({
-    companyName: "Loading...",
-    credits: 0,
-    status: "inactive",
-  });
-
-
   useEffect(() => {
     if (!account) {
       setCompanyStatus({ isLoading: false, isActive: false, data: null, error: null });
@@ -1880,31 +2583,21 @@ const AziendaPage: React.FC = () => {
     const checkCompanyStatus = async () => {
       setCompanyStatus(prev => ({ ...prev, isLoading: true }));
       try {
-        // Mock della chiamata API
-        await new Promise(resolve => setTimeout(resolve, 800));
-        const mockData = {
-          isActive: true,
-          companyName: "Azienda di Prova",
-          credits: 10,
-          status: "active",
-        };
+        const response = await fetch(`/api/get-company-status?walletAddress=${account.address}`);
+        if (!response.ok) {
+          throw new Error('Errore di rete nella verifica dello stato.');
+        }
+        const data = await response.json();
         setCompanyStatus({
           isLoading: false,
-          isActive: mockData.isActive,
-          data: mockData.isActive ? {
-            companyName: mockData.companyName,
-            credits: mockData.credits,
-            status: mockData.status || 'active'
+          isActive: data.isActive,
+          data: data.isActive ? { 
+            companyName: data.companyName, 
+            credits: data.credits,
+            status: data.status || 'active'
           } : null,
           error: null,
         });
-        if (mockData.isActive) { // Usa mockData per aggiornare currentCompanyData
-          setCurrentCompanyData({
-            companyName: mockData.companyName,
-            credits: mockData.credits,
-            status: mockData.status || 'active'
-          });
-        }
       } catch (err: any) {
         setCompanyStatus({
           isLoading: false,
@@ -1920,19 +2613,11 @@ const AziendaPage: React.FC = () => {
 
   const renderContent = () => {
     if (companyStatus.isLoading) {
-      return (
-        <div className="flex justify-center items-center min-h-[60vh] text-foreground">
-          <p className="text-xl">Verifica stato account in corso...</p>
-        </div>
-      );
+      return <div className="centered-container"><p>Verifica stato account in corso...</p></div>;
     }
 
     if (companyStatus.error) {
-      return (
-        <div className="flex justify-center items-center min-h-[60vh] text-red-500">
-          <p className="text-xl">{companyStatus.error}</p>
-        </div>
-      );
+      return <div className="centered-container"><p style={{ color: "red" }}>{companyStatus.error}</p></div>;
     }
 
     if (companyStatus.isActive && companyStatus.data) {
@@ -1943,27 +2628,21 @@ const AziendaPage: React.FC = () => {
       return <RegistrationForm walletAddress={account.address} />;
     }
 
-    return (
-      <div className="flex justify-center items-center min-h-[60vh] text-foreground">
-        <p className="text-xl">Connetti il wallet per continuare.</p>
-      </div>
-    );
+    return <div className="centered-container"><p>Connetti il wallet per continuare.</p></div>;
   };
 
   if (!account) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
-        <div className="glass-card rounded-3xl p-8 md:p-12 text-center tech-shadow max-w-lg w-full">
-          <h1 className="text-5xl font-bold mb-6 bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
-            Benvenuto
-          </h1>
-          <p className="text-lg text-muted-foreground mb-8">Connetti il tuo wallet per accedere.</p>
-          <ConnectButton
-            client={client}
+      <div className="login-container">
+        <AziendaPageStyles />
+        <div style={{ textAlign: "center" }}>
+          <h1>Benvenuto</h1>
+          <p>Connetti il tuo wallet per accedere.</p>
+          <ConnectButton 
+            client={client} 
             wallets={[inAppWallet()]}
             chain={polygon}
             accountAbstraction={{ chain: polygon, sponsorGas: true }}
-            className="w-full primary-gradient text-primary-foreground text-xl px-8 py-4 rounded-xl tech-shadow hover:scale-105 smooth-transition"
           />
         </div>
       </div>
@@ -1971,20 +2650,22 @@ const AziendaPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background p-4 md:p-8">
-      <header className="glass-card rounded-2xl p-4 md:p-6 tech-shadow mb-8 flex flex-col sm:flex-row justify-between items-center gap-4">
-        <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">EasyChain - Area Privata</h1>
-        <ConnectButton
-          client={client}
-          chain={polygon}
-          accountAbstraction={{ chain: polygon, sponsorGas: true }}
-          className="w-full sm:w-auto primary-gradient text-primary-foreground text-lg px-6 py-3 rounded-xl tech-shadow hover:scale-105 smooth-transition"
-        />
-      </header>
-      <main>
-        {renderContent()}
-      </main>
-    </div>
+    <>
+      <AziendaPageStyles />
+      <div className="app-container-full">
+        <header className="main-header-bar">
+          <h1 className="header-title">EasyChain - Area Privata</h1>
+          <ConnectButton 
+            client={client}
+            chain={polygon}
+            accountAbstraction={{ chain: polygon, sponsorGas: true }}
+          />
+        </header>
+        <main>
+          {renderContent()}
+        </main>
+      </div>
+    </>
   );
 };
 
