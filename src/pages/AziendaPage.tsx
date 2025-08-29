@@ -2,24 +2,23 @@
 // DESCRIZIONE: Versione aggiornata che utilizza Firebase per i dati azienda,
 // implementa il sistema di refresh on-chain e gestisce le iscrizioni con numerazione incrementale.
 // Stili adattati dal file 1.tsx
-// Correzioni: Risoluzione import di file locali e dipendenze esterne tramite mocking.
+// Correzioni: Reintroduzione di mock per thirdweb e componenti locali per risolvere errori di compilazione.
 
 import React, { useState, useEffect } from "react";
+// Importazioni originali di thirdweb e componenti locali commentate per il mocking
 // import { ConnectButton, useActiveAccount, useReadContract, useSendTransaction } from "thirdweb/react";
 // import { createThirdwebClient, getContract, prepareContractCall } from "thirdweb";
 // import { polygon } from "thirdweb/chains";
 // import { inAppWallet } from "thirdweb/wallets";
-// import { supplyChainABI as abi } from "../abi/contractABI"; // Commentato per risolvere l'errore di importazione
-// import "../App.css"; // Commentato per risolvere l'errore di importazione
+// import { supplyChainABI as abi } from "../abi/contractABI";
+// import "../App.css";
 
 // Importa le icone da lucide-react per coerenza con 1.tsx
 import { ArrowRight, CheckCircle, Sparkles, Cpu, Network, Lock, FileText, X, Play, RefreshCw, Info, QrCode, LogOut, Wallet } from 'lucide-react';
 
 // --- MOCK DI DIPENDENZE ESTERNE E LOCALI PER LA COMPILAZIONE ---
-// Poiché le dipendenze esterne (thirdweb) e i file locali (abi, App.css, componenti)
-// non sono risolvibili nell'ambiente di compilazione, li simulo con implementazioni dummy.
-// Questo permette al codice di compilare e alla UI di rendersi, ma la funzionalità
-// blockchain sarà inattiva.
+// Queste implementazioni mock permettono al codice di compilare e alla UI di rendersi,
+// ma le funzionalità blockchain e le interazioni con i componenti locali saranno simulate.
 
 // Mock per thirdweb/react
 const useActiveAccount = () => {
@@ -51,7 +50,7 @@ const useReadContract = ({ queryOptions }: any) => {
   const refetch = () => {
     // Simula il refetch
     console.log("Mock refetch triggered");
-    return { data: ["Mock Company Name Refetched", 105, true] };
+    return { data: ["Mock Company Name Refetched", 105, true] }; // Dati di esempio per il refetch
   };
   return { data, isLoading: loading, refetch };
 };
@@ -99,9 +98,23 @@ const polygon = {
 
 // Mock per thirdweb/wallets
 const inAppWallet = () => {
-  console.log("Mock inAppWallet called");
+  console.log("Mock InAppWallet called");
   return { name: "Mock InApp Wallet" };
 };
+
+// Mock per ConnectButton - per ora un semplice bottone
+const ConnectButton: React.FC<any> = ({ client, wallets, chain, accountAbstraction, className }) => {
+  const account = useActiveAccount();
+  return (
+    <button
+      onClick={() => console.log("Mock ConnectButton clicked")}
+      className={`${className} flex items-center justify-center gap-2`}
+    >
+      <Wallet className="w-5 h-5" /> {account?.address ? truncateText(account.address, 10) : "Connetti Wallet"}
+    </button>
+  );
+};
+
 
 // Mock ABI - In un'applicazione reale, questo verrebbe importato da '../abi/contractABI'.
 const abi: any[] = [
@@ -133,7 +146,6 @@ const abi: any[] = [
     "outputs": [{"name":"","type":"uint256","internalType":"uint256"}],
     "stateMutability": "nonpayable"
   },
-  // Aggiungi qui altre funzioni ABI necessarie se disponibili
 ];
 
 // Mock per RegistrationForm.tsx
@@ -914,7 +926,6 @@ const AddStepModal: React.FC<{
   };
 
   const handleNextStep = () => {
-    // Sostituzione di alert con un approccio basato su stato per i messaggi all'utente
     if (currentStep === 1 && !formData.eventName.trim()) {
       setTxResult({ status: "error", message: "Il campo 'Nome Evento' è obbligatorio." });
       return;
@@ -972,9 +983,10 @@ const AddStepModal: React.FC<{
         // Aggiorna i crediti localmente dopo la transazione (Mock)
         if (account?.address) {
           try {
-            // Mock della chiamata API
             await new Promise(resolve => setTimeout(resolve, 200));
-            onCreditsUpdate(currentCompanyData.credits - 1); // Mock: decrementa i crediti
+            // Qui dovresti avere un modo per ottenere i crediti aggiornati dal tuo backend
+            // Per ora, simulo un decremento
+            onCreditsUpdate(prevCredits => prevCredits - 1); // Questo richiede che onCreditsUpdate accetti un updater function
           } catch (error) {
             console.error("Errore durante l'aggiornamento dei crediti (mock):", error);
           }
@@ -1189,12 +1201,12 @@ const AddStepModal: React.FC<{
         </div>
       </div>
 
-      {txResult && ( // Mostra il modale solo se c'è un txResult
+      {txResult && (
         <TransactionStatusModal
           isOpen={true}
           status={txResult.status}
           message={txResult.message}
-          onClose={() => { setTxResult(null); setLoadingMessage(""); }} // Permetti di chiudere il modale dopo successo/errore
+          onClose={() => { setTxResult(null); setLoadingMessage(""); }}
         />
       )}
     </>
@@ -1235,13 +1247,13 @@ const FinalizeModal: React.FC<{
         clearTimeout(timeoutId);
         setTxResult({ status: "success", message: "Iscrizione finalizzata con successo!" });
 
-        console.log("Transaction hash per finalizzazione (mock):", result.transactionHash);
+        console.log("Transaction hash per finalizzazione:", result.transactionHash);
 
         // Aggiorna i crediti localmente dopo la transazione (Mock)
         if (account?.address) {
           try {
             await new Promise(resolve => setTimeout(resolve, 200));
-            onCreditsUpdate(currentCompanyData.credits - 1); // Mock: decrementa i crediti
+            onCreditsUpdate(prevCredits => prevCredits - 1); // Mock: decrementa i crediti
           } catch (error) {
             console.error("Errore durante l'aggiornamento dei crediti (mock):", error);
           }
@@ -1390,7 +1402,7 @@ const StepsModal: React.FC<{
 const NewInscriptionModal: React.FC<{
   onClose: () => void;
   onSuccess: () => void;
-  onCreditsUpdate: (credits: number) => void;
+  onCreditsUpdate: (credits: number | ((prev: number) => number)) => void; // Aggiornato per accettare una funzione
 }> = ({ onClose, onSuccess, onCreditsUpdate }) => {
   const account = useActiveAccount();
   const { mutate: sendTransaction, isPending } = useSendTransaction();
@@ -1415,7 +1427,6 @@ const NewInscriptionModal: React.FC<{
   };
 
   const handleNextStep = () => {
-    // Sostituzione di alert con un approccio basato su stato per i messaggi all'utente
     if (currentStep === 1 && !formData.name.trim()) {
       setTxResult({ status: "error", message: "Il campo 'Nome Iscrizione' è obbligatorio." });
       return;
@@ -1472,7 +1483,7 @@ const NewInscriptionModal: React.FC<{
         if (account?.address) {
           try {
             await new Promise(resolve => setTimeout(resolve, 200));
-            onCreditsUpdate(currentCompanyData.credits - 1); // Mock: decrementa i crediti
+            onCreditsUpdate(prevCredits => prevCredits - 1); // Mock: decrementa i crediti
           } catch (error) {
             console.error("Errore durante l'aggiornamento dei crediti (mock):", error);
           }
@@ -1852,11 +1863,11 @@ const AziendaPage: React.FC = () => {
     error: null,
   });
 
-  // Mock currentCompanyData for Dashboard to use, as it's not truly set via contract data anymore
+  // currentCompanyData è ora inizializzato con i dati di companyStatus.data
   const [currentCompanyData, setCurrentCompanyData] = useState<CompanyData>({
-    companyName: "Azienda di Prova",
-    credits: 10,
-    status: "active",
+    companyName: "Loading...",
+    credits: 0,
+    status: "inactive",
   });
 
 
@@ -1887,7 +1898,13 @@ const AziendaPage: React.FC = () => {
           } : null,
           error: null,
         });
-        setCurrentCompanyData(mockData); // Update mock global state
+        if (mockData.isActive) { // Usa mockData per aggiornare currentCompanyData
+          setCurrentCompanyData({
+            companyName: mockData.companyName,
+            credits: mockData.credits,
+            status: mockData.status || 'active'
+          });
+        }
       } catch (err: any) {
         setCompanyStatus({
           isLoading: false,
@@ -1941,13 +1958,13 @@ const AziendaPage: React.FC = () => {
             Benvenuto
           </h1>
           <p className="text-lg text-muted-foreground mb-8">Connetti il tuo wallet per accedere.</p>
-          {/* Mock ConnectButton */}
-          <button
-            onClick={() => console.log("Mock ConnectButton clicked")}
-            className="w-full primary-gradient text-primary-foreground text-xl px-8 py-4 rounded-xl tech-shadow hover:scale-105 smooth-transition flex items-center justify-center gap-2"
-          >
-            <Wallet className="w-6 h-6" /> Connetti Wallet
-          </button>
+          <ConnectButton
+            client={client}
+            wallets={[inAppWallet()]}
+            chain={polygon}
+            accountAbstraction={{ chain: polygon, sponsorGas: true }}
+            className="w-full primary-gradient text-primary-foreground text-xl px-8 py-4 rounded-xl tech-shadow hover:scale-105 smooth-transition"
+          />
         </div>
       </div>
     );
@@ -1957,13 +1974,12 @@ const AziendaPage: React.FC = () => {
     <div className="min-h-screen bg-background p-4 md:p-8">
       <header className="glass-card rounded-2xl p-4 md:p-6 tech-shadow mb-8 flex flex-col sm:flex-row justify-between items-center gap-4">
         <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">EasyChain - Area Privata</h1>
-        {/* Mock ConnectButton */}
-        <button
-          onClick={() => console.log("Mock ConnectButton clicked")}
-          className="w-full sm:w-auto primary-gradient text-primary-foreground text-lg px-6 py-3 rounded-xl tech-shadow hover:scale-105 smooth-transition flex items-center justify-center gap-2"
-        >
-          <Wallet className="w-5 h-5" /> {account?.address ? truncateText(account.address, 10) : "Connetti Wallet"}
-        </button>
+        <ConnectButton
+          client={client}
+          chain={polygon}
+          accountAbstraction={{ chain: polygon, sponsorGas: true }}
+          className="w-full sm:w-auto primary-gradient text-primary-foreground text-lg px-6 py-3 rounded-xl tech-shadow hover:scale-105 smooth-transition"
+        />
       </header>
       <main>
         {renderContent()}
