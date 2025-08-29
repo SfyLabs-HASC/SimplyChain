@@ -248,19 +248,19 @@ export default function HomePage() {
                        <FileText className="w-12 h-12 text-primary-foreground" />
                      </div>
                      <div className="text-muted-foreground text-lg leading-relaxed min-h-[180px] flex items-center">
-                       {textPhase >= 1 && (
-                         <p className={`${textPhase === 1 ? 'animate-fade-in' : ''} ${textPhase > 1 ? 'hidden' : ''}`}>
+                       {textPhase === 1 && (
+                         <p className="animate-fade-in">
                            Registrare su blockchain ogni prodotto, passaggio di filiera o contratto significa garantire trasparenza, fiducia e tutela.
                          </p>
                        )}
-                       {textPhase >= 2 && (
-                         <p className={`${textPhase === 2 ? 'animate-fade-in' : ''} ${textPhase > 2 ? 'hidden' : ''}`}>
+                       {textPhase === 2 && (
+                         <p className="animate-fade-in">
                            Ogni dato diventa immutabile e verificabile: 
                            il cliente sa da dove viene ciò che acquista.
                          </p>
                        )}
-                       {textPhase >= 3 && (
-                         <p className={`${textPhase === 3 ? 'animate-fade-in' : ''}`}>
+                       {textPhase === 3 && (
+                         <p className="animate-fade-in">
                            Il produttore difende il proprio lavoro e il Made in Italy si rafforza contro contraffazioni e pratiche scorrette.
                          </p>
                        )}
