@@ -14,76 +14,6 @@ import "../App.css";
 import RegistrationForm from "../components/RegistrationForm";
 import TransactionStatusModal from "../components/TransactionStatusModal";
 
-// --- Tema visivo stile CODICE 1 (solo UI, nessuna logica toccata) ---
-const HomeThemeStyles = () => (
-  <style>{`
-    :root{
-      --bg:#0b0f1a;
-      --card: #0f1626;
-      --muted: #9aa4b2;
-      --border: rgba(255,255,255,0.08);
-      --primary-start:#6366f1;
-      --primary-end:#4f46e5;
-      --accent-start:#ec4899;
-      --accent-end:#a855f7;
-      --white: #ffffff;
-      --shadow: 0 10px 40px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.06);
-    }
-    .bg-background{ background-color: var(--bg); }
-    .bg-card{ background-color: var(--card); }
-    .text-muted-foreground{ color: var(--muted); }
-    .text-primary-foreground{ color: #ffffff; }
-    .text-accent-foreground{ color: #0f0f0f; }
-
-    .tech-pattern{
-      background-image:
-        radial-gradient(rgba(99, 102, 241, 0.12) 1px, transparent 1px),
-        radial-gradient(rgba(236, 72, 153, 0.10) 1px, transparent 1px);
-      background-size: 24px 24px, 36px 36px;
-      background-position: 0 0, 12px 12px;
-    }
-    .hero-gradient{
-      background:
-        radial-gradient(ellipse at top left, rgba(99,102,241,0.18), transparent 40%),
-        radial-gradient(ellipse at bottom right, rgba(236,72,153,0.15), transparent 50%);
-    }
-    .primary-gradient{
-      background: linear-gradient(135deg, var(--primary-start), var(--primary-end));
-    }
-    .accent-gradient{
-      background: linear-gradient(135deg, var(--accent-start), var(--accent-end));
-    }
-    .glass-card{
-      background: rgba(255,255,255,0.05);
-      border: 1px solid var(--border);
-      backdrop-filter: blur(12px);
-    }
-    .tech-shadow{ box-shadow: var(--shadow); }
-
-    .rounded-2xl{ border-radius: 1rem; }
-    .rounded-3xl{ border-radius: 1.5rem; }
-    .rounded-4xl{ border-radius: 2rem; }
-
-    .floating-animation{
-      animation: float 8s ease-in-out infinite;
-    }
-    @keyframes float{
-      0%{ transform: translateY(0px); }
-      50%{ transform: translateY(-12px); }
-      100%{ transform: translateY(0px); }
-    }
-    .pulse-glow{
-      box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.35);
-      animation: pulse 2.5s infinite;
-    }
-    @keyframes pulse{
-      0%{ box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.35); }
-      70%{ box-shadow: 0 0 0 18px rgba(99, 102, 241, 0); }
-      100%{ box-shadow: 0 0 0 0 rgba(99, 102, 241, 0); }
-    }
-  `}</style>
-);
-
 // --- Stili Mobile-First ---
 const AziendaPageStyles = () => (
   <style>{`
@@ -756,16 +686,16 @@ const AziendaPageStyles = () => (
       /* Image modal styles */
       .image-modal-overlay {
         position: fixed;
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        background-color: rgba(0, 0, 0, 0.9),
-        display: flex,
-        justify-content: center,
-        align-items: center,
-        z-index: 1001,
-        padding: 2rem,
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0, 0, 0, 0.9);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1001;
+        padding: 2rem;
       }
 
       .image-modal-content {
@@ -1032,7 +962,7 @@ const contract = getContract({
 const ImageModal: React.FC<{ imageUrl: string; onClose: () => void }> = ({ imageUrl, onClose }) => {
   return (
     <div className="image-modal-overlay" onClick={onClose}>
-      <div className="image-modal-content glass-card tech-shadow rounded-2xl" onClick={(e) => e.stopPropagation()}>
+      <div className="image-modal-content" onClick={(e) => e.stopPropagation()}>
         <img src={imageUrl} alt="Immagine iscrizione" />
       </div>
       <button className="image-modal-close" onClick={onClose}>×</button>
@@ -1255,7 +1185,7 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
         <FullPageLoading message="Aggiornamento dati in corso..." />
       )}
 
-      <div className="dashboard-header-card glass-card tech-shadow rounded-3xl">
+      <div className="dashboard-header-card">
         <div>
           <div className="dashboard-title-section">
             <h2 className="dashboard-title">{currentCompanyData.companyName}</h2>
@@ -1285,90 +1215,88 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
         <button onClick={() => setIsModalOpen(true)} className="web3-button">+ Inizializza Nuova Iscrizione</button>
       </div>
 
-      <div className="glass-card tech-shadow rounded-2xl" style={{ padding: '1rem', marginBottom: '1rem' }}>
-        <div className="inscriptions-section-header">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <h3 className="inscriptions-section-title">Le mie Iscrizioni su Blockchain</h3>
-            <button 
-              className="info-button"
-              onClick={() => setShowInfoModal(true)}
-              style={{
-                background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
-                border: 'none',
-                borderRadius: '50%',
-                width: '30px',
-                height: '30px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                cursor: 'pointer',
-                color: 'white',
-                fontSize: '14px',
-                fontWeight: 'bold',
-                boxShadow: '0 4px 15px rgba(59, 130, 246, 0.3)'
-              }}
-            >
-              ℹ️
-            </button>
-          </div>
-          <div className="refresh-section">
-            <button 
-              className="refresh-button"
-              onClick={handleRefresh}
-              disabled={isRefreshing || refreshCounter === 0}
-            >
-              <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPCEtLSBSZWZyZXNoIGNpcmN1bGFyIGFycm93cyAtLT4KPHBhdGggZD0iTTMgMTJBOSA5IDAgMCAxIDEyIDNWMUwxNiA1TDEyIDlWN0E3IDcgMCAwIDAgNSAxMkgzWiIgZmlsbD0id2hpdGUiLz4KPHBhdGggZD0iTTIxIDEyQTkgOSAwIDAgMSAxMiAyMVYyM0w4IDE5TDEyIDE1VjE3QTcgNyAwIDAgMCAxOSAxMkgyMVoiIGZpbGw9IndoaXRlIi8+Cjwvc3ZnPgo=" alt="refresh" className="refresh-icon" style={{width: '20px', height: '20px'}} />
-              {refreshCounter > 0 && (
-                <div className="refresh-counter">+{refreshCounter}</div>
-              )}
-            </button>
-          </div>
+      <div className="inscriptions-section-header">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <h3 className="inscriptions-section-title">Le mie Iscrizioni su Blockchain</h3>
+          <button 
+            className="info-button"
+            onClick={() => setShowInfoModal(true)}
+            style={{
+              background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+              border: 'none',
+              borderRadius: '50%',
+              width: '30px',
+              height: '30px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              color: 'white',
+              fontSize: '14px',
+              fontWeight: 'bold',
+              boxShadow: '0 4px 15px rgba(59, 130, 246, 0.3)'
+            }}
+          >
+            ℹ️
+          </button>
         </div>
+        <div className="refresh-section">
+          <button 
+            className="refresh-button"
+            onClick={handleRefresh}
+            disabled={isRefreshing || refreshCounter === 0}
+          >
+            <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPCEtLSBSZWZyZXNoIGNpcmN1bGFyIGFycm93cyAtLT4KPHBhdGggZD0iTTMgMTJBOSA5IDAgMCAxIDEyIDNWMUwxNiA1TDEyIDlWN0E3IDcgMCAwIDAgNSAxMkgzWiIgZmlsbD0id2hpdGUiLz4KPHBhdGggZD0iTTIxIDEyQTkgOSAwIDAgMSAxMiAyMVYyM0w4IDE5TDEyIDE1VjE3QTcgNyAwIDAgMCAxOSAxMkgyMVoiIGZpbGw9IndoaXRlIi8+Cjwvc3ZnPgo=" alt="refresh" className="refresh-icon" style={{width: '20px', height: '20px'}} />
+            {refreshCounter > 0 && (
+              <div className="refresh-counter">+{refreshCounter}</div>
+            )}
+          </button>
+        </div>
+      </div>
 
-        <div className="inscriptions-filters glass-card tech-shadow rounded-2xl">
-          <div className="filter-group">
-            <label className="filter-label">Nome</label>
-            <input
-              type="text"
-              className="filter-input"
-              value={nameFilter}
-              onChange={(e) => setNameFilter(e.target.value)}
-            />
-          </div>
-          <div className="filter-group">
-            <label className="filter-label">Luogo</label>
-            <input
-              type="text"
-              className="filter-input"
-              value={locationFilter}
-              onChange={(e) => setLocationFilter(e.target.value)}
-            />
-          </div>
-          <div className="filter-group">
-            <label className="filter-label">Stato</label>
-            <select
-              className="filter-input"
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value as "Aperto" | "Chiuso" | "")}
-            >
-              <option value="">Tutti</option>
-              <option value="Aperto">Aperto</option>
-              <option value="Chiuso">Chiuso</option>
-            </select>
-          </div>
+      <div className="inscriptions-filters">
+        <div className="filter-group">
+          <label className="filter-label">Nome</label>
+          <input
+            type="text"
+            className="filter-input"
+            value={nameFilter}
+            onChange={(e) => setNameFilter(e.target.value)}
+          />
+        </div>
+        <div className="filter-group">
+          <label className="filter-label">Luogo</label>
+          <input
+            type="text"
+            className="filter-input"
+            value={locationFilter}
+            onChange={(e) => setLocationFilter(e.target.value)}
+          />
+        </div>
+        <div className="filter-group">
+          <label className="filter-label">Stato</label>
+          <select
+            className="filter-input"
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value as "Aperto" | "Chiuso" | "")}
+          >
+            <option value="">Tutti</option>
+            <option value="Aperto">Aperto</option>
+            <option value="Chiuso">Chiuso</option>
+          </select>
         </div>
       </div>
 
       {isLoadingBatches && !showFullPageLoading ? (
-        <div className="loading-error-container glass-card tech-shadow rounded-2xl"><p>Caricamento delle tue iscrizioni...</p></div>
+        <div className="loading-error-container"><p>Caricamento delle tue iscrizioni...</p></div>
       ) : errorBatches ? (
-        <div className="loading-error-container glass-card tech-shadow rounded-2xl"><p style={{ color: 'red' }}>{errorBatches}</p></div>
+        <div className="loading-error-container"><p style={{ color: 'red' }}>{errorBatches}</p></div>
       ) : (
         <>
           <div className="inscriptions-grid">
             {currentItems.length > 0 ? (
               currentItems.map((batch) => (
-                <div key={batch.batchId} className="inscription-card glass-card tech-shadow rounded-3xl">
+                <div key={batch.batchId} className="inscription-card">
                   <h3>#{getBatchDisplayNumber(batch.batchId)} - {batch.name}</h3>
                   <p><strong>Descrizione:</strong> {batch.description ? truncateText(batch.description, window.innerWidth < 768 ? 80 : 100) : "N/D"}</p>
                   <p><strong>Data:</strong> {formatItalianDate(batch.date)}</p>
@@ -1456,7 +1384,7 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
                 </div>
               ))
             ) : (
-              <div className="empty-state glass-card tech-shadow rounded-2xl">
+              <div className="empty-state">
                 <p>Non hai ancora inizializzato nessuna iscrizione con questo account.</p>
                 <p style={{ fontSize: '0.8rem', marginTop: '0.5rem', opacity: 0.7 }}>
                   Clicca su "Inizializza Nuova Iscrizione" per iniziare
@@ -1774,7 +1702,7 @@ const AddStepModal: React.FC<{
   return (
     <>
       <div className="modal-overlay" onClick={onClose}>
-        <div className="modal-content glass-card tech-shadow rounded-3xl" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-content" onClick={(e) => e.stopPropagation()}>
           <div className="modal-header">
             <h2>Aggiungi step all'iscrizione ({currentStep}/6)</h2>
           </div>
@@ -2050,7 +1978,7 @@ const FinalizeModal: React.FC<{
   return (
     <>
       <div className="modal-overlay" onClick={onClose}>
-        <div className="modal-content glass-card tech-shadow rounded-3xl" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-content" onClick={(e) => e.stopPropagation()}>
           <div className="modal-header">
             <h2>Finalizza Iscrizione</h2>
           </div>
@@ -2093,14 +2021,14 @@ const StepsModal: React.FC<{
   return (
     <>
       <div className="steps-modal-overlay" onClick={onClose}>
-        <div className="steps-modal-content glass-card tech-shadow rounded-3xl" onClick={(e) => e.stopPropagation()}>
+        <div className="steps-modal-content" onClick={(e) => e.stopPropagation()}>
           <div className="steps-modal-header">
             <h2>Steps - {batch.name}</h2>
           </div>
           <div className="steps-modal-body">
             {batch.steps && batch.steps.length > 0 ? (
               batch.steps.map((step, index) => (
-                <div key={index} className="step-card glass-card tech-shadow">
+                <div key={index} className="step-card">
                   <h4>Step {index + 1}: {step.eventName}</h4>
                   <p><strong>📄 Descrizione:</strong> {step.description || "N/D"}</p>
                   <p><strong>📅 Data:</strong> {formatItalianDate(step.date)}</p>
@@ -2313,7 +2241,7 @@ const NewInscriptionModal: React.FC<{
   return (
     <>
       <div className="modal-overlay" onClick={onClose}>
-        <div className="modal-content glass-card tech-shadow rounded-3xl" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-content" onClick={(e) => e.stopPropagation()}>
           <div className="modal-header">
             <h2>Nuova Iscrizione ({currentStep}/6)</h2>
           </div>
@@ -2504,7 +2432,7 @@ const ExportTypeModal: React.FC<{
 }> = ({ batch, onClose, onSelectType }) => {
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content glass-card tech-shadow rounded-3xl" onClick={(e) => e.stopPropagation()}>
+      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h2>Informazioni Esportazione</h2>
         </div>
@@ -2566,7 +2494,7 @@ const QRCodeOfferModal: React.FC<{
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content glass-card tech-shadow rounded-3xl" onClick={(e) => e.stopPropagation()}>
+      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h2>Crea QR Code</h2>
         </div>
@@ -2594,7 +2522,7 @@ const InfoModal: React.FC<{
 }> = ({ onClose }) => {
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content glass-card tech-shadow rounded-3xl" onClick={(e) => e.stopPropagation()}>
+      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h2>Informazioni Iscrizioni</h2>
         </div>
@@ -2705,49 +2633,28 @@ const AziendaPage: React.FC = () => {
 
   if (!account) {
     return (
-      <div className="min-h-screen bg-background relative overflow-hidden">
-        <HomeThemeStyles />
+      <div className="login-container">
         <AziendaPageStyles />
-        <div className="absolute inset-0 tech-pattern"></div>
-        <div className="absolute inset-0 hero-gradient opacity-20"></div>
-
-        <div className="login-container relative z-10">
-          <div className="glass-card tech-shadow rounded-3xl" style={{ padding: '2.5rem', textAlign: 'center', maxWidth: 560, width: '100%' }}>
-            <h1 style={{
-              margin: 0, marginBottom: '1rem', fontSize: '2rem', fontWeight: 800,
-              background: 'linear-gradient(90deg, #fff, #9aa4b2)',
-              WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent'
-            }}>Benvenuto</h1>
-            <p className="text-muted-foreground" style={{ marginBottom: '1.5rem' }}>Connetti il tuo wallet per accedere.</p>
-            <ConnectButton 
-              client={client} 
-              wallets={[inAppWallet()]}
-              chain={polygon}
-              accountAbstraction={{ chain: polygon, sponsorGas: true }}
-            />
-          </div>
+        <div style={{ textAlign: "center" }}>
+          <h1>Benvenuto</h1>
+          <p>Connetti il tuo wallet per accedere.</p>
+          <ConnectButton 
+            client={client} 
+            wallets={[inAppWallet()]}
+            chain={polygon}
+            accountAbstraction={{ chain: polygon, sponsorGas: true }}
+          />
         </div>
-
-        <div className="absolute top-24 left-10 w-16 h-16 primary-gradient rounded-3xl opacity-25 floating-animation"></div>
-        <div className="absolute bottom-24 right-10 w-20 h-20 accent-gradient rounded-3xl opacity-20 floating-animation" style={{ animationDelay: '1.5s' }}></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background relative overflow-hidden">
-      <HomeThemeStyles />
+    <>
       <AziendaPageStyles />
-      <div className="absolute inset-0 tech-pattern"></div>
-      <div className="absolute inset-0 hero-gradient opacity-20"></div>
-
-      <div className="app-container-full relative z-10">
-        <header className="main-header-bar glass-card tech-shadow rounded-3xl">
-          <h1 className="header-title" style={{
-            background: 'linear-gradient(90deg, #fff, #9aa4b2)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent'
-          }}>EasyChain - Area Privata</h1>
+      <div className="app-container-full">
+        <header className="main-header-bar">
+          <h1 className="header-title">EasyChain - Area Privata</h1>
           <ConnectButton 
             client={client}
             chain={polygon}
@@ -2758,10 +2665,7 @@ const AziendaPage: React.FC = () => {
           {renderContent()}
         </main>
       </div>
-
-      <div className="absolute top-16 -left-6 w-24 h-24 primary-gradient rounded-3xl opacity-20 floating-animation"></div>
-      <div className="absolute bottom-10 -right-6 w-28 h-28 accent-gradient rounded-3xl opacity-15 floating-animation" style={{ animationDelay: '2s' }}></div>
-    </div>
+    </>
   );
 };
 
