@@ -2429,7 +2429,7 @@ const InfoModal: React.FC<{
   );
 };
 
-// Componente Principale "Controllore"
+// Componente Principale "Controllore"b
 const AziendaPage: React.FC = () => {
   const account = useActiveAccount();
 
