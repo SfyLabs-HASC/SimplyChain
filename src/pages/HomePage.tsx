@@ -1,7 +1,21 @@
 import { Link } from "react-router-dom";
-import { Shield, Zap, Globe, Users, ArrowRight, CheckCircle, Sparkles, Cpu, Network, Lock, FileText } from 'lucide-react';
+import { Shield, Zap, Globe, Users, ArrowRight, CheckCircle, Sparkles, Cpu, Network, Lock, FileText, X, Play } from 'lucide-react';
+import { useState, useEffect } from 'react';
 
 export default function HomePage() {
+  const [isVideoOpen, setIsVideoOpen] = useState(false);
+  const [textPhase, setTextPhase] = useState(1);
+
+  useEffect(() => {
+    const timer1 = setTimeout(() => setTextPhase(2), 4000);
+    const timer2 = setTimeout(() => setTextPhase(3), 8000);
+    
+    return () => {
+      clearTimeout(timer1);
+      clearTimeout(timer2);
+    };
+  }, []);
+
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
@@ -42,9 +56,13 @@ export default function HomePage() {
                   <ArrowRight className="w-6 h-6 group-hover:translate-x-1 smooth-transition" />
                 </button>
               </Link>
-              <a href="https://www.youtube.com/watch?v=LMA4RyMwn7s" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-accent smooth-transition text-lg underline decoration-accent/50 hover:decoration-accent">
+              <button
+                onClick={() => setIsVideoOpen(true)}
+                className="text-muted-foreground hover:text-accent smooth-transition text-lg underline decoration-accent/50 hover:decoration-accent flex items-center gap-2"
+              >
+                <Play className="w-5 h-5" />
                 Guarda Video
-              </a>
+              </button>
             </div>
             
             {/* Stats */}
@@ -177,9 +195,9 @@ export default function HomePage() {
               </p>
               
               <div className="space-y-8">
-                <div className="glass-card rounded-2xl p-8 smooth-transition hover:tech-shadow group">
+                <div className="glass-card rounded-2xl p-8">
                   <div className="flex items-start gap-6">
-                    <div className="w-16 h-16 primary-gradient rounded-2xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 smooth-transition">
+                    <div className="w-16 h-16 primary-gradient rounded-2xl flex items-center justify-center flex-shrink-0">
                       <Lock className="w-8 h-8 text-primary-foreground" />
                     </div>
                     <div>
@@ -191,9 +209,9 @@ export default function HomePage() {
                   </div>
                 </div>
                 
-                <div className="glass-card rounded-2xl p-8 smooth-transition hover:tech-shadow group">
+                <div className="glass-card rounded-2xl p-8">
                   <div className="flex items-start gap-6">
-                    <div className="w-16 h-16 accent-gradient rounded-2xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 smooth-transition">
+                    <div className="w-16 h-16 accent-gradient rounded-2xl flex items-center justify-center flex-shrink-0">
                       <Network className="w-8 h-8 text-accent-foreground" />
                     </div>
                     <div>
@@ -205,9 +223,9 @@ export default function HomePage() {
                   </div>
                 </div>
                 
-                <div className="glass-card rounded-2xl p-8 smooth-transition hover:tech-shadow group">
+                <div className="glass-card rounded-2xl p-8">
                   <div className="flex items-start gap-6">
-                    <div className="w-16 h-16 primary-gradient rounded-2xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 smooth-transition">
+                    <div className="w-16 h-16 primary-gradient rounded-2xl flex items-center justify-center flex-shrink-0">
                       <Shield className="w-8 h-8 text-primary-foreground" />
                     </div>
                     <div>
@@ -225,14 +243,29 @@ export default function HomePage() {
               <div className="glass-card rounded-4xl p-12 tech-shadow floating-animation">
                 <div className="w-full h-96 bg-gradient-to-br from-primary/20 via-accent/10 to-primary/20 rounded-3xl flex items-center justify-center relative overflow-hidden">
                   <div className="absolute inset-0 tech-pattern opacity-30"></div>
-                  <div className="text-center relative z-10 max-w-md">
-                    <div className="w-24 h-24 primary-gradient rounded-3xl flex items-center justify-center mx-auto mb-6 pulse-glow">
-                      <FileText className="w-12 h-12 text-primary-foreground" />
-                    </div>
-                    <p className="text-muted-foreground text-lg leading-relaxed">
-                      Registrare su blockchain ogni prodotto, passaggio di filiera o contratto significa garantire trasparenza, fiducia e tutela. Ogni dato diventa immutabile e verificabile: il cliente sa da dove viene ciò che acquista, il produttore difende il proprio lavoro e il Made in Italy si rafforza contro contraffazioni e pratiche scorrette.
-                    </p>
-                  </div>
+                   <div className="text-center relative z-10 max-w-md">
+                     <div className="w-24 h-24 primary-gradient rounded-3xl flex items-center justify-center mx-auto mb-6 pulse-glow">
+                       <FileText className="w-12 h-12 text-primary-foreground" />
+                     </div>
+                     <div className="text-muted-foreground text-lg leading-relaxed min-h-[180px] flex items-center">
+                       {textPhase >= 1 && (
+                         <p className={`${textPhase === 1 ? 'animate-fade-in' : ''} ${textPhase > 1 ? 'hidden' : ''}`}>
+                           Registrare su blockchain ogni prodotto, passaggio di filiera o contratto significa garantire trasparenza, fiducia e tutela.
+                         </p>
+                       )}
+                       {textPhase >= 2 && (
+                         <p className={`${textPhase === 2 ? 'animate-fade-in' : ''} ${textPhase > 2 ? 'hidden' : ''}`}>
+                           Ogni dato diventa immutabile e verificabile: 
+                           il cliente sa da dove viene ciò che acquista.
+                         </p>
+                       )}
+                       {textPhase >= 3 && (
+                         <p className={`${textPhase === 3 ? 'animate-fade-in' : ''}`}>
+                           Il produttore difende il proprio lavoro e il Made in Italy si rafforza contro contraffazioni e pratiche scorrette.
+                         </p>
+                       )}
+                     </div>
+                   </div>
                 </div>
               </div>
               
@@ -378,6 +411,35 @@ export default function HomePage() {
           </div>
         </div>
       </footer>
+
+      {/* Video Popup Modal */}
+      {isVideoOpen && (
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"
+          onClick={() => setIsVideoOpen(false)}
+        >
+          <div 
+            className="relative w-full max-w-5xl mx-4 bg-background rounded-2xl overflow-hidden tech-shadow"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setIsVideoOpen(false)}
+              className="absolute top-4 right-4 z-10 w-10 h-10 bg-black/50 hover:bg-black/70 rounded-full flex items-center justify-center smooth-transition"
+            >
+              <X className="w-6 h-6 text-white" />
+            </button>
+            <div className="aspect-video">
+              <iframe
+                src="https://www.youtube.com/embed/LMA4RyMwn7s?autoplay=1&rel=0"
+                title="EasyChain Video"
+                className="w-full h-full"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
