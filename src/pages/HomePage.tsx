@@ -1,54 +1,76 @@
 import { Link } from "react-router-dom";
-import { FilePlus2, GitBranchPlus, ShieldCheck, KeyRound, Link as LinkIcon, ShieldAlert, Shield, Lock } from 'lucide-react';
-import { HeroBackground } from "../components/HeroBackground";
+import { Shield, Zap, Globe, Users, ArrowRight, CheckCircle, Sparkles, Cpu, Network, Lock } from 'lucide-react';
 
 export default function HomePage() {
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-        {/* Background with gradient */}
-        <div className="absolute inset-0 z-0">
-          <div className="absolute inset-0 hero-gradient opacity-90"></div>
-          <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-accent/10"></div>
-        </div>
+        {/* Animated Background */}
+        <div className="absolute inset-0 tech-pattern"></div>
+        <div className="absolute inset-0 hero-gradient opacity-20"></div>
+        
+        {/* Floating Elements */}
+        <div className="absolute top-20 left-10 w-20 h-20 primary-gradient rounded-full opacity-20 floating-animation"></div>
+        <div className="absolute top-40 right-20 w-16 h-16 accent-gradient rounded-full opacity-30 floating-animation" style={{animationDelay: '2s'}}></div>
+        <div className="absolute bottom-40 left-20 w-12 h-12 primary-gradient rounded-full opacity-25 floating-animation" style={{animationDelay: '4s'}}></div>
         
         {/* Content */}
         <div className="relative z-10 container mx-auto px-6 text-center">
-          <div className="max-w-4xl mx-auto">
-            <h1 className="text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent leading-tight">
-              Benvenuto su Easy Chain
+          <div className="max-w-5xl mx-auto">
+            {/* Badge */}
+            <div className="inline-flex items-center gap-2 glass-card rounded-full px-6 py-3 mb-8 pulse-glow">
+              <Sparkles className="w-5 h-5 text-accent" />
+              <span className="text-sm font-medium">Innovazione Blockchain Made in Italy</span>
+            </div>
+            
+            <h1 className="text-6xl md:text-8xl font-bold mb-8 bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent leading-tight">
+              EasyChain
             </h1>
-            <p className="text-xl md:text-2xl text-muted-foreground mb-8 max-w-3xl mx-auto leading-relaxed">
-              La soluzione semplice e sicura per certificare la tua filiera produttiva su blockchain. 
-              Per aziende italiane che vogliono innovare senza complessità.
+            
+            <p className="text-2xl md:text-3xl font-light text-muted-foreground mb-6 max-w-4xl mx-auto leading-relaxed">
+              La <span className="text-accent font-medium">rivoluzione blockchain</span> per la certificazione
+            </p>
+            <p className="text-xl md:text-2xl text-muted-foreground mb-12 max-w-3xl mx-auto leading-relaxed">
+              Semplice, sicura e potente. Per aziende italiane che vogliono innovare senza complessità.
             </p>
             
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
+            <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-16">
               <Link to="/azienda">
-                <button className="primary-gradient text-lg px-8 py-4 rounded-xl blockchain-glow smooth-transition hover:scale-105 text-primary-foreground font-semibold">
-                  ISCRIVITI / ACCEDI
+                <button className="group primary-gradient text-xl px-10 py-5 rounded-2xl tech-shadow smooth-transition hover:scale-105 text-primary-foreground font-semibold flex items-center gap-3">
+                  Inizia Gratis
+                  <ArrowRight className="w-6 h-6 group-hover:translate-x-1 smooth-transition" />
                 </button>
               </Link>
-              <Link to="/admin" className="text-muted-foreground hover:text-accent smooth-transition">
+              <Link to="/admin" className="text-muted-foreground hover:text-accent smooth-transition text-lg underline decoration-accent/50 hover:decoration-accent">
                 Accesso Amministratore
               </Link>
             </div>
             
-            <div className="glass-card rounded-2xl p-6 max-w-2xl mx-auto">
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-6 text-sm">
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 bg-accent rounded-full animate-pulse"></div>
-                  <span>50 Crediti Gratuiti</span>
+            {/* Stats */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+              <div className="glass-card rounded-3xl p-8 tech-shadow">
+                <div className="flex items-center justify-center gap-3 mb-4">
+                  <div className="w-4 h-4 bg-accent rounded-full animate-pulse"></div>
+                  <span className="text-3xl font-bold text-accent">50+</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 bg-primary rounded-full animate-pulse"></div>
-                  <span>Blockchain Polygon</span>
+                <p className="text-muted-foreground font-medium">Crediti Gratuiti</p>
+              </div>
+              
+              <div className="glass-card rounded-3xl p-8 tech-shadow">
+                <div className="flex items-center justify-center gap-3 mb-4">
+                  <Network className="w-6 h-6 text-primary" />
+                  <span className="text-lg font-semibold text-primary">Polygon</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 bg-accent rounded-full animate-pulse"></div>
-                  <span>Sicurezza Garantita</span>
+                <p className="text-muted-foreground font-medium">Blockchain Sicura</p>
+              </div>
+              
+              <div className="glass-card rounded-3xl p-8 tech-shadow">
+                <div className="flex items-center justify-center gap-3 mb-4">
+                  <Shield className="w-6 h-6 text-accent" />
+                  <span className="text-lg font-semibold text-accent">100%</span>
                 </div>
+                <p className="text-muted-foreground font-medium">Sicurezza Garantita</p>
               </div>
             </div>
           </div>
@@ -56,51 +78,77 @@ export default function HomePage() {
       </section>
 
       {/* Process Section */}
-      <section className="py-24 bg-background">
-        <div className="container mx-auto px-6">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold mb-6">
+      <section className="py-32 bg-card/30 relative overflow-hidden">
+        <div className="absolute inset-0 tech-pattern opacity-30"></div>
+        <div className="container mx-auto px-6 relative z-10">
+          <div className="text-center mb-20">
+            <div className="inline-flex items-center gap-2 glass-card rounded-full px-6 py-3 mb-8">
+              <Cpu className="w-5 h-5 text-primary" />
+              <span className="text-sm font-medium">Processo Semplificato</span>
+            </div>
+            <h2 className="text-5xl md:text-6xl font-bold mb-8 bg-gradient-to-r from-foreground to-muted-foreground bg-clip-text text-transparent">
               Come Funziona EasyChain
             </h2>
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-              Tre semplici passaggi per certificare la tua filiera produttiva su blockchain
+              Tre semplici passaggi per rivoluzionare la tua filiera produttiva
             </p>
           </div>
           
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="text-center">
-              <div className="glass-card rounded-3xl p-8 mb-6 smooth-transition hover:blockchain-glow">
-                <div className="w-16 h-16 accent-gradient rounded-2xl flex items-center justify-center mx-auto mb-6">
-                  <span className="text-2xl font-bold text-accent-foreground">1</span>
+          <div className="grid lg:grid-cols-3 gap-12">
+            {/* Step 1 */}
+            <div className="relative group">
+              <div className="glass-card rounded-4xl p-10 smooth-transition hover:tech-shadow group-hover:scale-105">
+                <div className="relative mb-8">
+                  <div className="w-20 h-20 accent-gradient rounded-3xl flex items-center justify-center mx-auto mb-6 pulse-glow">
+                    <span className="text-3xl font-bold text-accent-foreground">1</span>
+                  </div>
+                  <div className="absolute -top-2 -right-2 w-8 h-8 primary-gradient rounded-full opacity-60 animate-bounce"></div>
                 </div>
-                <h3 className="text-2xl font-semibold mb-4">Registra i Tuoi Prodotti</h3>
-                <p className="text-muted-foreground leading-relaxed">
-                  Carica le informazioni dei tuoi prodotti nella piattaforma EasyChain
+                <h3 className="text-2xl font-bold mb-6 text-center">Registra i Tuoi Prodotti</h3>
+                <p className="text-muted-foreground leading-relaxed text-center mb-6">
+                  Carica le informazioni dei tuoi prodotti nella piattaforma EasyChain con un processo intuitivo
                 </p>
+                <div className="flex justify-center">
+                  <div className="w-16 h-1 accent-gradient rounded-full"></div>
+                </div>
               </div>
             </div>
             
-            <div className="text-center">
-              <div className="glass-card rounded-3xl p-8 mb-6 smooth-transition hover:blockchain-glow">
-                <div className="w-16 h-16 primary-gradient rounded-2xl flex items-center justify-center mx-auto mb-6">
-                  <span className="text-2xl font-bold text-primary-foreground">2</span>
+            {/* Step 2 */}
+            <div className="relative group">
+              <div className="glass-card rounded-4xl p-10 smooth-transition hover:tech-shadow group-hover:scale-105">
+                <div className="relative mb-8">
+                  <div className="w-20 h-20 primary-gradient rounded-3xl flex items-center justify-center mx-auto mb-6 pulse-glow">
+                    <span className="text-3xl font-bold text-primary-foreground">2</span>
+                  </div>
+                  <div className="absolute -top-2 -right-2 w-8 h-8 accent-gradient rounded-full opacity-60 animate-bounce" style={{animationDelay: '0.5s'}}></div>
                 </div>
-                <h3 className="text-2xl font-semibold mb-4">Traccia il Percorso</h3>
-                <p className="text-muted-foreground leading-relaxed">
-                  Monitora ogni movimento e trasformazione lungo la supply chain
+                <h3 className="text-2xl font-bold mb-6 text-center">Traccia il Percorso</h3>
+                <p className="text-muted-foreground leading-relaxed text-center mb-6">
+                  Monitora ogni movimento e trasformazione lungo la supply chain in tempo reale
                 </p>
+                <div className="flex justify-center">
+                  <div className="w-16 h-1 primary-gradient rounded-full"></div>
+                </div>
               </div>
             </div>
             
-            <div className="text-center">
-              <div className="glass-card rounded-3xl p-8 mb-6 smooth-transition hover:blockchain-glow">
-                <div className="w-16 h-16 accent-gradient rounded-2xl flex items-center justify-center mx-auto mb-6">
-                  <span className="text-2xl font-bold text-accent-foreground">3</span>
+            {/* Step 3 */}
+            <div className="relative group">
+              <div className="glass-card rounded-4xl p-10 smooth-transition hover:tech-shadow group-hover:scale-105">
+                <div className="relative mb-8">
+                  <div className="w-20 h-20 accent-gradient rounded-3xl flex items-center justify-center mx-auto mb-6 pulse-glow">
+                    <span className="text-3xl font-bold text-accent-foreground">3</span>
+                  </div>
+                  <div className="absolute -top-2 -right-2 w-8 h-8 primary-gradient rounded-full opacity-60 animate-bounce" style={{animationDelay: '1s'}}></div>
                 </div>
-                <h3 className="text-2xl font-semibold mb-4">Verifica l'Autenticità</h3>
-                <p className="text-muted-foreground leading-relaxed">
-                  Consumatori e partner possono verificare istantaneamente ogni prodotto
+                <h3 className="text-2xl font-bold mb-6 text-center">Verifica l'Autenticità</h3>
+                <p className="text-muted-foreground leading-relaxed text-center mb-6">
+                  Consumatori e partner possono verificare istantaneamente l'autenticità di ogni prodotto
                 </p>
+                <div className="flex justify-center">
+                  <div className="w-16 h-1 accent-gradient rounded-full"></div>
+                </div>
               </div>
             </div>
           </div>
@@ -108,50 +156,62 @@ export default function HomePage() {
       </section>
 
       {/* Security Section */}
-      <section className="py-24 bg-card/30">
-        <div className="container mx-auto px-6">
-          <div className="grid lg:grid-cols-2 gap-16 items-center">
+      <section className="py-32 bg-background relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-accent/5"></div>
+        <div className="container mx-auto px-6 relative z-10">
+          <div className="grid lg:grid-cols-2 gap-20 items-center">
             <div>
-              <h2 className="text-4xl md:text-5xl font-bold mb-6">
+              <div className="inline-flex items-center gap-2 glass-card rounded-full px-6 py-3 mb-8">
+                <Shield className="w-5 h-5 text-primary" />
+                <span className="text-sm font-medium">Sicurezza Avanzata</span>
+              </div>
+              
+              <h2 className="text-5xl md:text-6xl font-bold mb-8 bg-gradient-to-r from-foreground to-muted-foreground bg-clip-text text-transparent">
                 Sicurezza e Affidabilità
               </h2>
               <p className="text-xl text-muted-foreground mb-12 leading-relaxed">
                 La nostra piattaforma utilizza la tecnologia blockchain più avanzata per garantire 
-                l'immutabilità e la sicurezza dei tuoi dati.
+                l'immutabilità e la sicurezza assoluta dei tuoi dati.
               </p>
               
-              <div className="space-y-6">
-                <div className="glass-card rounded-xl p-6 smooth-transition hover:blockchain-glow">
-                  <div className="flex items-start gap-4">
-                    <div className="text-3xl flex-shrink-0">🔐</div>
+              <div className="space-y-8">
+                <div className="glass-card rounded-2xl p-8 smooth-transition hover:tech-shadow group">
+                  <div className="flex items-start gap-6">
+                    <div className="w-16 h-16 primary-gradient rounded-2xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 smooth-transition">
+                      <Lock className="w-8 h-8 text-primary-foreground" />
+                    </div>
                     <div>
-                      <h3 className="text-lg font-semibold mb-2">Crittografia End-to-End</h3>
-                      <p className="text-muted-foreground">
-                        Tutti i dati sono protetti con crittografia di livello militare
+                      <h3 className="text-xl font-bold mb-3">Crittografia End-to-End</h3>
+                      <p className="text-muted-foreground leading-relaxed">
+                        Tutti i dati sono protetti con crittografia di livello militare e protocolli di sicurezza avanzati
                       </p>
                     </div>
                   </div>
                 </div>
                 
-                <div className="glass-card rounded-xl p-6 smooth-transition hover:blockchain-glow">
-                  <div className="flex items-start gap-4">
-                    <div className="text-3xl flex-shrink-0">⛓️</div>
+                <div className="glass-card rounded-2xl p-8 smooth-transition hover:tech-shadow group">
+                  <div className="flex items-start gap-6">
+                    <div className="w-16 h-16 accent-gradient rounded-2xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 smooth-transition">
+                      <Network className="w-8 h-8 text-accent-foreground" />
+                    </div>
                     <div>
-                      <h3 className="text-lg font-semibold mb-2">Blockchain Immutabile</h3>
-                      <p className="text-muted-foreground">
-                        Una volta registrati, i dati non possono essere modificati o cancellati
+                      <h3 className="text-xl font-bold mb-3">Blockchain Immutabile</h3>
+                      <p className="text-muted-foreground leading-relaxed">
+                        Una volta registrati, i dati diventano immutabili e verificabili per sempre sulla blockchain
                       </p>
                     </div>
                   </div>
                 </div>
                 
-                <div className="glass-card rounded-xl p-6 smooth-transition hover:blockchain-glow">
-                  <div className="flex items-start gap-4">
-                    <div className="text-3xl flex-shrink-0">🛡️</div>
+                <div className="glass-card rounded-2xl p-8 smooth-transition hover:tech-shadow group">
+                  <div className="flex items-start gap-6">
+                    <div className="w-16 h-16 primary-gradient rounded-2xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 smooth-transition">
+                      <Shield className="w-8 h-8 text-primary-foreground" />
+                    </div>
                     <div>
-                      <h3 className="text-lg font-semibold mb-2">Audit Continuo</h3>
-                      <p className="text-muted-foreground">
-                        Monitoraggio 24/7 e audit di sicurezza regolari
+                      <h3 className="text-xl font-bold mb-3">Monitoraggio 24/7</h3>
+                      <p className="text-muted-foreground leading-relaxed">
+                        Controllo continuo e audit di sicurezza automatici per garantire massima protezione
                       </p>
                     </div>
                   </div>
@@ -160,105 +220,196 @@ export default function HomePage() {
             </div>
             
             <div className="relative">
-              <div className="glass-card rounded-3xl p-8 blockchain-glow">
-                <div className="w-full h-80 bg-gradient-to-br from-primary/20 via-accent/10 to-primary/20 rounded-2xl flex items-center justify-center">
-                  <div className="text-center">
-                    <div className="text-6xl mb-4">🔒</div>
-                    <h4 className="text-xl font-semibold mb-2">Sicurezza Blockchain</h4>
-                    <p className="text-muted-foreground">Protezione di livello enterprise</p>
+              <div className="glass-card rounded-4xl p-12 tech-shadow floating-animation">
+                <div className="w-full h-96 bg-gradient-to-br from-primary/20 via-accent/10 to-primary/20 rounded-3xl flex items-center justify-center relative overflow-hidden">
+                  <div className="absolute inset-0 tech-pattern opacity-30"></div>
+                  <div className="text-center relative z-10">
+                    <div className="w-24 h-24 primary-gradient rounded-3xl flex items-center justify-center mx-auto mb-6 pulse-glow">
+                      <Shield className="w-12 h-12 text-primary-foreground" />
+                    </div>
+                    <h4 className="text-2xl font-bold mb-4">Sicurezza Blockchain</h4>
+                    <p className="text-muted-foreground text-lg">Protezione di livello enterprise</p>
                   </div>
                 </div>
               </div>
-              <div className="absolute -top-6 -right-6 w-24 h-24 accent-gradient rounded-full opacity-20 animate-pulse"></div>
-              <div className="absolute -bottom-6 -left-6 w-32 h-32 primary-gradient rounded-full opacity-20 animate-pulse"></div>
+              
+              {/* Floating decorative elements */}
+              <div className="absolute -top-8 -right-8 w-32 h-32 accent-gradient rounded-full opacity-20 floating-animation"></div>
+              <div className="absolute -bottom-8 -left-8 w-40 h-40 primary-gradient rounded-full opacity-15 floating-animation" style={{animationDelay: '3s'}}></div>
+              <div className="absolute top-1/2 -right-4 w-16 h-16 accent-gradient rounded-full opacity-25 floating-animation" style={{animationDelay: '1.5s'}}></div>
             </div>
           </div>
         </div>
       </section>
 
       {/* CTA Section */}
-      <section className="py-24 bg-background">
-        <div className="container mx-auto px-6">
-          <div className="text-center max-w-4xl mx-auto">
-            <h2 className="text-4xl md:text-5xl font-bold mb-6">
-              Inizia la Tua Trasformazione Digitale
+      <section className="py-32 bg-card/20 relative overflow-hidden">
+        <div className="absolute inset-0 tech-pattern opacity-20"></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-transparent to-accent/10"></div>
+        
+        <div className="container mx-auto px-6 relative z-10">
+          <div className="text-center max-w-5xl mx-auto">
+            <div className="inline-flex items-center gap-2 glass-card rounded-full px-6 py-3 mb-8">
+              <Zap className="w-5 h-5 text-accent" />
+              <span className="text-sm font-medium">Inizia Subito</span>
+            </div>
+            
+            <h2 className="text-5xl md:text-7xl font-bold mb-8 bg-gradient-to-r from-foreground via-primary to-accent bg-clip-text text-transparent">
+              La Tua Rivoluzione Digitale
             </h2>
-            <p className="text-xl text-muted-foreground mb-12 leading-relaxed">
-              Unisciti alle aziende che hanno già scelto EasyChain per certificare la loro 
-              filiera produttiva. Inizia oggi stesso con 50 crediti gratuiti!
+            <p className="text-xl text-muted-foreground mb-16 leading-relaxed max-w-3xl mx-auto">
+              Unisciti alle aziende che hanno già scelto EasyChain per trasformare la loro 
+              filiera produttiva. <span className="text-accent font-semibold">Inizia oggi stesso!</span>
             </p>
             
-            <div className="glass-card rounded-3xl p-12 blockchain-glow">
-              <div className="grid md:grid-cols-3 gap-8 mb-12">
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-primary mb-2">50+</div>
-                  <div className="text-muted-foreground">Crediti Gratuiti</div>
+            {/* Enhanced CTA Card */}
+            <div className="glass-card rounded-4xl p-16 tech-shadow relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5"></div>
+              
+              <div className="grid md:grid-cols-3 gap-12 mb-16 relative z-10">
+                <div className="text-center group">
+                  <div className="w-20 h-20 accent-gradient rounded-3xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 smooth-transition pulse-glow">
+                    <span className="text-2xl font-bold text-accent-foreground">50+</span>
+                  </div>
+                  <div className="text-lg font-semibold mb-2">Crediti Gratuiti</div>
+                  <div className="text-muted-foreground">Per iniziare subito</div>
                 </div>
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-accent mb-2">100%</div>
-                  <div className="text-muted-foreground">Sicuro</div>
+                
+                <div className="text-center group">
+                  <div className="w-20 h-20 primary-gradient rounded-3xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 smooth-transition pulse-glow">
+                    <CheckCircle className="w-10 h-10 text-primary-foreground" />
+                  </div>
+                  <div className="text-lg font-semibold mb-2">100% Sicuro</div>
+                  <div className="text-muted-foreground">Blockchain verificata</div>
                 </div>
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-primary mb-2">24/7</div>
-                  <div className="text-muted-foreground">Supporto</div>
+                
+                <div className="text-center group">
+                  <div className="w-20 h-20 accent-gradient rounded-3xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 smooth-transition pulse-glow">
+                    <Users className="w-10 h-10 text-accent-foreground" />
+                  </div>
+                  <div className="text-lg font-semibold mb-2">Supporto 24/7</div>
+                  <div className="text-muted-foreground">Assistenza dedicata</div>
                 </div>
               </div>
               
-              <Link to="/azienda">
-                <button className="primary-gradient text-xl px-12 py-6 rounded-2xl blockchain-glow smooth-transition hover:scale-105 text-primary-foreground font-semibold">
-                  Registra la tua Azienda
-                </button>
-              </Link>
+              <div className="relative z-10">
+                <Link to="/azienda">
+                  <button className="group primary-gradient text-2xl px-16 py-8 rounded-3xl tech-shadow smooth-transition hover:scale-105 text-primary-foreground font-bold flex items-center gap-4 mx-auto">
+                    Registra la tua Azienda
+                    <ArrowRight className="w-8 h-8 group-hover:translate-x-2 smooth-transition" />
+                  </button>
+                </Link>
+                
+                <p className="text-muted-foreground mt-6 text-lg">
+                  Registrazione gratuita • Nessun costo nascosto • Attivazione immediata
+                </p>
+              </div>
+              
+              {/* Decorative elements */}
+              <div className="absolute top-8 left-8 w-16 h-16 primary-gradient rounded-full opacity-20 floating-animation"></div>
+              <div className="absolute bottom-8 right-8 w-20 h-20 accent-gradient rounded-full opacity-15 floating-animation" style={{animationDelay: '2s'}}></div>
             </div>
           </div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="bg-card/50 border-t border-border/50 py-16">
-        <div className="container mx-auto px-6">
-          <div className="grid md:grid-cols-4 gap-8">
+      <footer className="bg-card/50 border-t border-border/20 py-20 relative overflow-hidden">
+        <div className="absolute inset-0 tech-pattern opacity-10"></div>
+        <div className="container mx-auto px-6 relative z-10">
+          <div className="grid md:grid-cols-4 gap-12">
             {/* Brand */}
             <div className="col-span-2">
-              <h3 className="text-2xl font-bold mb-4 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-                EasyChain
-              </h3>
-              <p className="text-muted-foreground mb-6 max-w-md">
-                La soluzione blockchain semplice e sicura per la certificazione 
-                della filiera produttiva delle aziende italiane.
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-12 h-12 primary-gradient rounded-2xl flex items-center justify-center">
+                  <Network className="w-6 h-6 text-primary-foreground" />
+                </div>
+                <h3 className="text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                  EasyChain
+                </h3>
+              </div>
+              <p className="text-muted-foreground mb-8 max-w-md text-lg leading-relaxed">
+                La rivoluzione blockchain per la certificazione delle filiere produttive italiane. 
+                Semplice, sicura, innovativa.
               </p>
-              <div className="glass-card rounded-xl p-4">
-                <h4 className="font-semibold mb-2">Proprietario del servizio:</h4>
-                <p className="text-accent font-semibold">SFY srl</p>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Email: sfy.startup@gmail.com
+              <div className="glass-card rounded-2xl p-6 tech-shadow">
+                <h4 className="font-bold mb-3 text-lg">Proprietario del servizio:</h4>
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-8 h-8 accent-gradient rounded-xl flex items-center justify-center">
+                    <Globe className="w-4 h-4 text-accent-foreground" />
+                  </div>
+                  <p className="text-accent font-bold text-lg">SFY srl</p>
+                </div>
+                <p className="text-muted-foreground">
+                  📧 sfy.startup@gmail.com
                 </p>
               </div>
             </div>
             
             {/* Links */}
             <div>
-              <h4 className="font-semibold mb-4">Piattaforma</h4>
-              <ul className="space-y-2 text-muted-foreground">
-                <li><Link to="/azienda" className="hover:text-primary smooth-transition">Accesso Aziende</Link></li>
-                <li><Link to="/admin" className="hover:text-primary smooth-transition">Accesso Admin</Link></li>
-                <li><Link to="/contatti" className="hover:text-primary smooth-transition">Contatti</Link></li>
+              <h4 className="font-bold mb-6 text-lg">Piattaforma</h4>
+              <ul className="space-y-4">
+                <li>
+                  <Link to="/azienda" className="text-muted-foreground hover:text-primary smooth-transition flex items-center gap-2 group">
+                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 smooth-transition" />
+                    Accesso Aziende
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/admin" className="text-muted-foreground hover:text-primary smooth-transition flex items-center gap-2 group">
+                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 smooth-transition" />
+                    Accesso Admin
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/contatti" className="text-muted-foreground hover:text-primary smooth-transition flex items-center gap-2 group">
+                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 smooth-transition" />
+                    Contatti
+                  </Link>
+                </li>
               </ul>
             </div>
             
             {/* Legal */}
             <div>
-              <h4 className="font-semibold mb-4">Legale</h4>
-              <ul className="space-y-2 text-muted-foreground">
-                <li><Link to="/privacy" className="hover:text-primary smooth-transition">Privacy Policy</Link></li>
-                <li><Link to="/terms" className="hover:text-primary smooth-transition">Termini di Servizio</Link></li>
-                <li><Link to="/cookies" className="hover:text-primary smooth-transition">Cookie Policy</Link></li>
+              <h4 className="font-bold mb-6 text-lg">Informazioni Legali</h4>
+              <ul className="space-y-4">
+                <li>
+                  <Link to="/privacy" className="text-muted-foreground hover:text-primary smooth-transition flex items-center gap-2 group">
+                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 smooth-transition" />
+                    Privacy Policy
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/terms" className="text-muted-foreground hover:text-primary smooth-transition flex items-center gap-2 group">
+                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 smooth-transition" />
+                    Termini di Servizio
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/cookies" className="text-muted-foreground hover:text-primary smooth-transition flex items-center gap-2 group">
+                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 smooth-transition" />
+                    Cookie Policy
+                  </Link>
+                </li>
               </ul>
             </div>
           </div>
           
-          <div className="border-t border-border/50 mt-12 pt-8 text-center text-muted-foreground">
-            <p>&copy; 2024 SFY srl. Tutti i diritti riservati. Powered by blockchain Polygon.</p>
+          <div className="border-t border-border/20 mt-16 pt-8">
+            <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+              <p className="text-muted-foreground text-center md:text-left">
+                &copy; 2024 SFY srl. Tutti i diritti riservati.
+              </p>
+              <div className="flex items-center gap-2">
+                <span className="text-muted-foreground">Powered by</span>
+                <div className="flex items-center gap-2 glass-card rounded-full px-4 py-2">
+                  <Network className="w-4 h-4 text-primary" />
+                  <span className="text-primary font-semibold">Polygon</span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </footer>
