@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Shield, Zap, Globe, Users, ArrowRight, CheckCircle, Sparkles, Cpu, Network, Lock } from 'lucide-react';
+import { Shield, Zap, Globe, Users, ArrowRight, CheckCircle, Sparkles, Cpu, Network, Lock, FileText } from 'lucide-react';
 
 export default function HomePage() {
   return (
@@ -24,7 +24,7 @@ export default function HomePage() {
               <span className="text-sm font-medium">Innovazione Blockchain Made in Italy</span>
             </div>
             
-            <h1 className="text-6xl md:text-8xl font-bold mb-8 bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent leading-tight">
+            <h1 className="text-6xl md:text-8xl font-bold mb-8 bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent leading-none pb-4">
               EasyChain
             </h1>
             
@@ -38,13 +38,13 @@ export default function HomePage() {
             <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-16">
               <Link to="/azienda">
                 <button className="group primary-gradient text-xl px-10 py-5 rounded-2xl tech-shadow smooth-transition hover:scale-105 text-primary-foreground font-semibold flex items-center gap-3">
-                  Inizia Gratis
+                  Accedi
                   <ArrowRight className="w-6 h-6 group-hover:translate-x-1 smooth-transition" />
                 </button>
               </Link>
-              <Link to="/admin" className="text-muted-foreground hover:text-accent smooth-transition text-lg underline decoration-accent/50 hover:decoration-accent">
-                Accesso Amministratore
-              </Link>
+              <a href="https://www.youtube.com/watch?v=LMA4RyMwn7s" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-accent smooth-transition text-lg underline decoration-accent/50 hover:decoration-accent">
+                Guarda Video
+              </a>
             </div>
             
             {/* Stats */}
@@ -52,17 +52,19 @@ export default function HomePage() {
               <div className="glass-card rounded-3xl p-8 tech-shadow">
                 <div className="flex items-center justify-center gap-3 mb-4">
                   <div className="w-4 h-4 bg-accent rounded-full animate-pulse"></div>
-                  <span className="text-3xl font-bold text-accent">50+</span>
+                  <span className="text-lg font-semibold text-accent">Inizia Gratis</span>
                 </div>
-                <p className="text-muted-foreground font-medium">Crediti Gratuiti</p>
+                <p className="text-muted-foreground font-medium">Crediti Inclusi</p>
               </div>
               
               <div className="glass-card rounded-3xl p-8 tech-shadow">
                 <div className="flex items-center justify-center gap-3 mb-4">
-                  <Network className="w-6 h-6 text-primary" />
-                  <span className="text-lg font-semibold text-primary">Polygon</span>
+                  <a href="https://polygon.technology/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 hover:scale-105 smooth-transition">
+                    <Network className="w-6 h-6 text-primary" />
+                    <span className="text-lg font-semibold text-primary">Polygon</span>
+                  </a>
                 </div>
-                <p className="text-muted-foreground font-medium">Blockchain Sicura</p>
+                <p className="text-muted-foreground font-medium">Rete Decentralizzata</p>
               </div>
               
               <div className="glass-card rounded-3xl p-8 tech-shadow">
@@ -70,7 +72,7 @@ export default function HomePage() {
                   <Shield className="w-6 h-6 text-accent" />
                   <span className="text-lg font-semibold text-accent">100%</span>
                 </div>
-                <p className="text-muted-foreground font-medium">Sicurezza Garantita</p>
+                <p className="text-muted-foreground font-medium">Immutabilità Garantita</p>
               </div>
             </div>
           </div>
@@ -96,8 +98,8 @@ export default function HomePage() {
           
           <div className="grid lg:grid-cols-3 gap-12">
             {/* Step 1 */}
-            <div className="relative group">
-              <div className="glass-card rounded-4xl p-10 smooth-transition hover:tech-shadow group-hover:scale-105">
+            <div className="relative">
+              <div className="glass-card rounded-4xl p-10 tech-shadow">
                 <div className="relative mb-8">
                   <div className="w-20 h-20 accent-gradient rounded-3xl flex items-center justify-center mx-auto mb-6 pulse-glow">
                     <span className="text-3xl font-bold text-accent-foreground">1</span>
@@ -115,8 +117,8 @@ export default function HomePage() {
             </div>
             
             {/* Step 2 */}
-            <div className="relative group">
-              <div className="glass-card rounded-4xl p-10 smooth-transition hover:tech-shadow group-hover:scale-105">
+            <div className="relative">
+              <div className="glass-card rounded-4xl p-10 tech-shadow">
                 <div className="relative mb-8">
                   <div className="w-20 h-20 primary-gradient rounded-3xl flex items-center justify-center mx-auto mb-6 pulse-glow">
                     <span className="text-3xl font-bold text-primary-foreground">2</span>
@@ -134,8 +136,8 @@ export default function HomePage() {
             </div>
             
             {/* Step 3 */}
-            <div className="relative group">
-              <div className="glass-card rounded-4xl p-10 smooth-transition hover:tech-shadow group-hover:scale-105">
+            <div className="relative">
+              <div className="glass-card rounded-4xl p-10 tech-shadow">
                 <div className="relative mb-8">
                   <div className="w-20 h-20 accent-gradient rounded-3xl flex items-center justify-center mx-auto mb-6 pulse-glow">
                     <span className="text-3xl font-bold text-accent-foreground">3</span>
@@ -223,12 +225,13 @@ export default function HomePage() {
               <div className="glass-card rounded-4xl p-12 tech-shadow floating-animation">
                 <div className="w-full h-96 bg-gradient-to-br from-primary/20 via-accent/10 to-primary/20 rounded-3xl flex items-center justify-center relative overflow-hidden">
                   <div className="absolute inset-0 tech-pattern opacity-30"></div>
-                  <div className="text-center relative z-10">
+                  <div className="text-center relative z-10 max-w-md">
                     <div className="w-24 h-24 primary-gradient rounded-3xl flex items-center justify-center mx-auto mb-6 pulse-glow">
-                      <Shield className="w-12 h-12 text-primary-foreground" />
+                      <FileText className="w-12 h-12 text-primary-foreground" />
                     </div>
-                    <h4 className="text-2xl font-bold mb-4">Sicurezza Blockchain</h4>
-                    <p className="text-muted-foreground text-lg">Protezione di livello enterprise</p>
+                    <p className="text-muted-foreground text-lg leading-relaxed">
+                      Registrare su blockchain ogni prodotto, passaggio di filiera o contratto significa garantire trasparenza, fiducia e tutela. Ogni dato diventa immutabile e verificabile: il cliente sa da dove viene ciò che acquista, il produttore difende il proprio lavoro e il Made in Italy si rafforza contro contraffazioni e pratiche scorrette.
+                    </p>
                   </div>
                 </div>
               </div>
@@ -254,7 +257,7 @@ export default function HomePage() {
               <span className="text-sm font-medium">Inizia Subito</span>
             </div>
             
-            <h2 className="text-5xl md:text-7xl font-bold mb-8 bg-gradient-to-r from-foreground via-primary to-accent bg-clip-text text-transparent">
+            <h2 className="text-5xl md:text-7xl font-bold mb-8 bg-gradient-to-r from-foreground via-primary to-accent bg-clip-text text-transparent leading-none pb-4">
               La Tua Rivoluzione Digitale
             </h2>
             <p className="text-xl text-muted-foreground mb-16 leading-relaxed max-w-3xl mx-auto">
@@ -266,32 +269,6 @@ export default function HomePage() {
             <div className="glass-card rounded-4xl p-16 tech-shadow relative overflow-hidden">
               <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5"></div>
               
-              <div className="grid md:grid-cols-3 gap-12 mb-16 relative z-10">
-                <div className="text-center group">
-                  <div className="w-20 h-20 accent-gradient rounded-3xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 smooth-transition pulse-glow">
-                    <span className="text-2xl font-bold text-accent-foreground">50+</span>
-                  </div>
-                  <div className="text-lg font-semibold mb-2">Crediti Gratuiti</div>
-                  <div className="text-muted-foreground">Per iniziare subito</div>
-                </div>
-                
-                <div className="text-center group">
-                  <div className="w-20 h-20 primary-gradient rounded-3xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 smooth-transition pulse-glow">
-                    <CheckCircle className="w-10 h-10 text-primary-foreground" />
-                  </div>
-                  <div className="text-lg font-semibold mb-2">100% Sicuro</div>
-                  <div className="text-muted-foreground">Blockchain verificata</div>
-                </div>
-                
-                <div className="text-center group">
-                  <div className="w-20 h-20 accent-gradient rounded-3xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 smooth-transition pulse-glow">
-                    <Users className="w-10 h-10 text-accent-foreground" />
-                  </div>
-                  <div className="text-lg font-semibold mb-2">Supporto 24/7</div>
-                  <div className="text-muted-foreground">Assistenza dedicata</div>
-                </div>
-              </div>
-              
               <div className="relative z-10">
                 <Link to="/azienda">
                   <button className="group primary-gradient text-2xl px-16 py-8 rounded-3xl tech-shadow smooth-transition hover:scale-105 text-primary-foreground font-bold flex items-center gap-4 mx-auto">
@@ -301,7 +278,7 @@ export default function HomePage() {
                 </Link>
                 
                 <p className="text-muted-foreground mt-6 text-lg">
-                  Registrazione gratuita • Nessun costo nascosto • Attivazione immediata
+                  Registrazione gratuita • Nessun costo nascosto • Attivazione su verifica
                 </p>
               </div>
               
@@ -348,20 +325,8 @@ export default function HomePage() {
             
             {/* Links */}
             <div>
-              <h4 className="font-bold mb-6 text-lg">Piattaforma</h4>
+              <h4 className="font-bold mb-6 text-lg">Contatti</h4>
               <ul className="space-y-4">
-                <li>
-                  <Link to="/azienda" className="text-muted-foreground hover:text-primary smooth-transition flex items-center gap-2 group">
-                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 smooth-transition" />
-                    Accesso Aziende
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/admin" className="text-muted-foreground hover:text-primary smooth-transition flex items-center gap-2 group">
-                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 smooth-transition" />
-                    Accesso Admin
-                  </Link>
-                </li>
                 <li>
                   <Link to="/contatti" className="text-muted-foreground hover:text-primary smooth-transition flex items-center gap-2 group">
                     <ArrowRight className="w-4 h-4 group-hover:translate-x-1 smooth-transition" />
@@ -404,10 +369,10 @@ export default function HomePage() {
               </p>
               <div className="flex items-center gap-2">
                 <span className="text-muted-foreground">Powered by</span>
-                <div className="flex items-center gap-2 glass-card rounded-full px-4 py-2">
+                <a href="https://polygon.technology/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 glass-card rounded-full px-4 py-2 hover:scale-105 smooth-transition">
                   <Network className="w-4 h-4 text-primary" />
                   <span className="text-primary font-semibold">Polygon</span>
-                </div>
+                </a>
               </div>
             </div>
           </div>
