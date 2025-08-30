@@ -1,4 +1,3 @@
-
 // PERCORSO FILE: api/get-contract-events.ts
 // DESCRIZIONE: Funzione unificata che gestisce sia eventi blockchain che dati Firebase
 // basandosi sul parametro 'source' nella query
@@ -41,6 +40,7 @@ function serializeBigInts(obj: any): any {
   return newObj;
 }
 
+// *** MODIFICA QUI PER RECUPERARE TUTTI GLI EVENTI ***
 async function handleBlockchainEvents(userAddress: string) {
   const secretKey = process.env.THIRDWEB_SECRET_KEY;
   if (!secretKey) {
@@ -50,7 +50,15 @@ async function handleBlockchainEvents(userAddress: string) {
   const client = createThirdwebClient({ secretKey });
   const contract = getContract({ client, chain: polygon, address: CONTRACT_ADDRESS, abi: supplyChainABI });
 
-  const allEvents = await getContractEvents({ contract });
+  // Blocco di deploy del contratto. Lo puoi trovare su PolygonScan
+  // Sostituisci questo numero con il blocco reale se è diverso.
+  const DEPLOY_BLOCK = 50269000; 
+
+  const allEvents = await getContractEvents({
+    contract,
+    fromBlock: BigInt(DEPLOY_BLOCK),
+    toBlock: 'latest' as const
+  });
 
   const userBatches = allEvents.filter(event => {
     if (event.eventName !== 'BatchInitialized') {
@@ -98,6 +106,7 @@ async function handleBlockchainEvents(userAddress: string) {
 
   return serializeBigInts(combinedData);
 }
+// *** FINE MODIFICA ***
 
 async function handleFirebaseData(address: string) {
   initializeFirebaseAdmin();
@@ -132,9 +141,8 @@ export default async function handler(
   try {
     const { userAddress, address, source } = req.query;
     
-    // Determina quale indirizzo usare e quale fonte di dati
     const targetAddress = (userAddress || address) as string;
-    const dataSource = source as string || 'blockchain'; // default: blockchain
+    const dataSource = source as string || 'blockchain';
 
     if (!targetAddress || typeof targetAddress !== 'string') {
       return res.status(400).json({ error: "Il parametro 'userAddress' o 'address' è obbligatorio." });
@@ -143,11 +151,9 @@ export default async function handler(
     let result;
     
     if (dataSource === 'firebase') {
-      // Gestisce i dati da Firebase (ex get-my-batches)
       result = await handleFirebaseData(targetAddress);
       return res.status(200).json(result);
     } else {
-      // Gestisce gli eventi dalla blockchain (comportamento originale)
       result = await handleBlockchainEvents(targetAddress);
       return res.status(200).json({ events: result });
     }
