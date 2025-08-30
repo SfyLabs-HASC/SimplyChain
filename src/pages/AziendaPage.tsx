@@ -22,13 +22,13 @@ import TransactionStatusModal from "../components/TransactionStatusModal";
 const AziendaPageStyles = () => (
   <style>{`
       /* Mobile-first base styles */
-      .app-container-full { 
+      .min-h-screen bg-background px-6 py-6 container mx-auto { 
         padding: 1rem; 
         min-height: 100vh;
         background-color: #0f0f0f;
       }
 
-      .main-header-bar { 
+      .flex flex-col md:flex-row items-center justify-between gap-4 bg-card/60 p-6 rounded-2xl border border-border { 
         display: flex; 
         flex-direction: column;
         gap: 1rem;
@@ -39,14 +39,14 @@ const AziendaPageStyles = () => (
         border: 1px solid #333;
       }
 
-      .header-title { 
+      .text-2xl md:text-3xl font-bold text-foreground { 
         font-size: 1.5rem; 
         font-weight: bold; 
         color: #ffffff;
         text-align: center;
       }
 
-      .login-container, .centered-container { 
+      .flex flex-col items-center justify-center min-h-[60vh] text-center p-6, .flex flex-col items-center justify-center min-h-[60vh] text-center p-6 { 
         display: flex; 
         flex-direction: column; 
         justify-content: center; 
@@ -56,7 +56,7 @@ const AziendaPageStyles = () => (
         padding: 1rem;
       }
 
-      .dashboard-header-card { 
+      .glass-card rounded-3xl p-6 tech-shadow flex flex-col md:flex-row justify-between items-center gap-6 { 
         background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
         color: #ffffff; 
         padding: 1.5rem; 
@@ -69,27 +69,27 @@ const AziendaPageStyles = () => (
         gap: 1rem;
       }
 
-      .dashboard-title-section {
+      .flex items-center gap-4 flex-wrap {
         display: flex;
         align-items: center;
         gap: 1rem;
         flex-wrap: wrap;
       }
 
-      .dashboard-title { 
+      .text-2xl md:text-3xl font-extrabold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent { 
         font-size: 1.5rem; 
         font-weight: 700;
         color: #ffffff;
         margin: 0;
       }
 
-      .dashboard-info {
+      .flex flex-col md:flex-row gap-4 items-center {
         display: flex;
         flex-direction: column;
         gap: 1rem;
       }
 
-      .dashboard-info-item {
+      .flex flex-col md:flex-row gap-4 items-center-item {
         display: flex;
         align-items: center;
         gap: 1rem;
@@ -140,13 +140,13 @@ const AziendaPageStyles = () => (
         margin: 0;
       }
 
-      .refresh-section {
+      .flex items-center gap-2 {
         display: flex;
         align-items: center;
         gap: 0.5rem;
       }
 
-      .refresh-button {
+      .w-12 h-12 rounded-full flex items-center justify-center primary-gradient shadow-md hover:scale-105 transition {
         background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
         border: none;
         border-radius: 50%;
@@ -161,19 +161,19 @@ const AziendaPageStyles = () => (
         box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
       }
 
-      .refresh-button:hover {
+      .w-12 h-12 rounded-full flex items-center justify-center primary-gradient shadow-md hover:scale-105 transition:hover {
         background: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%);
         transform: translateY(-2px);
         box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
       }
 
-      .refresh-button:disabled {
+      .w-12 h-12 rounded-full flex items-center justify-center primary-gradient shadow-md hover:scale-105 transition:disabled {
         opacity: 0.6;
         cursor: not-allowed;
         transform: none;
       }
 
-      .refresh-icon {
+      .w-5 h-5 text-white {
         color: white;
         font-size: 1.5rem;
       }
@@ -223,7 +223,7 @@ const AziendaPageStyles = () => (
         100% { transform: rotate(360deg); }
       }
 
-      .web3-button { 
+      .primary-gradient text-white px-4 py-2 rounded-2xl font-semibold hover:scale-105 transition { 
         background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
         color: white; 
         padding: 1rem 1.5rem; 
@@ -238,29 +238,29 @@ const AziendaPageStyles = () => (
         box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
       }
 
-      .web3-button:hover { 
+      .primary-gradient text-white px-4 py-2 rounded-2xl font-semibold hover:scale-105 transition:hover { 
         background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
         transform: translateY(-2px);
         box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
       }
 
-      .web3-button.secondary {
+      .primary-gradient text-white px-4 py-2 rounded-2xl font-semibold hover:scale-105 transition.secondary {
         background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
         box-shadow: 0 4px 15px rgba(107, 114, 128, 0.3);
       }
 
-      .web3-button.secondary:hover {
+      .primary-gradient text-white px-4 py-2 rounded-2xl font-semibold hover:scale-105 transition.secondary:hover {
         background: linear-gradient(135deg, #4b5563 0%, #374151 100%);
         box-shadow: 0 6px 20px rgba(107, 114, 128, 0.4);
       }
 
-      .inscriptions-grid { 
+      .grid gap-6 md:grid-cols-2 lg:grid-cols-3 { 
         display: flex;
         flex-direction: column;
         gap: 1rem;
       }
 
-      .inscription-card { 
+      .glass-card rounded-2xl p-6 tech-shadow hover:shadow-lg transition { 
         background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
         border-radius: 1rem; 
         padding: 1.5rem; 
@@ -270,13 +270,13 @@ const AziendaPageStyles = () => (
         position: relative;
       }
 
-      .inscription-card:hover {
+      .glass-card rounded-2xl p-6 tech-shadow hover:shadow-lg transition:hover {
         transform: translateY(-2px);
         box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
         border-color: #3b82f6;
       }
 
-      .inscription-card h3 { 
+      .glass-card rounded-2xl p-6 tech-shadow hover:shadow-lg transition h3 { 
         font-size: 1.1rem; 
         font-weight: 600; 
         color: #ffffff; 
@@ -286,7 +286,7 @@ const AziendaPageStyles = () => (
         word-wrap: break-word; 
       }
 
-      .inscription-card p { 
+      .glass-card rounded-2xl p-6 tech-shadow hover:shadow-lg transition p { 
         margin: 0.75rem 0; 
         color: #a0a0a0; 
         font-size: 0.85rem; 
@@ -294,23 +294,23 @@ const AziendaPageStyles = () => (
         word-wrap: break-word; 
       }
 
-      .inscription-card strong { 
+      .glass-card rounded-2xl p-6 tech-shadow hover:shadow-lg transition strong { 
         color: #ffffff; 
         font-weight: 600;
       }
 
-      .inscription-card a { 
+      .glass-card rounded-2xl p-6 tech-shadow hover:shadow-lg transition a { 
         color: #60a5fa; 
         text-decoration: none; 
         font-weight: 500;
         transition: color 0.2s ease;
       }
 
-      .inscription-card a:hover {
+      .glass-card rounded-2xl p-6 tech-shadow hover:shadow-lg transition a:hover {
         color: #3b82f6;
       }
 
-      .inscription-footer {
+      .flex justify-between items-center mt-4 {
         display: flex;
         justify-content: space-between;
         align-items: center;
@@ -319,22 +319,22 @@ const AziendaPageStyles = () => (
         border-top: 1px solid #333;
       }
 
-      .steps-count {
+      .text-sm text-muted-foreground {
         font-size: 0.8rem;
         color: #a0a0a0;
       }
 
-      .status-open {
+      .text-green-500 font-semibold {
         color: #10b981;
         font-weight: 600;
       }
 
-      .status-closed {
+      .text-red-500 font-semibold {
         color: #ef4444;
         font-weight: 600;
       }
 
-      .add-step-button {
+      .bg-emerald-500 text-white px-3 py-2 rounded-md hover:scale-105 transition {
         background: linear-gradient(135deg, #10b981 0%, #059669 100%);
         color: white;
         border: none;
@@ -345,12 +345,12 @@ const AziendaPageStyles = () => (
         transition: all 0.3s ease;
       }
 
-      .add-step-button:hover {
+      .bg-emerald-500 text-white px-3 py-2 rounded-md hover:scale-105 transition:hover {
         background: linear-gradient(135deg, #059669 0%, #047857 100%);
         transform: translateY(-1px);
       }
 
-      .export-button {
+      .primary-gradient text-white px-3 py-2 rounded-md hover:scale-105 transition {
         background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
         color: white;
         border: none;
@@ -362,18 +362,18 @@ const AziendaPageStyles = () => (
         position: relative;
       }
 
-      .export-button:hover:not(:disabled) {
+      .primary-gradient text-white px-3 py-2 rounded-md hover:scale-105 transition:hover:not(:disabled) {
         background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
         transform: translateY(-1px);
       }
 
-      .export-button:disabled {
+      .primary-gradient text-white px-3 py-2 rounded-md hover:scale-105 transition:disabled {
         background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
         cursor: not-allowed;
         opacity: 0.6;
       }
 
-      .view-steps-button {
+      .accent-gradient text-white px-3 py-2 rounded-md hover:scale-105 transition {
         background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
         color: white;
         border: none;
@@ -384,23 +384,23 @@ const AziendaPageStyles = () => (
         transition: all 0.3s ease;
       }
 
-      .view-steps-button:hover {
+      .accent-gradient text-white px-3 py-2 rounded-md hover:scale-105 transition:hover {
         background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
         transform: translateY(-1px);
       }
 
-      .view-steps-button.disabled {
+      .accent-gradient text-white px-3 py-2 rounded-md hover:scale-105 transition.disabled {
         background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
         cursor: not-allowed;
         opacity: 0.6;
       }
 
-      .view-steps-button.disabled:hover {
+      .accent-gradient text-white px-3 py-2 rounded-md hover:scale-105 transition.disabled:hover {
         background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
         transform: none;
       }
 
-      .tooltip {
+      .absolute bottom-full left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-sm py-1 px-2 rounded {
         position: absolute;
         bottom: 100%;
         left: 50%;
@@ -417,7 +417,7 @@ const AziendaPageStyles = () => (
         transition: opacity 0.2s;
       }
 
-      .tooltip::after {
+      .absolute bottom-full left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-sm py-1 px-2 rounded::after {
         content: '';
         position: absolute;
         top: 100%;
@@ -427,11 +427,11 @@ const AziendaPageStyles = () => (
         border-top-color: #1f2937;
       }
 
-      .export-button:hover .tooltip {
+      .primary-gradient text-white px-3 py-2 rounded-md hover:scale-105 transition:hover .absolute bottom-full left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-sm py-1 px-2 rounded {
         opacity: 1;
       }
 
-      .steps-modal-overlay {
+      .fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4 {
         position: fixed;
         top: 0;
         left: 0;
@@ -445,7 +445,7 @@ const AziendaPageStyles = () => (
         padding: 1rem;
       }
 
-      .steps-modal-content {
+      .bg-card p-4 rounded-2xl border border-border max-w-3xl w-full max-h-[80vh] overflow-auto text-foreground {
         background-color: #1a1a1a;
         border-radius: 1rem;
         border: 1px solid #333;
@@ -456,7 +456,7 @@ const AziendaPageStyles = () => (
         color: #ffffff;
       }
 
-      .steps-modal-header {
+      .steps-p-4 border-b border-border {
         padding: 1.5rem;
         border-bottom: 1px solid #333;
         display: flex;
@@ -464,11 +464,11 @@ const AziendaPageStyles = () => (
         align-items: center;
       }
 
-      .steps-modal-body {
+      .steps-p-4 {
         padding: 1.5rem;
       }
 
-      .step-card {
+      .bg-gray-800 p-4 rounded-xl border border-gray-700 mb-4 {
         background: linear-gradient(135deg, #2a2a2a 0%, #3a3a3a 100%);
         border-radius: 0.75rem;
         padding: 1.5rem;
@@ -476,18 +476,18 @@ const AziendaPageStyles = () => (
         border: 1px solid #444;
       }
 
-      .step-card h4 {
+      .bg-gray-800 p-4 rounded-xl border border-gray-700 mb-4 h4 {
         color: #3b82f6;
         margin: 0 0 1rem 0;
         font-size: 1.1rem;
       }
 
-      .step-card p {
+      .bg-gray-800 p-4 rounded-xl border border-gray-700 mb-4 p {
         margin: 0.5rem 0;
         color: #a0a0a0;
       }
 
-      .step-card strong {
+      .bg-gray-800 p-4 rounded-xl border border-gray-700 mb-4 strong {
         color: #ffffff;
       }
 
@@ -498,7 +498,7 @@ const AziendaPageStyles = () => (
         margin-top: 2rem;
       }
 
-      .export-type-button {
+      .primary-gradient text-white px-6 py-3 rounded-xl hover:scale-105 transition {
         background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
         color: white;
         border: none;
@@ -510,12 +510,12 @@ const AziendaPageStyles = () => (
         min-width: 150px;
       }
 
-      .export-type-button:hover {
+      .primary-gradient text-white px-6 py-3 rounded-xl hover:scale-105 transition:hover {
         background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
         transform: translateY(-2px);
       }
 
-      .finalize-button {
+      .bg-amber-500 text-white px-3 py-2 rounded-md hover:scale-105 transition {
         background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
         color: white;
         border: none;
@@ -526,17 +526,17 @@ const AziendaPageStyles = () => (
         transition: all 0.3s ease;
       }
 
-      .finalize-button:hover {
+      .bg-amber-500 text-white px-3 py-2 rounded-md hover:scale-105 transition:hover {
         background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
         transform: translateY(-1px);
       }
 
-      .closed-lock-icon {
+      .text-gray-400 {
         color: #6b7280;
         font-size: 1.2rem;
       }
 
-      .loading-error-container { 
+      .bg-card p-6 rounded-xl border border-border text-muted-foreground text-center { 
         text-align: center; 
         padding: 2rem 1rem; 
         background-color: #1a1a1a; 
@@ -545,20 +545,20 @@ const AziendaPageStyles = () => (
         color: #a0a0a0;
       }
 
-      .steps-container { 
+      .mt-4 border-t border-border pt-4 { 
         margin-top: 1rem; 
         border-top: 1px solid #333; 
         padding-top: 1rem; 
       }
 
-      .steps-container h4 { 
+      .mt-4 border-t border-border pt-4 h4 { 
         margin: 0 0 0.75rem 0; 
         font-size: 0.9rem; 
         font-weight: 600;
         color: #ffffff;
       }
 
-      .step-item { 
+      .pl-3 border-l-4 border-primary/60 bg-primary/5 rounded-r-md mb-3 p-3 text-sm text-muted-foreground { 
         font-size: 0.8rem; 
         padding: 0.75rem 0 0.75rem 1rem;
         border-left: 2px solid #3b82f6; 
@@ -567,12 +567,12 @@ const AziendaPageStyles = () => (
         border-radius: 0 0.5rem 0.5rem 0;
       }
 
-      .step-item p {
+      .pl-3 border-l-4 border-primary/60 bg-primary/5 rounded-r-md mb-3 p-3 text-sm text-muted-foreground p {
         margin: 0.25rem 0;
         color: #a0a0a0;
       }
 
-      .empty-state {
+      .bg-card p-8 rounded-xl border border-border text-center text-muted-foreground {
         text-align: center;
         padding: 3rem 1rem;
         color: #a0a0a0;
@@ -582,7 +582,7 @@ const AziendaPageStyles = () => (
       }
 
       /* Modal styles */
-      .modal-overlay {
+      .fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4 {
         position: fixed;
         top: 0;
         left: 0;
@@ -596,7 +596,7 @@ const AziendaPageStyles = () => (
         padding: 1rem;
       }
 
-      .modal-content {
+      .bg-card p-6 rounded-2xl border border-border max-w-2xl w-full text-foreground {
         background-color: #1a1a1a;
         border-radius: 1rem;
         border: 1px solid #333;
@@ -607,22 +607,22 @@ const AziendaPageStyles = () => (
         color: #ffffff;
       }
 
-      .modal-header {
+      .p-4 border-b border-border {
         padding: 1.5rem;
         border-bottom: 1px solid #333;
       }
 
-      .modal-header h2 {
+      .p-4 border-b border-border h2 {
         margin: 0;
         font-size: 1.25rem;
         font-weight: 600;
       }
 
-      .modal-body {
+      .p-4 {
         padding: 1.5rem;
       }
 
-      .modal-footer {
+      .p-4 border-t border-border flex justify-between gap-4 {
         padding: 1.5rem;
         border-top: 1px solid #333;
         display: flex;
@@ -630,18 +630,18 @@ const AziendaPageStyles = () => (
         gap: 1rem;
       }
 
-      .form-group {
+      .mb-4 {
         margin-bottom: 1rem;
       }
 
-      .form-group label {
+      .mb-4 label {
         display: block;
         margin-bottom: 0.5rem;
         font-weight: 500;
         color: #f8f9fa;
       }
 
-      .form-input {
+      .w-full p-3 rounded-lg bg-gray-800 border border-gray-700 text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 {
         width: 100%;
         padding: 0.75rem;
         border: 1px solid #495057;
@@ -651,7 +651,7 @@ const AziendaPageStyles = () => (
         font-size: 0.9rem;
       }
 
-      .form-input:focus {
+      .w-full p-3 rounded-lg bg-gray-800 border border-gray-700 text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50:focus {
         outline: none;
         border-color: #3b82f6;
         box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25);
@@ -663,7 +663,7 @@ const AziendaPageStyles = () => (
         margin-top: 0.25rem;
       }
 
-      .recap-summary {
+      .bg-gray-800 p-4 rounded-md border border-gray-700 {
         text-align: left;
         padding: 1rem;
         background-color: #2a2a2a;
@@ -672,23 +672,23 @@ const AziendaPageStyles = () => (
         margin-bottom: 1rem;
       }
 
-      .recap-summary p {
+      .bg-gray-800 p-4 rounded-md border border-gray-700 p {
         margin: 0.5rem 0;
         word-break: break-word;
       }
 
-      .recap-summary p strong {
+      .bg-gray-800 p-4 rounded-md border border-gray-700 p strong {
         color: #f8f9fa;
       }
 
-      .file-name-preview {
+      .text-primary underline mt-2 block {
         color: #3b82f6;
         font-size: 0.85rem;
         margin-top: 0.5rem;
       }
 
       /* Image modal styles */
-      .image-modal-overlay {
+      .image-fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4 {
         position: fixed;
         top: 0;
         left: 0;
@@ -702,20 +702,20 @@ const AziendaPageStyles = () => (
         padding: 2rem;
       }
 
-      .image-modal-content {
+      .image-bg-card p-6 rounded-2xl border border-border max-w-2xl w-full text-foreground {
         max-width: 90%;
         max-height: 90%;
         border-radius: 0.5rem;
         overflow: hidden;
       }
 
-      .image-modal-content img {
+      .image-bg-card p-6 rounded-2xl border border-border max-w-2xl w-full text-foreground img {
         width: 100%;
         height: 100%;
         object-fit: contain;
       }
 
-      .image-modal-close {
+      .absolute top-4 right-4 bg-black/60 text-white rounded-full w-10 h-10 flex items-center justify-center {
         position: absolute;
         top: 1rem;
         right: 1rem;
@@ -730,7 +730,7 @@ const AziendaPageStyles = () => (
       }
 
       /* Filtri per le iscrizioni */
-      .inscriptions-filters {
+      .flex flex-wrap gap-4 p-4 bg-card rounded-2xl border border-border {
         display: flex;
         flex-wrap: wrap;
         gap: 1rem;
@@ -741,7 +741,7 @@ const AziendaPageStyles = () => (
         border: 1px solid #333;
       }
 
-      .filter-group {
+      .flex flex-col gap-2 min-w-[200px] flex-1 {
         display: flex;
         flex-direction: column;
         gap: 0.5rem;
@@ -749,13 +749,13 @@ const AziendaPageStyles = () => (
         flex: 1;
       }
 
-      .filter-label {
+      .text-sm font-medium text-foreground {
         font-size: 0.9rem;
         font-weight: 500;
         color: #ffffff;
       }
 
-      .filter-input {
+      .p-3 rounded-lg bg-gray-800 border border-gray-700 text-foreground focus:ring-2 focus:ring-primary/50 {
         padding: 0.75rem;
         border: 1px solid #333;
         border-radius: 0.5rem;
@@ -764,14 +764,14 @@ const AziendaPageStyles = () => (
         font-size: 0.9rem;
       }
 
-      .filter-input:focus {
+      .p-3 rounded-lg bg-gray-800 border border-gray-700 text-foreground focus:ring-2 focus:ring-primary/50:focus {
         outline: none;
         border-color: #3b82f6;
         box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25);
       }
 
       /* Paginazione */
-      .pagination-container {
+      .flex items-center justify-center gap-3 mt-6 p-4 {
         display: flex;
         justify-content: center;
         align-items: center;
@@ -780,7 +780,7 @@ const AziendaPageStyles = () => (
         padding: 1rem;
       }
 
-      .pagination-button {
+      .primary-gradient text-white px-3 py-2 rounded-md hover:scale-105 transition {
         background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
         color: white;
         border: none;
@@ -791,18 +791,18 @@ const AziendaPageStyles = () => (
         font-size: 0.9rem;
       }
 
-      .pagination-button:hover:not(:disabled) {
+      .primary-gradient text-white px-3 py-2 rounded-md hover:scale-105 transition:hover:not(:disabled) {
         background: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%);
         transform: translateY(-1px);
       }
 
-      .pagination-button:disabled {
+      .primary-gradient text-white px-3 py-2 rounded-md hover:scale-105 transition:disabled {
         opacity: 0.6;
         cursor: not-allowed;
         transform: none;
       }
 
-      .pagination-number {
+      .bg-transparent text-foreground border border-border px-3 py-2 rounded-md hover:bg-card {
         background-color: transparent;
         color: #ffffff;
         border: 1px solid #333;
@@ -813,17 +813,17 @@ const AziendaPageStyles = () => (
         font-size: 0.9rem;
       }
 
-      .pagination-number:hover {
+      .bg-transparent text-foreground border border-border px-3 py-2 rounded-md hover:bg-card:hover {
         background-color: #333;
       }
 
-      .pagination-number.active {
+      .bg-transparent text-foreground border border-border px-3 py-2 rounded-md hover:bg-card.active {
         background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
         color: white;
         border-color: #6366f1;
       }
 
-      .pagination-info {
+      .text-sm text-muted-foreground {
         color: #a0a0a0;
         font-size: 0.9rem;
         margin: 0 1rem;
@@ -831,76 +831,76 @@ const AziendaPageStyles = () => (
 
       /* Tablet styles */
       @media (min-width: 768px) {
-        .app-container-full { 
+        .min-h-screen bg-background px-6 py-6 container mx-auto { 
           padding: 2rem; 
         }
 
-        .main-header-bar { 
+        .flex flex-col md:flex-row items-center justify-between gap-4 bg-card/60 p-6 rounded-2xl border border-border { 
           flex-direction: row;
           justify-content: space-between;
           align-items: center;
           padding: 1.5rem;
         }
 
-        .header-title { 
+        .text-2xl md:text-3xl font-bold text-foreground { 
           font-size: 1.75rem;
           text-align: left;
         }
 
-        .dashboard-header-card { 
+        .glass-card rounded-3xl p-6 tech-shadow flex flex-col md:flex-row justify-between items-center gap-6 { 
           flex-direction: row;
           justify-content: space-between;
           align-items: flex-start;
           padding: 2rem;
         }
 
-        .dashboard-title { 
+        .text-2xl md:text-3xl font-extrabold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent { 
           font-size: 1.75rem;
         }
 
-        .dashboard-info {
+        .flex flex-col md:flex-row gap-4 items-center {
           flex-direction: row;
           gap: 2rem;
         }
 
-        .web3-button {
+        .primary-gradient text-white px-4 py-2 rounded-2xl font-semibold hover:scale-105 transition {
           width: auto;
           min-width: 200px;
         }
 
-        .inscriptions-grid { 
+        .grid gap-6 md:grid-cols-2 lg:grid-cols-3 { 
           display: grid;
           grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
           gap: 1.5rem;
         }
 
-        .inscription-card h3 { 
+        .glass-card rounded-2xl p-6 tech-shadow hover:shadow-lg transition h3 { 
           font-size: 1.25rem;
         }
 
-        .loading-error-container { 
+        .bg-card p-6 rounded-xl border border-border text-muted-foreground text-center { 
           padding: 3rem; 
         }
       }
 
       /* Desktop styles */
       @media (min-width: 1024px) {
-        .app-container-full { 
+        .min-h-screen bg-background px-6 py-6 container mx-auto { 
           max-width: 1200px;
           margin: 0 auto;
           padding: 2rem;
         }
 
-        .inscriptions-grid { 
+        .grid gap-6 md:grid-cols-2 lg:grid-cols-3 { 
           grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
           gap: 2rem;
         }
 
-        .inscription-card { 
+        .glass-card rounded-2xl p-6 tech-shadow hover:shadow-lg transition { 
           padding: 2rem; 
         }
 
-        .dashboard-header-card { 
+        .glass-card rounded-3xl p-6 tech-shadow flex flex-col md:flex-row justify-between items-center gap-6 { 
           padding: 2.5rem;
         }
       }
@@ -965,11 +965,11 @@ const contract = getContract({
 // Componente modale per visualizzare immagini
 const ImageModal: React.FC<{ imageUrl: string; onClose: () => void }> = ({ imageUrl, onClose }) => {
   return (
-    <div className="image-modal-overlay" onClick={onClose}>
-      <div className="image-modal-content" onClick={(e) => e.stopPropagation()}>
+    <div className="image-fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4" onClick={onClose}>
+      <div className="image-bg-card p-6 rounded-2xl border border-border max-w-2xl w-full text-foreground" onClick={(e) => e.stopPropagation()}>
         <img src={imageUrl} alt="Immagine iscrizione" />
       </div>
-      <button className="image-modal-close" onClick={onClose}>×</button>
+      <button className="absolute top-4 right-4 bg-black/60 text-white rounded-full w-10 h-10 flex items-center justify-center" onClick={onClose}>×</button>
     </div>
   );
 };
@@ -1189,13 +1189,13 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
         <FullPageLoading message="Aggiornamento dati in corso..." />
       )}
 
-      <div className="dashboard-header-card">
+      <div className="glass-card rounded-3xl p-6 tech-shadow flex flex-col md:flex-row justify-between items-center gap-6">
         <div>
-          <div className="dashboard-title-section">
-            <h2 className="dashboard-title">{currentCompanyData.companyName}</h2>
+          <div className="flex items-center gap-4 flex-wrap">
+            <h2 className="text-2xl md:text-3xl font-extrabold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">{currentCompanyData.companyName}</h2>
           </div>
-          <div className="dashboard-info">
-            <div className="dashboard-info-item">
+          <div className="flex flex-col md:flex-row gap-4 items-center">
+            <div className="flex flex-col md:flex-row gap-4 items-center-item">
               <span>
                 <a 
                   href="/ricaricacrediti" 
@@ -1209,14 +1209,14 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
                 </a>
               </span>
             </div>
-            <div className="dashboard-info-item">
+            <div className="flex flex-col md:flex-row gap-4 items-center-item">
               <span>Stato: <strong className={currentCompanyData.status === 'active' ? 'status-active-text' : 'status-inactive-text'}>
                 {currentCompanyData.status === 'active' ? 'ATTIVO' : 'NON ATTIVO'}
               </strong></span>
             </div>
           </div>
         </div>
-        <button onClick={() => setIsModalOpen(true)} className="web3-button">+ Inizializza Nuova Iscrizione</button>
+        <button onClick={() => setIsModalOpen(true)} className="primary-gradient text-white px-4 py-2 rounded-2xl font-semibold hover:scale-105 transition">+ Inizializza Nuova Iscrizione</button>
       </div>
 
       <div className="inscriptions-section-header">
@@ -1244,13 +1244,13 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
             ℹ️
           </button>
         </div>
-        <div className="refresh-section">
+        <div className="flex items-center gap-2">
           <button 
-            className="refresh-button"
+            className="w-12 h-12 rounded-full flex items-center justify-center primary-gradient shadow-md hover:scale-105 transition"
             onClick={handleRefresh}
             disabled={isRefreshing || refreshCounter === 0}
           >
-            <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPCEtLSBSZWZyZXNoIGNpcmN1bGFyIGFycm93cyAtLT4KPHBhdGggZD0iTTMgMTJBOSA5IDAgMCAxIDEyIDNWMUwxNiA1TDEyIDlWN0E3IDcgMCAwIDAgNSAxMkgzWiIgZmlsbD0id2hpdGUiLz4KPHBhdGggZD0iTTIxIDEyQTkgOSAwIDAgMSAxMiAyMVYyM0w4IDE5TDEyIDE1VjE3QTcgNyAwIDAgMCAxOSAxMkgyMVoiIGZpbGw9IndoaXRlIi8+Cjwvc3ZnPgo=" alt="refresh" className="refresh-icon" style={{width: '20px', height: '20px'}} />
+            <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPCEtLSBSZWZyZXNoIGNpcmN1bGFyIGFycm93cyAtLT4KPHBhdGggZD0iTTMgMTJBOSA5IDAgMCAxIDEyIDNWMUwxNiA1TDEyIDlWN0E3IDcgMCAwIDAgNSAxMkgzWiIgZmlsbD0id2hpdGUiLz4KPHBhdGggZD0iTTIxIDEyQTkgOSAwIDAgMSAxMiAyMVYyM0w4IDE5TDEyIDE1VjE3QTcgNyAwIDAgMCAxOSAxMkgyMVoiIGZpbGw9IndoaXRlIi8+Cjwvc3ZnPgo=" alt="refresh" className="w-5 h-5 text-white" style={{width: '20px', height: '20px'}} />
             {refreshCounter > 0 && (
               <div className="refresh-counter">+{refreshCounter}</div>
             )}
@@ -1258,29 +1258,29 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
         </div>
       </div>
 
-      <div className="inscriptions-filters">
-        <div className="filter-group">
-          <label className="filter-label">Nome</label>
+      <div className="flex flex-wrap gap-4 p-4 bg-card rounded-2xl border border-border">
+        <div className="flex flex-col gap-2 min-w-[200px] flex-1">
+          <label className="text-sm font-medium text-foreground">Nome</label>
           <input
             type="text"
-            className="filter-input"
+            className="p-3 rounded-lg bg-gray-800 border border-gray-700 text-foreground focus:ring-2 focus:ring-primary/50"
             value={nameFilter}
             onChange={(e) => setNameFilter(e.target.value)}
           />
         </div>
-        <div className="filter-group">
-          <label className="filter-label">Luogo</label>
+        <div className="flex flex-col gap-2 min-w-[200px] flex-1">
+          <label className="text-sm font-medium text-foreground">Luogo</label>
           <input
             type="text"
-            className="filter-input"
+            className="p-3 rounded-lg bg-gray-800 border border-gray-700 text-foreground focus:ring-2 focus:ring-primary/50"
             value={locationFilter}
             onChange={(e) => setLocationFilter(e.target.value)}
           />
         </div>
-        <div className="filter-group">
-          <label className="filter-label">Stato</label>
+        <div className="flex flex-col gap-2 min-w-[200px] flex-1">
+          <label className="text-sm font-medium text-foreground">Stato</label>
           <select
-            className="filter-input"
+            className="p-3 rounded-lg bg-gray-800 border border-gray-700 text-foreground focus:ring-2 focus:ring-primary/50"
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value as "Aperto" | "Chiuso" | "")}
           >
@@ -1292,20 +1292,20 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
       </div>
 
       {isLoadingBatches && !showFullPageLoading ? (
-        <div className="loading-error-container"><p>Caricamento delle tue iscrizioni...</p></div>
+        <div className="bg-card p-6 rounded-xl border border-border text-muted-foreground text-center"><p>Caricamento delle tue iscrizioni...</p></div>
       ) : errorBatches ? (
-        <div className="loading-error-container"><p style={{ color: 'red' }}>{errorBatches}</p></div>
+        <div className="bg-card p-6 rounded-xl border border-border text-muted-foreground text-center"><p style={{ color: 'red' }}>{errorBatches}</p></div>
       ) : (
         <>
-          <div className="inscriptions-grid">
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {currentItems.length > 0 ? (
               currentItems.map((batch) => (
-                <div key={batch.batchId} className="inscription-card">
+                <div key={batch.batchId} className="glass-card rounded-2xl p-6 tech-shadow hover:shadow-lg transition">
                   <h3>#{getBatchDisplayNumber(batch.batchId)} - {batch.name}</h3>
                   <p><strong>Descrizione:</strong> {batch.description ? truncateText(batch.description, window.innerWidth < 768 ? 80 : 100) : "N/D"}</p>
                   <p><strong>Data:</strong> {formatItalianDate(batch.date)}</p>
                   <p><strong>Luogo:</strong> {batch.location || "N/D"}</p>
-                  <p><strong>Stato:</strong> <span className={batch.isClosed ? 'status-closed' : 'status-open'}>
+                  <p><strong>Stato:</strong> <span className={batch.isClosed ? 'text-red-500 font-semibold' : 'text-green-500 font-semibold'}>
                     {batch.isClosed ? ' Chiuso' : ' Aperto'}
                   </span></p>
                   {batch.imageIpfsHash && batch.imageIpfsHash !== "N/A" && (
@@ -1331,18 +1331,18 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
                     </a>
                   </p>
 
-                  <div className="inscription-footer">
-                    <div className="steps-count">
+                  <div className="flex justify-between items-center mt-4">
+                    <div className="text-sm text-muted-foreground">
                       {batch.steps && batch.steps.length > 0 ? (
                         <button
-                          className="view-steps-button"
+                          className="accent-gradient text-white px-3 py-2 rounded-md hover:scale-105 transition"
                           onClick={() => setSelectedBatchForSteps(batch)}
                         >
                           {batch.steps.length} steps
                         </button>
                       ) : (
                         <button
-                          className="view-steps-button disabled"
+                          className="accent-gradient text-white px-3 py-2 rounded-md hover:scale-105 transition disabled"
                           disabled={true}
                         >
                           0 steps
@@ -1354,7 +1354,7 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
                       {/* Pulsante Esporta - mostrato solo per batch chiusi */}
                       {batch.isClosed && (
                         <button
-                          className="export-button"
+                          className="primary-gradient text-white px-3 py-2 rounded-md hover:scale-105 transition"
                           onClick={() => {
                             setSelectedBatchForExport(batch);
                             setShowExportModal(true);
@@ -1368,27 +1368,27 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
                       {!batch.isClosed ? (
                         <>
                           <button
-                            className="add-step-button"
+                            className="bg-emerald-500 text-white px-3 py-2 rounded-md hover:scale-105 transition"
                             onClick={() => setSelectedBatchForStep(batch)}
                           >
                             Aggiungi Step
                           </button>
                           <button
-                            className="finalize-button"
+                            className="bg-amber-500 text-white px-3 py-2 rounded-md hover:scale-105 transition"
                             onClick={() => setSelectedBatchForFinalize(batch)}
                           >
                             Finalizza
                           </button>
                         </>
                       ) : (
-                        <span className="closed-lock-icon">🔒</span>
+                        <span className="text-gray-400">🔒</span>
                       )}
                     </div>
                   </div>
                 </div>
               ))
             ) : (
-              <div className="empty-state">
+              <div className="bg-card p-8 rounded-xl border border-border text-center text-muted-foreground">
                 <p>Non hai ancora inizializzato nessuna iscrizione con questo account.</p>
                 <p style={{ fontSize: '0.8rem', marginTop: '0.5rem', opacity: 0.7 }}>
                   Clicca su "Inizializza Nuova Iscrizione" per iniziare
@@ -1399,9 +1399,9 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
 
           {/* Paginazione */}
           {filteredBatches.length > itemsPerPage && (
-            <div className="pagination-container">
+            <div className="flex items-center justify-center gap-3 mt-6 p-4">
               <button
-                className="pagination-button"
+                className="primary-gradient text-white px-3 py-2 rounded-md hover:scale-105 transition"
                 onClick={handlePreviousPage}
                 disabled={currentPage === 1}
               >
@@ -1411,7 +1411,7 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
               {Array.from({ length: totalPages }, (_, i) => i + 1).map(number => (
                 <button
                   key={number}
-                  className={`pagination-number ${currentPage === number ? 'active' : ''}`}
+                  className={`bg-transparent text-foreground border border-border px-3 py-2 rounded-md hover:bg-card ${currentPage === number ? 'active' : ''}`}
                   onClick={() => paginate(number)}
                 >
                   {number}
@@ -1419,13 +1419,13 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
               ))}
 
               <button
-                className="pagination-button"
+                className="primary-gradient text-white px-3 py-2 rounded-md hover:scale-105 transition"
                 onClick={handleNextPage}
                 disabled={currentPage === totalPages}
               >
                 &gt;
               </button>
-              <span className="pagination-info">
+              <span className="text-sm text-muted-foreground">
                 Pagina {currentPage} di {totalPages}
               </span>
             </div>
@@ -1705,15 +1705,15 @@ const AddStepModal: React.FC<{
 
   return (
     <>
-      <div className="modal-overlay" onClick={onClose}>
-        <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-          <div className="modal-header">
+      <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4" onClick={onClose}>
+        <div className="bg-card p-6 rounded-2xl border border-border max-w-2xl w-full text-foreground" onClick={(e) => e.stopPropagation()}>
+          <div className="p-4 border-b border-border">
             <h2>Aggiungi step all'iscrizione ({currentStep}/6)</h2>
           </div>
-          <div className="modal-body" style={{ minHeight: "350px" }}>
+          <div className="p-4" style={{ minHeight: "350px" }}>
             {currentStep === 1 && (
               <div>
-                <div className="form-group">
+                <div className="mb-4">
                   <label>
                     Nome Evento
                     <span style={{ color: "red", fontWeight: "bold" }}> * Obbligatorio</span>
@@ -1723,7 +1723,7 @@ const AddStepModal: React.FC<{
                     name="eventName"
                     value={formData.eventName}
                     onChange={handleInputChange}
-                    className="form-input"
+                    className="w-full p-3 rounded-lg bg-gray-800 border border-gray-700 text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
                     maxLength={100}
                   />
                   <small className="char-counter">{formData.eventName.length} / 100</small>
@@ -1744,7 +1744,7 @@ const AddStepModal: React.FC<{
 
             {currentStep === 2 && (
               <div>
-                <div className="form-group">
+                <div className="mb-4">
                   <label>
                     Descrizione
                     <span style={{ color: "#6c757d" }}> Non obbligatorio</span>
@@ -1753,7 +1753,7 @@ const AddStepModal: React.FC<{
                     name="description"
                     value={formData.description}
                     onChange={handleInputChange}
-                    className="form-input"
+                    className="w-full p-3 rounded-lg bg-gray-800 border border-gray-700 text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
                     rows={4}
                     maxLength={500}
                   ></textarea>
@@ -1767,7 +1767,7 @@ const AddStepModal: React.FC<{
 
             {currentStep === 3 && (
               <div>
-                <div className="form-group">
+                <div className="mb-4">
                   <label>
                     Luogo
                     <span style={{ color: "#6c757d" }}> Non obbligatorio</span>
@@ -1777,7 +1777,7 @@ const AddStepModal: React.FC<{
                     name="location"
                     value={formData.location}
                     onChange={handleInputChange}
-                    className="form-input"
+                    className="w-full p-3 rounded-lg bg-gray-800 border border-gray-700 text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
                     maxLength={100}
                   />
                   <small className="char-counter">{formData.location.length} / 100</small>
@@ -1790,7 +1790,7 @@ const AddStepModal: React.FC<{
 
             {currentStep === 4 && (
               <div>
-                <div className="form-group">
+                <div className="mb-4">
                   <label>
                     Data
                     <span style={{ color: "#6c757d" }}> Non obbligatorio</span>
@@ -1800,7 +1800,7 @@ const AddStepModal: React.FC<{
                     name="date"
                     value={formData.date}
                     onChange={handleInputChange}
-                    className="form-input"
+                    className="w-full p-3 rounded-lg bg-gray-800 border border-gray-700 text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
                     max={today}
                   />
                 </div>
@@ -1812,7 +1812,7 @@ const AddStepModal: React.FC<{
 
             {currentStep === 5 && (
               <div>
-                <div className="form-group">
+                <div className="mb-4">
                   <label>
                     Immagini / Documenti
                     <span style={{ color: "#6c757d" }}> Non obbligatorio</span>
@@ -1821,7 +1821,7 @@ const AddStepModal: React.FC<{
                     type="file"
                     name="attachments"
                     onChange={handleFileChange}
-                    className="form-input"
+                    className="w-full p-3 rounded-lg bg-gray-800 border border-gray-700 text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
                     accept="image/png, image/jpeg, image/webp, application/pdf, application/msword, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/vnd.oasis.opendocument.text, text/csv, application/vnd.ms-excel, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
                   />
                   <small style={{ marginTop: "4px" }}>
@@ -1829,7 +1829,7 @@ const AddStepModal: React.FC<{
                     Formati documenti: PDF, DOC, DOCX, ODT, CSV, XLS, XLSX. Max 10 MB.
                   </small>
                   {selectedFile && (
-                    <p className="file-name-preview">File: {selectedFile.name}</p>
+                    <p className="text-primary underline mt-2 block">File: {selectedFile.name}</p>
                   )}
                 </div>
                 <div style={helpTextStyle}>
@@ -1841,7 +1841,7 @@ const AddStepModal: React.FC<{
             {currentStep === 6 && (
               <div>
                 <h4>Riepilogo Dati</h4>
-                <div className="recap-summary">
+                <div className="bg-gray-800 p-4 rounded-md border border-gray-700">
                   <p><strong>Nome Evento:</strong> {truncateText(formData.eventName, 40) || "N/D"}</p>
                   <p><strong>Descrizione:</strong> {truncateText(formData.description, 60) || "N/D"}</p>
                   <p><strong>Luogo:</strong> {truncateText(formData.location, 40) || "N/D"}</p>
@@ -1852,25 +1852,25 @@ const AddStepModal: React.FC<{
               </div>
             )}
           </div>
-          <div className="modal-footer">
+          <div className="p-4 border-t border-border flex justify-between gap-4">
             <div>
               {currentStep > 1 && (
-                <button onClick={handlePrevStep} className="web3-button secondary" disabled={isProcessing}>
+                <button onClick={handlePrevStep} className="primary-gradient text-white px-4 py-2 rounded-2xl font-semibold hover:scale-105 transition secondary" disabled={isProcessing}>
                   Indietro
                 </button>
               )}
             </div>
             <div style={{ display: 'flex', gap: '1rem' }}>
-              <button onClick={onClose} className="web3-button secondary" disabled={isProcessing}>
+              <button onClick={onClose} className="primary-gradient text-white px-4 py-2 rounded-2xl font-semibold hover:scale-105 transition secondary" disabled={isProcessing}>
                 Chiudi
               </button>
               {currentStep < 6 && (
-                <button onClick={handleNextStep} className="web3-button">
+                <button onClick={handleNextStep} className="primary-gradient text-white px-4 py-2 rounded-2xl font-semibold hover:scale-105 transition">
                   Avanti
                 </button>
               )}
               {currentStep === 6 && (
-                <button onClick={handleSubmit} disabled={isProcessing} className="web3-button">
+                <button onClick={handleSubmit} disabled={isProcessing} className="primary-gradient text-white px-4 py-2 rounded-2xl font-semibold hover:scale-105 transition">
                   {isProcessing ? "Conferma..." : "Conferma e Registra"}
                 </button>
               )}
@@ -1981,22 +1981,22 @@ const FinalizeModal: React.FC<{
 
   return (
     <>
-      <div className="modal-overlay" onClick={onClose}>
-        <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-          <div className="modal-header">
+      <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4" onClick={onClose}>
+        <div className="bg-card p-6 rounded-2xl border border-border max-w-2xl w-full text-foreground" onClick={(e) => e.stopPropagation()}>
+          <div className="p-4 border-b border-border">
             <h2>Finalizza Iscrizione</h2>
           </div>
-          <div className="modal-body">
+          <div className="p-4">
             <p>Sei sicuro di voler finalizzare l'iscrizione "{batch.name}"?</p>
             <p style={{ color: '#f59e0b', fontSize: '0.9rem', marginTop: '1rem' }}>
               ⚠️ Attenzione: Una volta finalizzata, non potrai più aggiungere step a questa iscrizione.
             </p>
           </div>
-          <div className="modal-footer">
-            <button onClick={onClose} className="web3-button secondary" disabled={isProcessing}>
+          <div className="p-4 border-t border-border flex justify-between gap-4">
+            <button onClick={onClose} className="primary-gradient text-white px-4 py-2 rounded-2xl font-semibold hover:scale-105 transition secondary" disabled={isProcessing}>
               Annulla
             </button>
-            <button onClick={handleFinalize} disabled={isProcessing} className="web3-button">
+            <button onClick={handleFinalize} disabled={isProcessing} className="primary-gradient text-white px-4 py-2 rounded-2xl font-semibold hover:scale-105 transition">
               {isProcessing ? "Finalizzazione..." : "Finalizza"}
             </button>
           </div>
@@ -2024,15 +2024,15 @@ const StepsModal: React.FC<{
 
   return (
     <>
-      <div className="steps-modal-overlay" onClick={onClose}>
-        <div className="steps-modal-content" onClick={(e) => e.stopPropagation()}>
-          <div className="steps-modal-header">
+      <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4" onClick={onClose}>
+        <div className="bg-card p-4 rounded-2xl border border-border max-w-3xl w-full max-h-[80vh] overflow-auto text-foreground" onClick={(e) => e.stopPropagation()}>
+          <div className="steps-p-4 border-b border-border">
             <h2>Steps - {batch.name}</h2>
           </div>
-          <div className="steps-modal-body">
+          <div className="steps-p-4">
             {batch.steps && batch.steps.length > 0 ? (
               batch.steps.map((step, index) => (
-                <div key={index} className="step-card">
+                <div key={index} className="bg-gray-800 p-4 rounded-xl border border-gray-700 mb-4">
                   <h4>Step {index + 1}: {step.eventName}</h4>
                   <p><strong>📄 Descrizione:</strong> {step.description || "N/D"}</p>
                   <p><strong>📅 Data:</strong> {formatItalianDate(step.date)}</p>
@@ -2067,7 +2067,7 @@ const StepsModal: React.FC<{
               <p>Nessuno step disponibile per questa iscrizione.</p>
             )}
             <div style={{ textAlign: 'center', marginTop: '2rem' }}>
-              <button onClick={onClose} className="web3-button">
+              <button onClick={onClose} className="primary-gradient text-white px-4 py-2 rounded-2xl font-semibold hover:scale-105 transition">
                 Indietro
               </button>
             </div>
@@ -2244,15 +2244,15 @@ const NewInscriptionModal: React.FC<{
 
   return (
     <>
-      <div className="modal-overlay" onClick={onClose}>
-        <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-          <div className="modal-header">
+      <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4" onClick={onClose}>
+        <div className="bg-card p-6 rounded-2xl border border-border max-w-2xl w-full text-foreground" onClick={(e) => e.stopPropagation()}>
+          <div className="p-4 border-b border-border">
             <h2>Nuova Iscrizione ({currentStep}/6)</h2>
           </div>
-          <div className="modal-body" style={{ minHeight: "350px" }}>
+          <div className="p-4" style={{ minHeight: "350px" }}>
             {currentStep === 1 && (
               <div>
-                <div className="form-group">
+                <div className="mb-4">
                   <label>
                     Nome Iscrizione 
                     <span style={{ color: "red", fontWeight: "bold" }}> * Obbligatorio</span>
@@ -2262,7 +2262,7 @@ const NewInscriptionModal: React.FC<{
                     name="name" 
                     value={formData.name} 
                     onChange={handleInputChange} 
-                    className="form-input" 
+                    className="w-full p-3 rounded-lg bg-gray-800 border border-gray-700 text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50" 
                     maxLength={100} 
                   />
                   <small className="char-counter">{formData.name.length} / 100</small>
@@ -2282,7 +2282,7 @@ const NewInscriptionModal: React.FC<{
 
             {currentStep === 2 && (
               <div>
-                <div className="form-group">
+                <div className="mb-4">
                   <label>
                     Descrizione
                     <span style={{ color: "#6c757d" }}> Non obbligatorio</span>
@@ -2291,7 +2291,7 @@ const NewInscriptionModal: React.FC<{
                     name="description"
                     value={formData.description}
                     onChange={handleInputChange}
-                    className="form-input"
+                    className="w-full p-3 rounded-lg bg-gray-800 border border-gray-700 text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
                     rows={4}
                     maxLength={500}
                   ></textarea>
@@ -2305,7 +2305,7 @@ const NewInscriptionModal: React.FC<{
 
             {currentStep === 3 && (
               <div>
-                <div className="form-group">
+                <div className="mb-4">
                   <label>
                     Luogo di Produzione
                     <span style={{ color: "#6c757d" }}> Non obbligatorio</span>
@@ -2315,7 +2315,7 @@ const NewInscriptionModal: React.FC<{
                     name="location"
                     value={formData.location}
                     onChange={handleInputChange}
-                    className="form-input"
+                    className="w-full p-3 rounded-lg bg-gray-800 border border-gray-700 text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
                     maxLength={100}
                   />
                   <small className="char-counter">{formData.location.length} / 100</small>
@@ -2328,7 +2328,7 @@ const NewInscriptionModal: React.FC<{
 
             {currentStep === 4 && (
               <div>
-                <div className="form-group">
+                <div className="mb-4">
                   <label>
                     Data di Origine
                     <span style={{ color: "#6c757d" }}> Non obbligatorio</span>
@@ -2338,7 +2338,7 @@ const NewInscriptionModal: React.FC<{
                     name="date"
                     value={formData.date}
                     onChange={handleInputChange}
-                    className="form-input"
+                    className="w-full p-3 rounded-lg bg-gray-800 border border-gray-700 text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
                     max={today}
                   />
                 </div>
@@ -2350,7 +2350,7 @@ const NewInscriptionModal: React.FC<{
 
             {currentStep === 5 && (
               <div>
-                <div className="form-group">
+                <div className="mb-4">
                   <label>
                     Immagine Prodotto
                     <span style={{ color: "#6c757d" }}> Non obbligatorio</span>
@@ -2359,14 +2359,14 @@ const NewInscriptionModal: React.FC<{
                     type="file"
                     name="image"
                     onChange={handleFileChange}
-                    className="form-input"
+                    className="w-full p-3 rounded-lg bg-gray-800 border border-gray-700 text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
                     accept="image/png, image/jpeg, image/webp"
                   />
                   <small style={{ marginTop: "4px" }}>
                     Formati supportati: PNG, JPG, WEBP. Dimensione massima: 5 MB.
                   </small>
                   {selectedFile && (
-                    <p className="file-name-preview">File: {selectedFile.name}</p>
+                    <p className="text-primary underline mt-2 block">File: {selectedFile.name}</p>
                   )}
                 </div>
                 <div style={helpTextStyle}>
@@ -2378,7 +2378,7 @@ const NewInscriptionModal: React.FC<{
             {currentStep === 6 && (
               <div>
                 <h4>Riepilogo Dati</h4>
-                <div className="recap-summary">
+                <div className="bg-gray-800 p-4 rounded-md border border-gray-700">
                   <p><strong>Nome:</strong> {truncateText(formData.name, 40) || "N/D"}</p>
                   <p><strong>Descrizione:</strong> {truncateText(formData.description, 60) || "N/D"}</p>
                   <p><strong>Luogo:</strong> {truncateText(formData.location, 40) || "N/D"}</p>
@@ -2389,25 +2389,25 @@ const NewInscriptionModal: React.FC<{
               </div>
             )}
           </div>
-          <div className="modal-footer">
+          <div className="p-4 border-t border-border flex justify-between gap-4">
             <div>
               {currentStep > 1 && (
-                <button onClick={handlePrevStep} className="web3-button secondary" disabled={isProcessing}>
+                <button onClick={handlePrevStep} className="primary-gradient text-white px-4 py-2 rounded-2xl font-semibold hover:scale-105 transition secondary" disabled={isProcessing}>
                   Indietro
                 </button>
               )}
             </div>
             <div style={{ display: 'flex', gap: '1rem' }}>
-              <button onClick={onClose} className="web3-button secondary" disabled={isProcessing}>
+              <button onClick={onClose} className="primary-gradient text-white px-4 py-2 rounded-2xl font-semibold hover:scale-105 transition secondary" disabled={isProcessing}>
                 Chiudi
               </button>
               {currentStep < 6 && (
-                <button onClick={handleNextStep} className="web3-button">
+                <button onClick={handleNextStep} className="primary-gradient text-white px-4 py-2 rounded-2xl font-semibold hover:scale-105 transition">
                   Avanti
                 </button>
               )}
               {currentStep === 6 && (
-                <button onClick={handleSubmit} disabled={isProcessing} className="web3-button">
+                <button onClick={handleSubmit} disabled={isProcessing} className="primary-gradient text-white px-4 py-2 rounded-2xl font-semibold hover:scale-105 transition">
                   {isProcessing ? "Conferma..." : "Conferma e Registra"}
                 </button>
               )}
@@ -2435,12 +2435,12 @@ const ExportTypeModal: React.FC<{
   onSelectType: (type: 'pdf' | 'html') => void;
 }> = ({ batch, onClose, onSelectType }) => {
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
+    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4" onClick={onClose}>
+      <div className="bg-card p-6 rounded-2xl border border-border max-w-2xl w-full text-foreground" onClick={(e) => e.stopPropagation()}>
+        <div className="p-4 border-b border-border">
           <h2>Informazioni Esportazione</h2>
         </div>
-        <div className="modal-body">
+        <div className="p-4">
           <div style={{ marginBottom: '2rem' }}>
             <p>Se hai completato con successo la tua iscrizione (solo dopo la finalizzazione), potrai esportare:</p>
             <ul style={{ textAlign: 'left', paddingLeft: '20px', margin: '1rem 0' }}>
@@ -2450,21 +2450,21 @@ const ExportTypeModal: React.FC<{
           </div>
           <div className="export-modal-buttons">
             <button 
-              className="export-type-button"
+              className="primary-gradient text-white px-6 py-3 rounded-xl hover:scale-105 transition"
               onClick={() => onSelectType('pdf')}
             >
               📄 Esporta PDF
             </button>
             <button 
-              className="export-type-button"
+              className="primary-gradient text-white px-6 py-3 rounded-xl hover:scale-105 transition"
               onClick={() => onSelectType('html')}
             >
               🌐 Esporta HTML
             </button>
           </div>
         </div>
-        <div className="modal-footer">
-          <button onClick={onClose} className="web3-button secondary">
+        <div className="p-4 border-t border-border flex justify-between gap-4">
+          <button onClick={onClose} className="primary-gradient text-white px-4 py-2 rounded-2xl font-semibold hover:scale-105 transition secondary">
             Chiudi
           </button>
         </div>
@@ -2497,21 +2497,21 @@ const QRCodeOfferModal: React.FC<{
   };
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
+    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4" onClick={onClose}>
+      <div className="bg-card p-6 rounded-2xl border border-border max-w-2xl w-full text-foreground" onClick={(e) => e.stopPropagation()}>
+        <div className="p-4 border-b border-border">
           <h2>Crea QR Code</h2>
         </div>
-        <div className="modal-body">
+        <div className="p-4">
           <p style={{ marginBottom: '2rem', textAlign: 'center' }}>
             Vuoi creare anche un QrCode da usare per l'etichetta del tuo prodotto?
           </p>
         </div>
-        <div className="modal-footer">
-          <button onClick={onClose} className="web3-button secondary">
+        <div className="p-4 border-t border-border flex justify-between gap-4">
+          <button onClick={onClose} className="primary-gradient text-white px-4 py-2 rounded-2xl font-semibold hover:scale-105 transition secondary">
             No Grazie
           </button>
-          <button onClick={handleGenerateQRCode} className="web3-button">
+          <button onClick={handleGenerateQRCode} className="primary-gradient text-white px-4 py-2 rounded-2xl font-semibold hover:scale-105 transition">
             Genera QrCode
           </button>
         </div>
@@ -2525,12 +2525,12 @@ const InfoModal: React.FC<{
   onClose: () => void;
 }> = ({ onClose }) => {
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
+    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4" onClick={onClose}>
+      <div className="bg-card p-6 rounded-2xl border border-border max-w-2xl w-full text-foreground" onClick={(e) => e.stopPropagation()}>
+        <div className="p-4 border-b border-border">
           <h2>Informazioni Iscrizioni</h2>
         </div>
-        <div className="modal-body">
+        <div className="p-4">
           <div style={{ textAlign: 'left' }}>
             <h4>COME FUNZIONA</h4>
             <ul style={{ paddingLeft: '20px', margin: '1rem 0' }}>
@@ -2552,8 +2552,8 @@ const InfoModal: React.FC<{
             <p>Se hai bisogno di piu' crediti per le tue operazioni vai alla pagina <a href="/ricaricacrediti" style={{ color: '#3b82f6', textDecoration: 'none' }}>Ricarica Crediti</a>.</p>
           </div>
         </div>
-        <div className="modal-footer">
-          <button onClick={onClose} className="web3-button">
+        <div className="p-4 border-t border-border flex justify-between gap-4">
+          <button onClick={onClose} className="primary-gradient text-white px-4 py-2 rounded-2xl font-semibold hover:scale-105 transition">
             Ho capito
           </button>
         </div>
@@ -2617,11 +2617,11 @@ const AziendaPage: React.FC = () => {
 
   const renderContent = () => {
     if (companyStatus.isLoading) {
-      return <div className="centered-container"><p>Verifica stato account in corso...</p></div>;
+      return <div className="flex flex-col items-center justify-center min-h-[60vh] text-center p-6"><p>Verifica stato account in corso...</p></div>;
     }
 
     if (companyStatus.error) {
-      return <div className="centered-container"><p style={{ color: "red" }}>{companyStatus.error}</p></div>;
+      return <div className="flex flex-col items-center justify-center min-h-[60vh] text-center p-6"><p style={{ color: "red" }}>{companyStatus.error}</p></div>;
     }
 
     if (companyStatus.isActive && companyStatus.data) {
@@ -2632,12 +2632,12 @@ const AziendaPage: React.FC = () => {
       return <RegistrationForm walletAddress={account.address} />;
     }
 
-    return <div className="centered-container"><p>Connetti il wallet per continuare.</p></div>;
+    return <div className="flex flex-col items-center justify-center min-h-[60vh] text-center p-6"><p>Connetti il wallet per continuare.</p></div>;
   };
 
   if (!account) {
     return (
-      <div className="login-container">
+      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center p-6">
         <AziendaPageStyles />
         <div style={{ textAlign: "center" }}>
           <h1>Benvenuto</h1>
@@ -2656,9 +2656,9 @@ const AziendaPage: React.FC = () => {
   return (
     <>
       <AziendaPageStyles />
-      <div className="app-container-full">
-        <header className="main-header-bar">
-          <h1 className="header-title">EasyChain - Area Privata</h1>
+      <div className="min-h-screen bg-background px-6 py-6 container mx-auto">
+        <header className="flex flex-col md:flex-row items-center justify-between gap-4 bg-card/60 p-6 rounded-2xl border border-border">
+          <h1 className="text-2xl md:text-3xl font-bold text-foreground">EasyChain - Area Privata</h1>
           <ConnectButton 
             client={client}
             chain={polygon}
