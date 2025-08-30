@@ -1,7 +1,3 @@
-// WARNING: This file is a verbatim copy of the original AziendaPage (2.tsx)
-// Saved as AziendaPageStyled.tsx to ensure ALL functionality is preserved exactly.
-// Next steps: I'll convert inline CSS to Tailwind classes in a follow-up pass.
-
 // FILE: src/pages/AziendaPage.tsx
 // DESCRIZIONE: Versione aggiornata che utilizza Firebase per i dati azienda,
 // implementa il sistema di refresh on-chain e gestisce le iscrizioni con numerazione incrementale.
@@ -18,102 +14,146 @@ import "../App.css";
 import RegistrationForm from "../components/RegistrationForm";
 import TransactionStatusModal from "../components/TransactionStatusModal";
 
+// Aggiungi le icone necessarie
+import { Network, Lock, FileText, X, Globe, ArrowRight } from 'lucide-react';
+
 // --- Stili Mobile-First ---
 const AziendaPageStyles = () => (
   <style>{`
-      /* Mobile-first base styles */
-      .min-h-screen bg-background px-6 py-6 container mx-auto { 
-        padding: 1rem; 
-        min-height: 100vh;
-        background-color: #0f0f0f;
+      /* Stili generali dalla pagina 1.tsx */
+      .bg-background { background-color: #0f0f0f; }
+      .text-muted-foreground { color: #a0a0a0; }
+      .text-primary-foreground { color: #ffffff; }
+      .text-primary { color: #6366f1; }
+      .text-accent { color: #10b981; }
+      .primary-gradient { background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); }
+      .accent-gradient { background: linear-gradient(135deg, #10b981 0%, #059669 100%); }
+      .tech-shadow { box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3); }
+      .smooth-transition { transition: all 0.3s ease; }
+      .hover\\:scale-105:hover { transform: scale(1.05); }
+      .glass-card {
+        background: rgba(26, 26, 26, 0.6);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid rgba(51, 51, 51, 0.5);
+        border-radius: 1rem;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+      }
+      .pulse-glow {
+        animation: pulse-glow-anim 2s infinite ease-in-out;
+      }
+      @keyframes pulse-glow-anim {
+        0% { box-shadow: 0 0 5px rgba(99, 102, 241, 0.5); }
+        50% { box-shadow: 0 0 15px rgba(99, 102, 241, 0.8), 0 0 25px rgba(99, 102, 241, 0.6); }
+        100% { box-shadow: 0 0 5px rgba(99, 102, 241, 0.5); }
+      }
+      .gradient-text {
+        background: linear-gradient(to right, #6366f1, #10b981);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        color: transparent;
+      }
+      .header-title-gradient {
+        background: linear-gradient(to right, #ffffff, #a0a0a0);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        color: transparent;
       }
 
-      .flex flex-col md:flex-row items-center justify-between gap-4 bg-card/60 p-6 rounded-2xl border border-border { 
-        display: flex; 
+      /* Base Mobile-first styles for the page */
+      .app-container-full {
+        padding: 1rem;
+        min-height: 100vh;
+        background-color: #0f0f0f;
+        color: #f8f9fa;
+      }
+
+      .main-header-bar {
+        display: flex;
         flex-direction: column;
         gap: 1rem;
         margin-bottom: 1.5rem;
-        padding: 1rem;
-        background-color: #1a1a1a;
-        border-radius: 0.75rem;
-        border: 1px solid #333;
+        padding: 1.5rem;
+        border-radius: 1.5rem;
+        border: 1px solid rgba(51, 51, 51, 0.5);
+        background: rgba(26, 26, 26, 0.6);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
       }
 
-      .text-2xl md:text-3xl font-bold text-foreground { 
-        font-size: 1.5rem; 
-        font-weight: bold; 
-        color: #ffffff;
+      .header-title {
+        font-size: 1.5rem;
+        font-weight: bold;
         text-align: center;
       }
 
-      .flex flex-col items-center justify-center min-h-[60vh] text-center p-6, .flex flex-col items-center justify-center min-h-[60vh] text-center p-6 { 
-        display: flex; 
-        flex-direction: column; 
-        justify-content: center; 
-        align-items: center; 
-        min-height: 80vh; 
-        text-align: center;
-        padding: 1rem;
-      }
-
-      .glass-card rounded-3xl p-6 tech-shadow flex flex-col md:flex-row justify-between items-center gap-6 { 
-        background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
-        color: #ffffff; 
-        padding: 1.5rem; 
-        border-radius: 1rem; 
-        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
-        border: 1px solid #333;
-        margin-bottom: 1.5rem; 
-        display: flex; 
+      .login-container, .centered-container {
+        display: flex;
         flex-direction: column;
-        gap: 1rem;
+        justify-content: center;
+        align-items: center;
+        min-height: 80vh;
+        text-align: center;
+        padding: 1rem;
       }
 
-      .flex items-center gap-4 flex-wrap {
+      .dashboard-header-card {
+        padding: 2rem;
+        border-radius: 1.5rem;
+        border: 1px solid rgba(51, 51, 51, 0.5);
+        background: rgba(26, 26, 26, 0.6);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        margin-bottom: 1.5rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+        position: relative;
+        overflow: hidden;
+      }
+      .dashboard-header-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+        opacity: 0.8;
+        z-index: -1;
+      }
+
+      .dashboard-title-section {
         display: flex;
         align-items: center;
         gap: 1rem;
         flex-wrap: wrap;
       }
 
-      .text-2xl md:text-3xl font-extrabold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent { 
-        font-size: 1.5rem; 
+      .dashboard-title {
+        font-size: 1.5rem;
         font-weight: 700;
         color: #ffffff;
         margin: 0;
       }
 
-      .flex flex-col md:flex-row gap-4 items-center {
+      .dashboard-info {
         display: flex;
         flex-direction: column;
         gap: 1rem;
       }
 
-      .flex flex-col md:flex-row gap-4 items-center-item {
+      .dashboard-info-item {
         display: flex;
         align-items: center;
         gap: 1rem;
-        color: #ffffff;
+        color: #a0a0a0;
         font-size: 1.1rem;
         font-weight: 600;
-      }
-
-      .dashboard-icon {
-        font-size: 1.8rem;
-        width: 50px;
-        height: 50px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-
-      .status-icon {
-        font-size: 1.8rem;
-        width: 50px;
-        height: 50px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
       }
 
       .status-active-text {
@@ -128,25 +168,25 @@ const AziendaPageStyles = () => (
         display: flex;
         align-items: center;
         justify-content: space-between;
-        margin-bottom: 1rem;
+        margin-bottom: 1.5rem;
         flex-wrap: wrap;
         gap: 1rem;
       }
 
       .inscriptions-section-title {
-        font-size: 1.1rem;
+        font-size: 1.2rem;
         font-weight: 600;
         color: #ffffff;
         margin: 0;
       }
 
-      .flex items-center gap-2 {
+      .refresh-section {
         display: flex;
         align-items: center;
         gap: 0.5rem;
       }
 
-      .w-12 h-12 rounded-full flex items-center justify-center primary-gradient shadow-md hover:scale-105 transition {
+      .refresh-button {
         background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
         border: none;
         border-radius: 50%;
@@ -161,19 +201,19 @@ const AziendaPageStyles = () => (
         box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
       }
 
-      .w-12 h-12 rounded-full flex items-center justify-center primary-gradient shadow-md hover:scale-105 transition:hover {
+      .refresh-button:hover {
         background: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%);
         transform: translateY(-2px);
         box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
       }
 
-      .w-12 h-12 rounded-full flex items-center justify-center primary-gradient shadow-md hover:scale-105 transition:disabled {
+      .refresh-button:disabled {
         opacity: 0.6;
         cursor: not-allowed;
         transform: none;
       }
 
-      .w-5 h-5 text-white {
+      .refresh-icon {
         color: white;
         font-size: 1.5rem;
       }
@@ -223,94 +263,92 @@ const AziendaPageStyles = () => (
         100% { transform: rotate(360deg); }
       }
 
-      .primary-gradient text-white px-4 py-2 rounded-2xl font-semibold hover:scale-105 transition { 
+      .web3-button {
         background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-        color: white; 
-        padding: 1rem 1.5rem; 
-        border: none; 
-        border-radius: 0.75rem; 
-        font-weight: 600; 
-        cursor: pointer; 
+        color: white;
+        padding: 1rem 1.5rem;
+        border: none;
+        border-radius: 0.75rem;
+        font-weight: 600;
+        cursor: pointer;
         transition: all 0.3s ease;
         font-size: 0.9rem;
         width: 100%;
         text-align: center;
         box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
       }
-
-      .primary-gradient text-white px-4 py-2 rounded-2xl font-semibold hover:scale-105 transition:hover { 
+      .web3-button:hover {
         background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
         transform: translateY(-2px);
         box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
       }
-
-      .primary-gradient text-white px-4 py-2 rounded-2xl font-semibold hover:scale-105 transition.secondary {
+      .web3-button.secondary {
         background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
         box-shadow: 0 4px 15px rgba(107, 114, 128, 0.3);
       }
-
-      .primary-gradient text-white px-4 py-2 rounded-2xl font-semibold hover:scale-105 transition.secondary:hover {
+      .web3-button.secondary:hover {
         background: linear-gradient(135deg, #4b5563 0%, #374151 100%);
         box-shadow: 0 6px 20px rgba(107, 114, 128, 0.4);
       }
 
-      .grid gap-6 md:grid-cols-2 lg:grid-cols-3 { 
+      .inscriptions-grid {
         display: flex;
         flex-direction: column;
-        gap: 1rem;
+        gap: 1.5rem;
       }
 
-      .glass-card rounded-2xl p-6 tech-shadow hover:shadow-lg transition { 
-        background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
-        border-radius: 1rem; 
-        padding: 1.5rem; 
+      .inscription-card {
+        background: rgba(26, 26, 26, 0.6);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid rgba(51, 51, 51, 0.5);
+        border-radius: 1.5rem;
+        padding: 1.5rem;
         box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-        border: 1px solid #333;
         transition: all 0.3s ease;
         position: relative;
       }
-
-      .glass-card rounded-2xl p-6 tech-shadow hover:shadow-lg transition:hover {
+      .inscription-card:hover {
         transform: translateY(-2px);
         box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
-        border-color: #3b82f6;
+        border-color: #6366f1;
       }
 
-      .glass-card rounded-2xl p-6 tech-shadow hover:shadow-lg transition h3 { 
-        font-size: 1.1rem; 
-        font-weight: 600; 
-        color: #ffffff; 
+      .inscription-card h3 {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #ffffff;
         margin: 0 0 1rem 0;
-        border-bottom: 1px solid #333; 
+        border-bottom: 1px solid #333;
         padding-bottom: 0.75rem;
-        word-wrap: break-word; 
+        word-wrap: break-word;
       }
 
-      .glass-card rounded-2xl p-6 tech-shadow hover:shadow-lg transition p { 
-        margin: 0.75rem 0; 
-        color: #a0a0a0; 
-        font-size: 0.85rem; 
+      .inscription-card p {
+        margin: 0.75rem 0;
+        color: #a0a0a0;
+        font-size: 0.9rem;
         line-height: 1.5;
-        word-wrap: break-word; 
+        word-wrap: break-word;
       }
 
-      .glass-card rounded-2xl p-6 tech-shadow hover:shadow-lg transition strong { 
-        color: #ffffff; 
+      .inscription-card strong {
+        color: #f8f9fa;
         font-weight: 600;
       }
 
-      .glass-card rounded-2xl p-6 tech-shadow hover:shadow-lg transition a { 
-        color: #60a5fa; 
-        text-decoration: none; 
+      .inscription-card a {
+        color: #60a5fa;
+        text-decoration: none;
         font-weight: 500;
         transition: color 0.2s ease;
       }
 
-      .glass-card rounded-2xl p-6 tech-shadow hover:shadow-lg transition a:hover {
+      .inscription-card a:hover {
         color: #3b82f6;
       }
 
-      .flex justify-between items-center mt-4 {
+      .inscription-footer {
         display: flex;
         justify-content: space-between;
         align-items: center;
@@ -319,270 +357,123 @@ const AziendaPageStyles = () => (
         border-top: 1px solid #333;
       }
 
-      .text-sm text-muted-foreground {
-        font-size: 0.8rem;
+      .steps-count {
+        font-size: 0.9rem;
         color: #a0a0a0;
       }
 
-      .text-green-500 font-semibold {
+      .status-open {
         color: #10b981;
         font-weight: 600;
       }
 
-      .text-red-500 font-semibold {
+      .status-closed {
         color: #ef4444;
         font-weight: 600;
       }
 
-      .bg-emerald-500 text-white px-3 py-2 rounded-md hover:scale-105 transition {
+      .add-step-button {
         background: linear-gradient(135deg, #10b981 0%, #059669 100%);
         color: white;
         border: none;
         border-radius: 0.5rem;
-        padding: 0.5rem 1rem;
-        font-size: 0.8rem;
+        padding: 0.6rem 1.2rem;
+        font-size: 0.9rem;
         cursor: pointer;
         transition: all 0.3s ease;
       }
 
-      .bg-emerald-500 text-white px-3 py-2 rounded-md hover:scale-105 transition:hover {
+      .add-step-button:hover {
         background: linear-gradient(135deg, #059669 0%, #047857 100%);
         transform: translateY(-1px);
       }
 
-      .primary-gradient text-white px-3 py-2 rounded-md hover:scale-105 transition {
+      .export-button {
         background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
         color: white;
         border: none;
         border-radius: 0.5rem;
-        padding: 0.5rem 1rem;
-        font-size: 0.8rem;
+        padding: 0.6rem 1.2rem;
+        font-size: 0.9rem;
         cursor: pointer;
         transition: all 0.3s ease;
         position: relative;
       }
 
-      .primary-gradient text-white px-3 py-2 rounded-md hover:scale-105 transition:hover:not(:disabled) {
+      .export-button:hover:not(:disabled) {
         background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
         transform: translateY(-1px);
       }
 
-      .primary-gradient text-white px-3 py-2 rounded-md hover:scale-105 transition:disabled {
+      .export-button:disabled {
         background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
         cursor: not-allowed;
         opacity: 0.6;
       }
 
-      .accent-gradient text-white px-3 py-2 rounded-md hover:scale-105 transition {
+      .view-steps-button {
         background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
         color: white;
         border: none;
         border-radius: 0.5rem;
-        padding: 0.5rem 1rem;
-        font-size: 0.8rem;
+        padding: 0.6rem 1.2rem;
+        font-size: 0.9rem;
         cursor: pointer;
         transition: all 0.3s ease;
       }
 
-      .accent-gradient text-white px-3 py-2 rounded-md hover:scale-105 transition:hover {
+      .view-steps-button:hover {
         background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
         transform: translateY(-1px);
       }
 
-      .accent-gradient text-white px-3 py-2 rounded-md hover:scale-105 transition.disabled {
+      .view-steps-button.disabled {
         background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
         cursor: not-allowed;
         opacity: 0.6;
       }
-
-      .accent-gradient text-white px-3 py-2 rounded-md hover:scale-105 transition.disabled:hover {
+      .view-steps-button.disabled:hover {
         background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
         transform: none;
       }
 
-      .absolute bottom-full left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-sm py-1 px-2 rounded {
-        position: absolute;
-        bottom: 100%;
-        left: 50%;
-        transform: translateX(-50%);
-        background-color: #1f2937;
-        color: white;
-        padding: 0.5rem;
-        border-radius: 0.25rem;
-        font-size: 0.75rem;
-        white-space: nowrap;
-        z-index: 1000;
-        opacity: 0;
-        pointer-events: none;
-        transition: opacity 0.2s;
-      }
-
-      .absolute bottom-full left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-sm py-1 px-2 rounded::after {
-        content: '';
-        position: absolute;
-        top: 100%;
-        left: 50%;
-        transform: translateX(-50%);
-        border: 4px solid transparent;
-        border-top-color: #1f2937;
-      }
-
-      .primary-gradient text-white px-3 py-2 rounded-md hover:scale-105 transition:hover .absolute bottom-full left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-sm py-1 px-2 rounded {
-        opacity: 1;
-      }
-
-      .fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4 {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background-color: rgba(0, 0, 0, 0.75);
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        z-index: 1000;
-        padding: 1rem;
-      }
-
-      .bg-card p-4 rounded-2xl border border-border max-w-3xl w-full max-h-[80vh] overflow-auto text-foreground {
-        background-color: #1a1a1a;
-        border-radius: 1rem;
-        border: 1px solid #333;
-        width: 100%;
-        max-width: 800px;
-        max-height: 90vh;
-        overflow-y: auto;
-        color: #ffffff;
-      }
-
-      .steps-p-4 border-b border-border {
-        padding: 1.5rem;
-        border-bottom: 1px solid #333;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-      }
-
-      .steps-p-4 {
-        padding: 1.5rem;
-      }
-
-      .bg-gray-800 p-4 rounded-xl border border-gray-700 mb-4 {
-        background: linear-gradient(135deg, #2a2a2a 0%, #3a3a3a 100%);
-        border-radius: 0.75rem;
-        padding: 1.5rem;
-        margin-bottom: 1rem;
-        border: 1px solid #444;
-      }
-
-      .bg-gray-800 p-4 rounded-xl border border-gray-700 mb-4 h4 {
-        color: #3b82f6;
-        margin: 0 0 1rem 0;
-        font-size: 1.1rem;
-      }
-
-      .bg-gray-800 p-4 rounded-xl border border-gray-700 mb-4 p {
-        margin: 0.5rem 0;
-        color: #a0a0a0;
-      }
-
-      .bg-gray-800 p-4 rounded-xl border border-gray-700 mb-4 strong {
-        color: #ffffff;
-      }
-
-      .export-modal-buttons {
-        display: flex;
-        gap: 1rem;
-        justify-content: center;
-        margin-top: 2rem;
-      }
-
-      .primary-gradient text-white px-6 py-3 rounded-xl hover:scale-105 transition {
-        background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-        color: white;
-        border: none;
-        border-radius: 0.5rem;
-        padding: 1rem 2rem;
-        font-size: 1rem;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        min-width: 150px;
-      }
-
-      .primary-gradient text-white px-6 py-3 rounded-xl hover:scale-105 transition:hover {
-        background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
-        transform: translateY(-2px);
-      }
-
-      .bg-amber-500 text-white px-3 py-2 rounded-md hover:scale-105 transition {
+      .finalize-button {
         background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
         color: white;
         border: none;
         border-radius: 0.5rem;
-        padding: 0.5rem 1rem;
-        font-size: 0.8rem;
+        padding: 0.6rem 1.2rem;
+        font-size: 0.9rem;
         cursor: pointer;
         transition: all 0.3s ease;
       }
 
-      .bg-amber-500 text-white px-3 py-2 rounded-md hover:scale-105 transition:hover {
+      .finalize-button:hover {
         background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
         transform: translateY(-1px);
       }
 
-      .text-gray-400 {
+      .closed-lock-icon {
         color: #6b7280;
         font-size: 1.2rem;
       }
 
-      .bg-card p-6 rounded-xl border border-border text-muted-foreground text-center { 
-        text-align: center; 
-        padding: 2rem 1rem; 
-        background-color: #1a1a1a; 
-        border-radius: 1rem;
-        border: 1px solid #333;
+      .loading-error-container {
+        text-align: center;
+        padding: 2rem 1rem;
+        ${"glass-card"}
         color: #a0a0a0;
       }
 
-      .mt-4 border-t border-border pt-4 { 
-        margin-top: 1rem; 
-        border-top: 1px solid #333; 
-        padding-top: 1rem; 
-      }
-
-      .mt-4 border-t border-border pt-4 h4 { 
-        margin: 0 0 0.75rem 0; 
-        font-size: 0.9rem; 
-        font-weight: 600;
-        color: #ffffff;
-      }
-
-      .pl-3 border-l-4 border-primary/60 bg-primary/5 rounded-r-md mb-3 p-3 text-sm text-muted-foreground { 
-        font-size: 0.8rem; 
-        padding: 0.75rem 0 0.75rem 1rem;
-        border-left: 2px solid #3b82f6; 
-        margin-bottom: 0.75rem;
-        background-color: rgba(59, 130, 246, 0.05);
-        border-radius: 0 0.5rem 0.5rem 0;
-      }
-
-      .pl-3 border-l-4 border-primary/60 bg-primary/5 rounded-r-md mb-3 p-3 text-sm text-muted-foreground p {
-        margin: 0.25rem 0;
-        color: #a0a0a0;
-      }
-
-      .bg-card p-8 rounded-xl border border-border text-center text-muted-foreground {
+      .empty-state {
         text-align: center;
         padding: 3rem 1rem;
         color: #a0a0a0;
-        background-color: #1a1a1a;
-        border-radius: 1rem;
-        border: 1px solid #333;
+        ${"glass-card"}
       }
 
       /* Modal styles */
-      .fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4 {
+      .modal-overlay {
         position: fixed;
         top: 0;
         left: 0;
@@ -595,53 +486,44 @@ const AziendaPageStyles = () => (
         z-index: 1000;
         padding: 1rem;
       }
-
-      .bg-card p-6 rounded-2xl border border-border max-w-2xl w-full text-foreground {
-        background-color: #1a1a1a;
-        border-radius: 1rem;
-        border: 1px solid #333;
+      .modal-content {
+        ${"glass-card"}
         width: 100%;
         max-width: 600px;
         max-height: 90vh;
         overflow-y: auto;
         color: #ffffff;
       }
-
-      .p-4 border-b border-border {
+      .modal-header {
         padding: 1.5rem;
-        border-bottom: 1px solid #333;
+        border-bottom: 1px solid rgba(51, 51, 51, 0.5);
       }
-
-      .p-4 border-b border-border h2 {
+      .modal-header h2 {
         margin: 0;
         font-size: 1.25rem;
         font-weight: 600;
+        color: #ffffff;
       }
-
-      .p-4 {
+      .modal-body {
         padding: 1.5rem;
       }
-
-      .p-4 border-t border-border flex justify-between gap-4 {
+      .modal-footer {
         padding: 1.5rem;
-        border-top: 1px solid #333;
+        border-top: 1px solid rgba(51, 51, 51, 0.5);
         display: flex;
         justify-content: space-between;
         gap: 1rem;
       }
-
-      .mb-4 {
+      .form-group {
         margin-bottom: 1rem;
       }
-
-      .mb-4 label {
+      .form-group label {
         display: block;
         margin-bottom: 0.5rem;
         font-weight: 500;
         color: #f8f9fa;
       }
-
-      .w-full p-3 rounded-lg bg-gray-800 border border-gray-700 text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 {
+      .form-input {
         width: 100%;
         padding: 0.75rem;
         border: 1px solid #495057;
@@ -650,20 +532,17 @@ const AziendaPageStyles = () => (
         color: #f8f9fa;
         font-size: 0.9rem;
       }
-
-      .w-full p-3 rounded-lg bg-gray-800 border border-gray-700 text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50:focus {
+      .form-input:focus {
         outline: none;
-        border-color: #3b82f6;
-        box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25);
+        border-color: #6366f1;
+        box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.25);
       }
-
       .char-counter {
         font-size: 0.75rem;
         color: #6c757d;
         margin-top: 0.25rem;
       }
-
-      .bg-gray-800 p-4 rounded-md border border-gray-700 {
+      .recap-summary {
         text-align: left;
         padding: 1rem;
         background-color: #2a2a2a;
@@ -671,24 +550,21 @@ const AziendaPageStyles = () => (
         border-radius: 0.5rem;
         margin-bottom: 1rem;
       }
-
-      .bg-gray-800 p-4 rounded-md border border-gray-700 p {
+      .recap-summary p {
         margin: 0.5rem 0;
         word-break: break-word;
       }
-
-      .bg-gray-800 p-4 rounded-md border border-gray-700 p strong {
+      .recap-summary p strong {
         color: #f8f9fa;
       }
-
-      .text-primary underline mt-2 block {
+      .file-name-preview {
         color: #3b82f6;
         font-size: 0.85rem;
         margin-top: 0.5rem;
       }
 
       /* Image modal styles */
-      .image-fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4 {
+      .image-modal-overlay {
         position: fixed;
         top: 0;
         left: 0;
@@ -701,21 +577,18 @@ const AziendaPageStyles = () => (
         z-index: 1001;
         padding: 2rem;
       }
-
-      .image-bg-card p-6 rounded-2xl border border-border max-w-2xl w-full text-foreground {
+      .image-modal-content {
         max-width: 90%;
         max-height: 90%;
         border-radius: 0.5rem;
         overflow: hidden;
       }
-
-      .image-bg-card p-6 rounded-2xl border border-border max-w-2xl w-full text-foreground img {
+      .image-modal-content img {
         width: 100%;
         height: 100%;
         object-fit: contain;
       }
-
-      .absolute top-4 right-4 bg-black/60 text-white rounded-full w-10 h-10 flex items-center justify-center {
+      .image-modal-close {
         position: absolute;
         top: 1rem;
         right: 1rem;
@@ -730,32 +603,27 @@ const AziendaPageStyles = () => (
       }
 
       /* Filtri per le iscrizioni */
-      .flex flex-wrap gap-4 p-4 bg-card rounded-2xl border border-border {
+      .inscriptions-filters {
         display: flex;
         flex-wrap: wrap;
         gap: 1rem;
         margin-bottom: 1.5rem;
-        padding: 1rem;
-        background-color: #1a1a1a;
-        border-radius: 0.75rem;
-        border: 1px solid #333;
+        padding: 1.5rem;
+        ${"glass-card"}
       }
-
-      .flex flex-col gap-2 min-w-[200px] flex-1 {
+      .filter-group {
         display: flex;
         flex-direction: column;
         gap: 0.5rem;
         min-width: 200px;
         flex: 1;
       }
-
-      .text-sm font-medium text-foreground {
+      .filter-label {
         font-size: 0.9rem;
         font-weight: 500;
         color: #ffffff;
       }
-
-      .p-3 rounded-lg bg-gray-800 border border-gray-700 text-foreground focus:ring-2 focus:ring-primary/50 {
+      .filter-input {
         padding: 0.75rem;
         border: 1px solid #333;
         border-radius: 0.5rem;
@@ -763,15 +631,14 @@ const AziendaPageStyles = () => (
         color: #ffffff;
         font-size: 0.9rem;
       }
-
-      .p-3 rounded-lg bg-gray-800 border border-gray-700 text-foreground focus:ring-2 focus:ring-primary/50:focus {
+      .filter-input:focus {
         outline: none;
-        border-color: #3b82f6;
-        box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25);
+        border-color: #6366f1;
+        box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.25);
       }
 
       /* Paginazione */
-      .flex items-center justify-center gap-3 mt-6 p-4 {
+      .pagination-container {
         display: flex;
         justify-content: center;
         align-items: center;
@@ -779,8 +646,7 @@ const AziendaPageStyles = () => (
         margin-top: 2rem;
         padding: 1rem;
       }
-
-      .primary-gradient text-white px-3 py-2 rounded-md hover:scale-105 transition {
+      .pagination-button {
         background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
         color: white;
         border: none;
@@ -790,19 +656,16 @@ const AziendaPageStyles = () => (
         transition: all 0.3s ease;
         font-size: 0.9rem;
       }
-
-      .primary-gradient text-white px-3 py-2 rounded-md hover:scale-105 transition:hover:not(:disabled) {
+      .pagination-button:hover:not(:disabled) {
         background: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%);
         transform: translateY(-1px);
       }
-
-      .primary-gradient text-white px-3 py-2 rounded-md hover:scale-105 transition:disabled {
+      .pagination-button:disabled {
         opacity: 0.6;
         cursor: not-allowed;
         transform: none;
       }
-
-      .bg-transparent text-foreground border border-border px-3 py-2 rounded-md hover:bg-card {
+      .pagination-number {
         background-color: transparent;
         color: #ffffff;
         border: 1px solid #333;
@@ -812,18 +675,15 @@ const AziendaPageStyles = () => (
         transition: all 0.3s ease;
         font-size: 0.9rem;
       }
-
-      .bg-transparent text-foreground border border-border px-3 py-2 rounded-md hover:bg-card:hover {
+      .pagination-number:hover {
         background-color: #333;
       }
-
-      .bg-transparent text-foreground border border-border px-3 py-2 rounded-md hover:bg-card.active {
+      .pagination-number.active {
         background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
         color: white;
         border-color: #6366f1;
       }
-
-      .text-sm text-muted-foreground {
+      .pagination-info {
         color: #a0a0a0;
         font-size: 0.9rem;
         margin: 0 1rem;
@@ -831,77 +691,63 @@ const AziendaPageStyles = () => (
 
       /* Tablet styles */
       @media (min-width: 768px) {
-        .min-h-screen bg-background px-6 py-6 container mx-auto { 
-          padding: 2rem; 
+        .app-container-full {
+          padding: 2rem;
         }
-
-        .flex flex-col md:flex-row items-center justify-between gap-4 bg-card/60 p-6 rounded-2xl border border-border { 
+        .main-header-bar {
           flex-direction: row;
           justify-content: space-between;
           align-items: center;
           padding: 1.5rem;
         }
-
-        .text-2xl md:text-3xl font-bold text-foreground { 
+        .header-title {
           font-size: 1.75rem;
           text-align: left;
         }
-
-        .glass-card rounded-3xl p-6 tech-shadow flex flex-col md:flex-row justify-between items-center gap-6 { 
+        .dashboard-header-card {
           flex-direction: row;
           justify-content: space-between;
-          align-items: flex-start;
-          padding: 2rem;
+          align-items: center;
+          padding: 2.5rem;
+          background: rgba(26, 26, 26, 0.8);
         }
-
-        .text-2xl md:text-3xl font-extrabold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent { 
+        .dashboard-title {
           font-size: 1.75rem;
         }
-
-        .flex flex-col md:flex-row gap-4 items-center {
+        .dashboard-info {
           flex-direction: row;
           gap: 2rem;
         }
-
-        .primary-gradient text-white px-4 py-2 rounded-2xl font-semibold hover:scale-105 transition {
+        .web3-button {
           width: auto;
           min-width: 200px;
         }
-
-        .grid gap-6 md:grid-cols-2 lg:grid-cols-3 { 
+        .inscriptions-grid {
           display: grid;
           grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-          gap: 1.5rem;
+          gap: 2rem;
         }
-
-        .glass-card rounded-2xl p-6 tech-shadow hover:shadow-lg transition h3 { 
+        .inscription-card h3 {
           font-size: 1.25rem;
         }
-
-        .bg-card p-6 rounded-xl border border-border text-muted-foreground text-center { 
-          padding: 3rem; 
+        .loading-error-container {
+          padding: 3rem;
         }
       }
 
       /* Desktop styles */
       @media (min-width: 1024px) {
-        .min-h-screen bg-background px-6 py-6 container mx-auto { 
+        .app-container-full {
           max-width: 1200px;
           margin: 0 auto;
           padding: 2rem;
         }
-
-        .grid gap-6 md:grid-cols-2 lg:grid-cols-3 { 
+        .inscriptions-grid {
           grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-          gap: 2rem;
+          gap: 2.5rem;
         }
-
-        .glass-card rounded-2xl p-6 tech-shadow hover:shadow-lg transition { 
-          padding: 2rem; 
-        }
-
-        .glass-card rounded-3xl p-6 tech-shadow flex flex-col md:flex-row justify-between items-center gap-6 { 
-          padding: 2.5rem;
+        .inscription-card {
+          padding: 2rem;
         }
       }
   `}</style>
@@ -920,30 +766,30 @@ const formatItalianDate = (dateString: string) => {
 };
 
 // Interfacce per i dati
-interface Step { 
-  stepIndex: string; 
-  eventName: string; 
-  description: string; 
-  date: string; 
-  location: string; 
-  attachmentsIpfsHash: string; 
+interface Step {
+  stepIndex: string;
+  eventName: string;
+  description: string;
+  date: string;
+  location: string;
+  attachmentsIpfsHash: string;
   transactionHash?: string;
 }
 
-interface Batch { 
-  batchId: string; 
-  name: string; 
-  description: string; 
-  date: string; 
-  location: string; 
-  imageIpfsHash: string; 
-  isClosed: boolean; 
-  transactionHash: string; 
-  steps: Step[]; 
+interface Batch {
+  batchId: string;
+  name: string;
+  description: string;
+  date: string;
+  location: string;
+  imageIpfsHash: string;
+  isClosed: boolean;
+  transactionHash: string;
+  steps: Step[];
 }
 
-interface CompanyData { 
-  companyName: string; 
+interface CompanyData {
+  companyName: string;
   credits: number;
   status: string;
 }
@@ -965,11 +811,11 @@ const contract = getContract({
 // Componente modale per visualizzare immagini
 const ImageModal: React.FC<{ imageUrl: string; onClose: () => void }> = ({ imageUrl, onClose }) => {
   return (
-    <div className="image-fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4" onClick={onClose}>
-      <div className="image-bg-card p-6 rounded-2xl border border-border max-w-2xl w-full text-foreground" onClick={(e) => e.stopPropagation()}>
+    <div className="image-modal-overlay" onClick={onClose}>
+      <div className="image-modal-content" onClick={(e) => e.stopPropagation()}>
         <img src={imageUrl} alt="Immagine iscrizione" />
       </div>
-      <button className="absolute top-4 right-4 bg-black/60 text-white rounded-full w-10 h-10 flex items-center justify-center" onClick={onClose}>×</button>
+      <button className="image-modal-close" onClick={onClose}>×</button>
     </div>
   );
 };
@@ -1189,44 +1035,43 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
         <FullPageLoading message="Aggiornamento dati in corso..." />
       )}
 
-      <div className="glass-card rounded-3xl p-6 tech-shadow flex flex-col md:flex-row justify-between items-center gap-6">
+      <div className="dashboard-header-card tech-shadow">
         <div>
-          <div className="flex items-center gap-4 flex-wrap">
-            <h2 className="text-2xl md:text-3xl font-extrabold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">{currentCompanyData.companyName}</h2>
+          <div className="dashboard-title-section">
+            <h2 className="dashboard-title gradient-text">{currentCompanyData.companyName}</h2>
           </div>
-          <div className="flex flex-col md:flex-row gap-4 items-center">
-            <div className="flex flex-col md:flex-row gap-4 items-center-item">
+          <div className="dashboard-info">
+            <div className="dashboard-info-item">
               <span>
-                <a 
-                  href="/ricaricacrediti" 
-                  style={{ color: '#ffffff', textDecoration: 'none', cursor: 'pointer' }}
+                <a
+                  href="/ricaricacrediti"
+                  className="text-muted-foreground hover:text-primary smooth-transition"
                   onClick={(e) => {
                     e.preventDefault();
                     window.location.href = '/ricaricacrediti';
                   }}
                 >
-                  Crediti Rimanenti: <strong>{currentCompanyData.credits}</strong>
+                  Crediti Rimanenti: <strong className="text-primary-foreground">{currentCompanyData.credits}</strong>
                 </a>
               </span>
             </div>
-            <div className="flex flex-col md:flex-row gap-4 items-center-item">
+            <div className="dashboard-info-item">
               <span>Stato: <strong className={currentCompanyData.status === 'active' ? 'status-active-text' : 'status-inactive-text'}>
                 {currentCompanyData.status === 'active' ? 'ATTIVO' : 'NON ATTIVO'}
               </strong></span>
             </div>
           </div>
         </div>
-        <button onClick={() => setIsModalOpen(true)} className="primary-gradient text-white px-4 py-2 rounded-2xl font-semibold hover:scale-105 transition">+ Inizializza Nuova Iscrizione</button>
+        <button onClick={() => setIsModalOpen(true)} className="web3-button primary-gradient tech-shadow smooth-transition hover:scale-105">+ Inizializza Nuova Iscrizione</button>
       </div>
 
       <div className="inscriptions-section-header">
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <h3 className="inscriptions-section-title">Le mie Iscrizioni su Blockchain</h3>
-          <button 
-            className="info-button"
+          <button
+            className="info-button primary-gradient"
             onClick={() => setShowInfoModal(true)}
             style={{
-              background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
               border: 'none',
               borderRadius: '50%',
               width: '30px',
@@ -1244,13 +1089,13 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
             ℹ️
           </button>
         </div>
-        <div className="flex items-center gap-2">
-          <button 
-            className="w-12 h-12 rounded-full flex items-center justify-center primary-gradient shadow-md hover:scale-105 transition"
+        <div className="refresh-section">
+          <button
+            className="refresh-button pulse-glow"
             onClick={handleRefresh}
             disabled={isRefreshing || refreshCounter === 0}
           >
-            <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPCEtLSBSZWZyZXNoIGNpcmN1bGFyIGFycm93cyAtLT4KPHBhdGggZD0iTTMgMTJBOSA5IDAgMCAxIDEyIDNWMUwxNiA1TDEyIDlWN0E3IDcgMCAwIDAgNSAxMkgzWiIgZmlsbD0id2hpdGUiLz4KPHBhdGggZD0iTTIxIDEyQTkgOSAwIDAgMSAxMiAyMVYyM0w4IDE5TDEyIDE1VjE3QTcgNyAwIDAgMCAxOSAxMkgyMVoiIGZpbGw9IndoaXRlIi8+Cjwvc3ZnPgo=" alt="refresh" className="w-5 h-5 text-white" style={{width: '20px', height: '20px'}} />
+            <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnPgo8IS0tIFJlZnJlc2ggY2lyY3VsYXIgYXJyb3dzIC0tPgo8cGF0aCBkPSJNM1wxMkE5IDkgMCAwIDEgMTIgM1YxTDE2IDVMTEyIDlWN0E3IDcgMCAwIDAgNSAxMkgzWiIgZmlsbD0id2hpdGUiLz4KPHBhdGggZD0iTTIxIDEyQTkgOSAwIDAgMSAxMiAyMVYyM0w4IDE5TDEyIDE1VjE3QTcgNyAwIDAgMCAxOSAxMkgyMVoiIGZpbGw9IndoaXRlIi8+Cjwvc3ZnPgo=" alt="refresh" className="refresh-icon" style={{width: '20px', height: '20px'}} />
             {refreshCounter > 0 && (
               <div className="refresh-counter">+{refreshCounter}</div>
             )}
@@ -1258,29 +1103,29 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
         </div>
       </div>
 
-      <div className="flex flex-wrap gap-4 p-4 bg-card rounded-2xl border border-border">
-        <div className="flex flex-col gap-2 min-w-[200px] flex-1">
-          <label className="text-sm font-medium text-foreground">Nome</label>
+      <div className="inscriptions-filters glass-card">
+        <div className="filter-group">
+          <label className="filter-label">Nome</label>
           <input
             type="text"
-            className="p-3 rounded-lg bg-gray-800 border border-gray-700 text-foreground focus:ring-2 focus:ring-primary/50"
+            className="filter-input"
             value={nameFilter}
             onChange={(e) => setNameFilter(e.target.value)}
           />
         </div>
-        <div className="flex flex-col gap-2 min-w-[200px] flex-1">
-          <label className="text-sm font-medium text-foreground">Luogo</label>
+        <div className="filter-group">
+          <label className="filter-label">Luogo</label>
           <input
             type="text"
-            className="p-3 rounded-lg bg-gray-800 border border-gray-700 text-foreground focus:ring-2 focus:ring-primary/50"
+            className="filter-input"
             value={locationFilter}
             onChange={(e) => setLocationFilter(e.target.value)}
           />
         </div>
-        <div className="flex flex-col gap-2 min-w-[200px] flex-1">
-          <label className="text-sm font-medium text-foreground">Stato</label>
+        <div className="filter-group">
+          <label className="filter-label">Stato</label>
           <select
-            className="p-3 rounded-lg bg-gray-800 border border-gray-700 text-foreground focus:ring-2 focus:ring-primary/50"
+            className="filter-input"
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value as "Aperto" | "Chiuso" | "")}
           >
@@ -1292,20 +1137,20 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
       </div>
 
       {isLoadingBatches && !showFullPageLoading ? (
-        <div className="bg-card p-6 rounded-xl border border-border text-muted-foreground text-center"><p>Caricamento delle tue iscrizioni...</p></div>
+        <div className="loading-error-container"><p>Caricamento delle tue iscrizioni...</p></div>
       ) : errorBatches ? (
-        <div className="bg-card p-6 rounded-xl border border-border text-muted-foreground text-center"><p style={{ color: 'red' }}>{errorBatches}</p></div>
+        <div className="loading-error-container"><p style={{ color: 'red' }}>{errorBatches}</p></div>
       ) : (
         <>
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <div className="inscriptions-grid">
             {currentItems.length > 0 ? (
               currentItems.map((batch) => (
-                <div key={batch.batchId} className="glass-card rounded-2xl p-6 tech-shadow hover:shadow-lg transition">
-                  <h3>#{getBatchDisplayNumber(batch.batchId)} - {batch.name}</h3>
+                <div key={batch.batchId} className="inscription-card tech-shadow">
+                  <h3 className="gradient-text">#{getBatchDisplayNumber(batch.batchId)} - {batch.name}</h3>
                   <p><strong>Descrizione:</strong> {batch.description ? truncateText(batch.description, window.innerWidth < 768 ? 80 : 100) : "N/D"}</p>
                   <p><strong>Data:</strong> {formatItalianDate(batch.date)}</p>
                   <p><strong>Luogo:</strong> {batch.location || "N/D"}</p>
-                  <p><strong>Stato:</strong> <span className={batch.isClosed ? 'text-red-500 font-semibold' : 'text-green-500 font-semibold'}>
+                  <p><strong>Stato:</strong> <span className={batch.isClosed ? 'status-closed' : 'status-open'}>
                     {batch.isClosed ? ' Chiuso' : ' Aperto'}
                   </span></p>
                   {batch.imageIpfsHash && batch.imageIpfsHash !== "N/A" && (
@@ -1331,18 +1176,18 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
                     </a>
                   </p>
 
-                  <div className="flex justify-between items-center mt-4">
-                    <div className="text-sm text-muted-foreground">
+                  <div className="inscription-footer">
+                    <div className="steps-count">
                       {batch.steps && batch.steps.length > 0 ? (
                         <button
-                          className="accent-gradient text-white px-3 py-2 rounded-md hover:scale-105 transition"
+                          className="view-steps-button"
                           onClick={() => setSelectedBatchForSteps(batch)}
                         >
                           {batch.steps.length} steps
                         </button>
                       ) : (
                         <button
-                          className="accent-gradient text-white px-3 py-2 rounded-md hover:scale-105 transition disabled"
+                          className="view-steps-button disabled"
                           disabled={true}
                         >
                           0 steps
@@ -1354,7 +1199,7 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
                       {/* Pulsante Esporta - mostrato solo per batch chiusi */}
                       {batch.isClosed && (
                         <button
-                          className="primary-gradient text-white px-3 py-2 rounded-md hover:scale-105 transition"
+                          className="export-button"
                           onClick={() => {
                             setSelectedBatchForExport(batch);
                             setShowExportModal(true);
@@ -1368,27 +1213,27 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
                       {!batch.isClosed ? (
                         <>
                           <button
-                            className="bg-emerald-500 text-white px-3 py-2 rounded-md hover:scale-105 transition"
+                            className="add-step-button"
                             onClick={() => setSelectedBatchForStep(batch)}
                           >
                             Aggiungi Step
                           </button>
                           <button
-                            className="bg-amber-500 text-white px-3 py-2 rounded-md hover:scale-105 transition"
+                            className="finalize-button"
                             onClick={() => setSelectedBatchForFinalize(batch)}
                           >
                             Finalizza
                           </button>
                         </>
                       ) : (
-                        <span className="text-gray-400">🔒</span>
+                        <span className="closed-lock-icon">🔒</span>
                       )}
                     </div>
                   </div>
                 </div>
               ))
             ) : (
-              <div className="bg-card p-8 rounded-xl border border-border text-center text-muted-foreground">
+              <div className="empty-state tech-shadow">
                 <p>Non hai ancora inizializzato nessuna iscrizione con questo account.</p>
                 <p style={{ fontSize: '0.8rem', marginTop: '0.5rem', opacity: 0.7 }}>
                   Clicca su "Inizializza Nuova Iscrizione" per iniziare
@@ -1399,9 +1244,9 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
 
           {/* Paginazione */}
           {filteredBatches.length > itemsPerPage && (
-            <div className="flex items-center justify-center gap-3 mt-6 p-4">
+            <div className="pagination-container">
               <button
-                className="primary-gradient text-white px-3 py-2 rounded-md hover:scale-105 transition"
+                className="pagination-button"
                 onClick={handlePreviousPage}
                 disabled={currentPage === 1}
               >
@@ -1411,7 +1256,7 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
               {Array.from({ length: totalPages }, (_, i) => i + 1).map(number => (
                 <button
                   key={number}
-                  className={`bg-transparent text-foreground border border-border px-3 py-2 rounded-md hover:bg-card ${currentPage === number ? 'active' : ''}`}
+                  className={`pagination-number ${currentPage === number ? 'active' : ''}`}
                   onClick={() => paginate(number)}
                 >
                   {number}
@@ -1419,13 +1264,13 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
               ))}
 
               <button
-                className="primary-gradient text-white px-3 py-2 rounded-md hover:scale-105 transition"
+                className="pagination-button"
                 onClick={handleNextPage}
                 disabled={currentPage === totalPages}
               >
                 &gt;
               </button>
-              <span className="text-sm text-muted-foreground">
+              <span className="pagination-info">
                 Pagina {currentPage} di {totalPages}
               </span>
             </div>
@@ -1694,26 +1539,26 @@ const AddStepModal: React.FC<{
   const isProcessing = loadingMessage !== "" || isPending;
   const today = new Date().toISOString().split("T")[0];
   const helpTextStyle = {
-    backgroundColor: "#343a40",
-    border: "1px solid #495057",
+    backgroundColor: "#1a1a1a",
+    border: "1px solid #333",
     borderRadius: "8px",
     padding: "16px",
     marginTop: "16px",
     fontSize: "0.9rem",
-    color: "#f8f9fa"
+    color: "#a0a0a0"
   };
 
   return (
     <>
-      <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4" onClick={onClose}>
-        <div className="bg-card p-6 rounded-2xl border border-border max-w-2xl w-full text-foreground" onClick={(e) => e.stopPropagation()}>
-          <div className="p-4 border-b border-border">
+      <div className="modal-overlay" onClick={onClose}>
+        <div className="modal-content tech-shadow" onClick={(e) => e.stopPropagation()}>
+          <div className="modal-header">
             <h2>Aggiungi step all'iscrizione ({currentStep}/6)</h2>
           </div>
-          <div className="p-4" style={{ minHeight: "350px" }}>
+          <div className="modal-body" style={{ minHeight: "350px" }}>
             {currentStep === 1 && (
               <div>
-                <div className="mb-4">
+                <div className="form-group">
                   <label>
                     Nome Evento
                     <span style={{ color: "red", fontWeight: "bold" }}> * Obbligatorio</span>
@@ -1723,7 +1568,7 @@ const AddStepModal: React.FC<{
                     name="eventName"
                     value={formData.eventName}
                     onChange={handleInputChange}
-                    className="w-full p-3 rounded-lg bg-gray-800 border border-gray-700 text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                    className="form-input"
                     maxLength={100}
                   />
                   <small className="char-counter">{formData.eventName.length} / 100</small>
@@ -1744,7 +1589,7 @@ const AddStepModal: React.FC<{
 
             {currentStep === 2 && (
               <div>
-                <div className="mb-4">
+                <div className="form-group">
                   <label>
                     Descrizione
                     <span style={{ color: "#6c757d" }}> Non obbligatorio</span>
@@ -1753,7 +1598,7 @@ const AddStepModal: React.FC<{
                     name="description"
                     value={formData.description}
                     onChange={handleInputChange}
-                    className="w-full p-3 rounded-lg bg-gray-800 border border-gray-700 text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                    className="form-input"
                     rows={4}
                     maxLength={500}
                   ></textarea>
@@ -1767,7 +1612,7 @@ const AddStepModal: React.FC<{
 
             {currentStep === 3 && (
               <div>
-                <div className="mb-4">
+                <div className="form-group">
                   <label>
                     Luogo
                     <span style={{ color: "#6c757d" }}> Non obbligatorio</span>
@@ -1777,7 +1622,7 @@ const AddStepModal: React.FC<{
                     name="location"
                     value={formData.location}
                     onChange={handleInputChange}
-                    className="w-full p-3 rounded-lg bg-gray-800 border border-gray-700 text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                    className="form-input"
                     maxLength={100}
                   />
                   <small className="char-counter">{formData.location.length} / 100</small>
@@ -1790,7 +1635,7 @@ const AddStepModal: React.FC<{
 
             {currentStep === 4 && (
               <div>
-                <div className="mb-4">
+                <div className="form-group">
                   <label>
                     Data
                     <span style={{ color: "#6c757d" }}> Non obbligatorio</span>
@@ -1800,7 +1645,7 @@ const AddStepModal: React.FC<{
                     name="date"
                     value={formData.date}
                     onChange={handleInputChange}
-                    className="w-full p-3 rounded-lg bg-gray-800 border border-gray-700 text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                    className="form-input"
                     max={today}
                   />
                 </div>
@@ -1812,7 +1657,7 @@ const AddStepModal: React.FC<{
 
             {currentStep === 5 && (
               <div>
-                <div className="mb-4">
+                <div className="form-group">
                   <label>
                     Immagini / Documenti
                     <span style={{ color: "#6c757d" }}> Non obbligatorio</span>
@@ -1821,7 +1666,7 @@ const AddStepModal: React.FC<{
                     type="file"
                     name="attachments"
                     onChange={handleFileChange}
-                    className="w-full p-3 rounded-lg bg-gray-800 border border-gray-700 text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                    className="form-input"
                     accept="image/png, image/jpeg, image/webp, application/pdf, application/msword, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/vnd.oasis.opendocument.text, text/csv, application/vnd.ms-excel, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
                   />
                   <small style={{ marginTop: "4px" }}>
@@ -1829,7 +1674,7 @@ const AddStepModal: React.FC<{
                     Formati documenti: PDF, DOC, DOCX, ODT, CSV, XLS, XLSX. Max 10 MB.
                   </small>
                   {selectedFile && (
-                    <p className="text-primary underline mt-2 block">File: {selectedFile.name}</p>
+                    <p className="file-name-preview">File: {selectedFile.name}</p>
                   )}
                 </div>
                 <div style={helpTextStyle}>
@@ -1841,7 +1686,7 @@ const AddStepModal: React.FC<{
             {currentStep === 6 && (
               <div>
                 <h4>Riepilogo Dati</h4>
-                <div className="bg-gray-800 p-4 rounded-md border border-gray-700">
+                <div className="recap-summary">
                   <p><strong>Nome Evento:</strong> {truncateText(formData.eventName, 40) || "N/D"}</p>
                   <p><strong>Descrizione:</strong> {truncateText(formData.description, 60) || "N/D"}</p>
                   <p><strong>Luogo:</strong> {truncateText(formData.location, 40) || "N/D"}</p>
@@ -1852,25 +1697,25 @@ const AddStepModal: React.FC<{
               </div>
             )}
           </div>
-          <div className="p-4 border-t border-border flex justify-between gap-4">
+          <div className="modal-footer">
             <div>
               {currentStep > 1 && (
-                <button onClick={handlePrevStep} className="primary-gradient text-white px-4 py-2 rounded-2xl font-semibold hover:scale-105 transition secondary" disabled={isProcessing}>
+                <button onClick={handlePrevStep} className="web3-button secondary" disabled={isProcessing}>
                   Indietro
                 </button>
               )}
             </div>
             <div style={{ display: 'flex', gap: '1rem' }}>
-              <button onClick={onClose} className="primary-gradient text-white px-4 py-2 rounded-2xl font-semibold hover:scale-105 transition secondary" disabled={isProcessing}>
+              <button onClick={onClose} className="web3-button secondary" disabled={isProcessing}>
                 Chiudi
               </button>
               {currentStep < 6 && (
-                <button onClick={handleNextStep} className="primary-gradient text-white px-4 py-2 rounded-2xl font-semibold hover:scale-105 transition">
+                <button onClick={handleNextStep} className="web3-button primary-gradient">
                   Avanti
                 </button>
               )}
               {currentStep === 6 && (
-                <button onClick={handleSubmit} disabled={isProcessing} className="primary-gradient text-white px-4 py-2 rounded-2xl font-semibold hover:scale-105 transition">
+                <button onClick={handleSubmit} disabled={isProcessing} className="web3-button accent-gradient">
                   {isProcessing ? "Conferma..." : "Conferma e Registra"}
                 </button>
               )}
@@ -1981,22 +1826,22 @@ const FinalizeModal: React.FC<{
 
   return (
     <>
-      <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4" onClick={onClose}>
-        <div className="bg-card p-6 rounded-2xl border border-border max-w-2xl w-full text-foreground" onClick={(e) => e.stopPropagation()}>
-          <div className="p-4 border-b border-border">
+      <div className="modal-overlay" onClick={onClose}>
+        <div className="modal-content tech-shadow" onClick={(e) => e.stopPropagation()}>
+          <div className="modal-header">
             <h2>Finalizza Iscrizione</h2>
           </div>
-          <div className="p-4">
-            <p>Sei sicuro di voler finalizzare l'iscrizione "{batch.name}"?</p>
+          <div className="modal-body">
+            <p className="text-muted-foreground">Sei sicuro di voler finalizzare l'iscrizione "{batch.name}"?</p>
             <p style={{ color: '#f59e0b', fontSize: '0.9rem', marginTop: '1rem' }}>
               ⚠️ Attenzione: Una volta finalizzata, non potrai più aggiungere step a questa iscrizione.
             </p>
           </div>
-          <div className="p-4 border-t border-border flex justify-between gap-4">
-            <button onClick={onClose} className="primary-gradient text-white px-4 py-2 rounded-2xl font-semibold hover:scale-105 transition secondary" disabled={isProcessing}>
+          <div className="modal-footer">
+            <button onClick={onClose} className="web3-button secondary" disabled={isProcessing}>
               Annulla
             </button>
-            <button onClick={handleFinalize} disabled={isProcessing} className="primary-gradient text-white px-4 py-2 rounded-2xl font-semibold hover:scale-105 transition">
+            <button onClick={handleFinalize} disabled={isProcessing} className="web3-button accent-gradient">
               {isProcessing ? "Finalizzazione..." : "Finalizza"}
             </button>
           </div>
@@ -2024,19 +1869,19 @@ const StepsModal: React.FC<{
 
   return (
     <>
-      <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4" onClick={onClose}>
-        <div className="bg-card p-4 rounded-2xl border border-border max-w-3xl w-full max-h-[80vh] overflow-auto text-foreground" onClick={(e) => e.stopPropagation()}>
-          <div className="steps-p-4 border-b border-border">
+      <div className="steps-modal-overlay" onClick={onClose}>
+        <div className="steps-modal-content tech-shadow" onClick={(e) => e.stopPropagation()}>
+          <div className="steps-modal-header">
             <h2>Steps - {batch.name}</h2>
           </div>
-          <div className="steps-p-4">
+          <div className="steps-modal-body">
             {batch.steps && batch.steps.length > 0 ? (
               batch.steps.map((step, index) => (
-                <div key={index} className="bg-gray-800 p-4 rounded-xl border border-gray-700 mb-4">
-                  <h4>Step {index + 1}: {step.eventName}</h4>
-                  <p><strong>📄 Descrizione:</strong> {step.description || "N/D"}</p>
-                  <p><strong>📅 Data:</strong> {formatItalianDate(step.date)}</p>
-                  <p><strong>📍 Luogo:</strong> {step.location || "N/D"}</p>
+                <div key={index} className="step-card">
+                  <h4 className="text-primary">Step {index + 1}: {step.eventName}</h4>
+                  <p className="text-muted-foreground"><strong>📄 Descrizione:</strong> {step.description || "N/D"}</p>
+                  <p className="text-muted-foreground"><strong>📅 Data:</strong> {formatItalianDate(step.date)}</p>
+                  <p className="text-muted-foreground"><strong>📍 Luogo:</strong> {step.location || "N/D"}</p>
                   {step.attachmentsIpfsHash && step.attachmentsIpfsHash !== "N/A" && (
                     <p>
                       <strong>📎 Allegati:</strong>
@@ -2064,10 +1909,10 @@ const StepsModal: React.FC<{
                 </div>
               ))
             ) : (
-              <p>Nessuno step disponibile per questa iscrizione.</p>
+              <p className="text-muted-foreground">Nessuno step disponibile per questa iscrizione.</p>
             )}
             <div style={{ textAlign: 'center', marginTop: '2rem' }}>
-              <button onClick={onClose} className="primary-gradient text-white px-4 py-2 rounded-2xl font-semibold hover:scale-105 transition">
+              <button onClick={onClose} className="web3-button secondary">
                 Indietro
               </button>
             </div>
@@ -2233,37 +2078,37 @@ const NewInscriptionModal: React.FC<{
   const isProcessing = loadingMessage !== "" || isPending;
   const today = new Date().toISOString().split("T")[0];
   const helpTextStyle = {
-    backgroundColor: "#343a40",
-    border: "1px solid #495057",
+    backgroundColor: "#1a1a1a",
+    border: "1px solid #333",
     borderRadius: "8px",
     padding: "16px",
     marginTop: "16px",
     fontSize: "0.9rem",
-    color: "#f8f9fa"
+    color: "#a0a0a0"
   };
 
   return (
     <>
-      <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4" onClick={onClose}>
-        <div className="bg-card p-6 rounded-2xl border border-border max-w-2xl w-full text-foreground" onClick={(e) => e.stopPropagation()}>
-          <div className="p-4 border-b border-border">
+      <div className="modal-overlay" onClick={onClose}>
+        <div className="modal-content tech-shadow" onClick={(e) => e.stopPropagation()}>
+          <div className="modal-header">
             <h2>Nuova Iscrizione ({currentStep}/6)</h2>
           </div>
-          <div className="p-4" style={{ minHeight: "350px" }}>
+          <div className="modal-body" style={{ minHeight: "350px" }}>
             {currentStep === 1 && (
               <div>
-                <div className="mb-4">
+                <div className="form-group">
                   <label>
-                    Nome Iscrizione 
+                    Nome Iscrizione
                     <span style={{ color: "red", fontWeight: "bold" }}> * Obbligatorio</span>
                   </label>
-                  <input 
-                    type="text" 
-                    name="name" 
-                    value={formData.name} 
-                    onChange={handleInputChange} 
-                    className="w-full p-3 rounded-lg bg-gray-800 border border-gray-700 text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50" 
-                    maxLength={100} 
+                  <input
+                    type="text"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleInputChange}
+                    className="form-input"
+                    maxLength={100}
                   />
                   <small className="char-counter">{formData.name.length} / 100</small>
                 </div>
@@ -2282,7 +2127,7 @@ const NewInscriptionModal: React.FC<{
 
             {currentStep === 2 && (
               <div>
-                <div className="mb-4">
+                <div className="form-group">
                   <label>
                     Descrizione
                     <span style={{ color: "#6c757d" }}> Non obbligatorio</span>
@@ -2291,7 +2136,7 @@ const NewInscriptionModal: React.FC<{
                     name="description"
                     value={formData.description}
                     onChange={handleInputChange}
-                    className="w-full p-3 rounded-lg bg-gray-800 border border-gray-700 text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                    className="form-input"
                     rows={4}
                     maxLength={500}
                   ></textarea>
@@ -2305,7 +2150,7 @@ const NewInscriptionModal: React.FC<{
 
             {currentStep === 3 && (
               <div>
-                <div className="mb-4">
+                <div className="form-group">
                   <label>
                     Luogo di Produzione
                     <span style={{ color: "#6c757d" }}> Non obbligatorio</span>
@@ -2315,7 +2160,7 @@ const NewInscriptionModal: React.FC<{
                     name="location"
                     value={formData.location}
                     onChange={handleInputChange}
-                    className="w-full p-3 rounded-lg bg-gray-800 border border-gray-700 text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                    className="form-input"
                     maxLength={100}
                   />
                   <small className="char-counter">{formData.location.length} / 100</small>
@@ -2328,7 +2173,7 @@ const NewInscriptionModal: React.FC<{
 
             {currentStep === 4 && (
               <div>
-                <div className="mb-4">
+                <div className="form-group">
                   <label>
                     Data di Origine
                     <span style={{ color: "#6c757d" }}> Non obbligatorio</span>
@@ -2338,7 +2183,7 @@ const NewInscriptionModal: React.FC<{
                     name="date"
                     value={formData.date}
                     onChange={handleInputChange}
-                    className="w-full p-3 rounded-lg bg-gray-800 border border-gray-700 text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                    className="form-input"
                     max={today}
                   />
                 </div>
@@ -2350,7 +2195,7 @@ const NewInscriptionModal: React.FC<{
 
             {currentStep === 5 && (
               <div>
-                <div className="mb-4">
+                <div className="form-group">
                   <label>
                     Immagine Prodotto
                     <span style={{ color: "#6c757d" }}> Non obbligatorio</span>
@@ -2359,14 +2204,14 @@ const NewInscriptionModal: React.FC<{
                     type="file"
                     name="image"
                     onChange={handleFileChange}
-                    className="w-full p-3 rounded-lg bg-gray-800 border border-gray-700 text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                    className="form-input"
                     accept="image/png, image/jpeg, image/webp"
                   />
                   <small style={{ marginTop: "4px" }}>
                     Formati supportati: PNG, JPG, WEBP. Dimensione massima: 5 MB.
                   </small>
                   {selectedFile && (
-                    <p className="text-primary underline mt-2 block">File: {selectedFile.name}</p>
+                    <p className="file-name-preview">File: {selectedFile.name}</p>
                   )}
                 </div>
                 <div style={helpTextStyle}>
@@ -2378,7 +2223,7 @@ const NewInscriptionModal: React.FC<{
             {currentStep === 6 && (
               <div>
                 <h4>Riepilogo Dati</h4>
-                <div className="bg-gray-800 p-4 rounded-md border border-gray-700">
+                <div className="recap-summary">
                   <p><strong>Nome:</strong> {truncateText(formData.name, 40) || "N/D"}</p>
                   <p><strong>Descrizione:</strong> {truncateText(formData.description, 60) || "N/D"}</p>
                   <p><strong>Luogo:</strong> {truncateText(formData.location, 40) || "N/D"}</p>
@@ -2389,25 +2234,25 @@ const NewInscriptionModal: React.FC<{
               </div>
             )}
           </div>
-          <div className="p-4 border-t border-border flex justify-between gap-4">
+          <div className="modal-footer">
             <div>
               {currentStep > 1 && (
-                <button onClick={handlePrevStep} className="primary-gradient text-white px-4 py-2 rounded-2xl font-semibold hover:scale-105 transition secondary" disabled={isProcessing}>
+                <button onClick={handlePrevStep} className="web3-button secondary" disabled={isProcessing}>
                   Indietro
                 </button>
               )}
             </div>
             <div style={{ display: 'flex', gap: '1rem' }}>
-              <button onClick={onClose} className="primary-gradient text-white px-4 py-2 rounded-2xl font-semibold hover:scale-105 transition secondary" disabled={isProcessing}>
+              <button onClick={onClose} className="web3-button secondary" disabled={isProcessing}>
                 Chiudi
               </button>
               {currentStep < 6 && (
-                <button onClick={handleNextStep} className="primary-gradient text-white px-4 py-2 rounded-2xl font-semibold hover:scale-105 transition">
+                <button onClick={handleNextStep} className="web3-button primary-gradient">
                   Avanti
                 </button>
               )}
               {currentStep === 6 && (
-                <button onClick={handleSubmit} disabled={isProcessing} className="primary-gradient text-white px-4 py-2 rounded-2xl font-semibold hover:scale-105 transition">
+                <button onClick={handleSubmit} disabled={isProcessing} className="web3-button accent-gradient">
                   {isProcessing ? "Conferma..." : "Conferma e Registra"}
                 </button>
               )}
@@ -2435,36 +2280,36 @@ const ExportTypeModal: React.FC<{
   onSelectType: (type: 'pdf' | 'html') => void;
 }> = ({ batch, onClose, onSelectType }) => {
   return (
-    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4" onClick={onClose}>
-      <div className="bg-card p-6 rounded-2xl border border-border max-w-2xl w-full text-foreground" onClick={(e) => e.stopPropagation()}>
-        <div className="p-4 border-b border-border">
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-content tech-shadow" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-header">
           <h2>Informazioni Esportazione</h2>
         </div>
-        <div className="p-4">
+        <div className="modal-body">
           <div style={{ marginBottom: '2rem' }}>
-            <p>Se hai completato con successo la tua iscrizione (solo dopo la finalizzazione), potrai esportare:</p>
-            <ul style={{ textAlign: 'left', paddingLeft: '20px', margin: '1rem 0' }}>
-              <li>Un certificato EasyChain in formato PDF, utile all'azienda per uso interno o documentale. Questo file può essere archiviato, stampato o condiviso con terzi per attestare l'iscrizione e l'autenticità del prodotto, senza necessariamente passare per il QR Code.</li>
-              <li>Un certificato EasyChain in formato HTML, pensato per la pubblicazione online. Caricalo su uno spazio web (privato o pubblico), copia il link e usalo per generare un QR Code da applicare all'etichetta del tuo prodotto. Inquadrando il QR Code, chiunque potrà visualizzare il certificato direttamente online.</li>
+            <p className="text-muted-foreground">Se hai completato con successo la tua iscrizione (solo dopo la finalizzazione), potrai esportare:</p>
+            <ul style={{ textAlign: 'left', paddingLeft: '20px', margin: '1rem 0', color: '#a0a0a0' }}>
+              <li>Un certificato EasyChain in formato **PDF**, utile all'azienda per uso interno o documentale. Questo file può essere archiviato, stampato o condiviso con terzi per attestare l'iscrizione e l'autenticità del prodotto, senza necessariamente passare per il QR Code.</li>
+              <li>Un certificato EasyChain in formato **HTML**, pensato per la pubblicazione online. Caricalo su uno spazio web (privato o pubblico), copia il link e usalo per generare un QR Code da applicare all'etichetta del tuo prodotto. Inquadrando il QR Code, chiunque potrà visualizzare il certificato direttamente online.</li>
             </ul>
           </div>
           <div className="export-modal-buttons">
-            <button 
-              className="primary-gradient text-white px-6 py-3 rounded-xl hover:scale-105 transition"
+            <button
+              className="export-type-button primary-gradient"
               onClick={() => onSelectType('pdf')}
             >
-              📄 Esporta PDF
+              <FileText className="inline mr-2" style={{width: '20px', height: '20px'}} /> Esporta PDF
             </button>
-            <button 
-              className="primary-gradient text-white px-6 py-3 rounded-xl hover:scale-105 transition"
+            <button
+              className="export-type-button accent-gradient"
               onClick={() => onSelectType('html')}
             >
-              🌐 Esporta HTML
+              <Globe className="inline mr-2" style={{width: '20px', height: '20px'}} /> Esporta HTML
             </button>
           </div>
         </div>
-        <div className="p-4 border-t border-border flex justify-between gap-4">
-          <button onClick={onClose} className="primary-gradient text-white px-4 py-2 rounded-2xl font-semibold hover:scale-105 transition secondary">
+        <div className="modal-footer">
+          <button onClick={onClose} className="web3-button secondary">
             Chiudi
           </button>
         </div>
@@ -2497,21 +2342,21 @@ const QRCodeOfferModal: React.FC<{
   };
 
   return (
-    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4" onClick={onClose}>
-      <div className="bg-card p-6 rounded-2xl border border-border max-w-2xl w-full text-foreground" onClick={(e) => e.stopPropagation()}>
-        <div className="p-4 border-b border-border">
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-content tech-shadow" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-header">
           <h2>Crea QR Code</h2>
         </div>
-        <div className="p-4">
-          <p style={{ marginBottom: '2rem', textAlign: 'center' }}>
+        <div className="modal-body">
+          <p className="text-muted-foreground" style={{ marginBottom: '2rem', textAlign: 'center' }}>
             Vuoi creare anche un QrCode da usare per l'etichetta del tuo prodotto?
           </p>
         </div>
-        <div className="p-4 border-t border-border flex justify-between gap-4">
-          <button onClick={onClose} className="primary-gradient text-white px-4 py-2 rounded-2xl font-semibold hover:scale-105 transition secondary">
+        <div className="modal-footer">
+          <button onClick={onClose} className="web3-button secondary">
             No Grazie
           </button>
-          <button onClick={handleGenerateQRCode} className="primary-gradient text-white px-4 py-2 rounded-2xl font-semibold hover:scale-105 transition">
+          <button onClick={handleGenerateQRCode} className="web3-button primary-gradient">
             Genera QrCode
           </button>
         </div>
@@ -2525,13 +2370,13 @@ const InfoModal: React.FC<{
   onClose: () => void;
 }> = ({ onClose }) => {
   return (
-    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4" onClick={onClose}>
-      <div className="bg-card p-6 rounded-2xl border border-border max-w-2xl w-full text-foreground" onClick={(e) => e.stopPropagation()}>
-        <div className="p-4 border-b border-border">
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-content tech-shadow" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-header">
           <h2>Informazioni Iscrizioni</h2>
         </div>
-        <div className="p-4">
-          <div style={{ textAlign: 'left' }}>
+        <div className="modal-body">
+          <div style={{ textAlign: 'left', color: '#a0a0a0' }}>
             <h4>COME FUNZIONA</h4>
             <ul style={{ paddingLeft: '20px', margin: '1rem 0' }}>
               <li><strong>Inizializza Nuova Iscrizione:</strong> Crea una nuova iscrizione con i dati base del prodotto</li>
@@ -2549,11 +2394,11 @@ const InfoModal: React.FC<{
             <h4>Riguardo i Costi:</h4>
             <p>Dopo l'attivazione del tuo account avrai a disposizione crediti gratuiti per avviare la tua attività di certificazione su Blockchain.</p>
             <p>Ogni operazione (nuova iscrizione, aggiunta step, finalizzazione) consuma 1 credito.</p>
-            <p>Se hai bisogno di piu' crediti per le tue operazioni vai alla pagina <a href="/ricaricacrediti" style={{ color: '#3b82f6', textDecoration: 'none' }}>Ricarica Crediti</a>.</p>
+            <p>Se hai bisogno di piu' crediti per le tue operazioni vai alla pagina <a href="/ricaricacrediti" className="text-primary hover:underline">Ricarica Crediti</a>.</p>
           </div>
         </div>
-        <div className="p-4 border-t border-border flex justify-between gap-4">
-          <button onClick={onClose} className="primary-gradient text-white px-4 py-2 rounded-2xl font-semibold hover:scale-105 transition">
+        <div className="modal-footer">
+          <button onClick={onClose} className="web3-button primary-gradient">
             Ho capito
           </button>
         </div>
@@ -2595,8 +2440,8 @@ const AziendaPage: React.FC = () => {
         setCompanyStatus({
           isLoading: false,
           isActive: data.isActive,
-          data: data.isActive ? { 
-            companyName: data.companyName, 
+          data: data.isActive ? {
+            companyName: data.companyName,
             credits: data.credits,
             status: data.status || 'active'
           } : null,
@@ -2617,11 +2462,11 @@ const AziendaPage: React.FC = () => {
 
   const renderContent = () => {
     if (companyStatus.isLoading) {
-      return <div className="flex flex-col items-center justify-center min-h-[60vh] text-center p-6"><p>Verifica stato account in corso...</p></div>;
+      return <div className="centered-container"><p className="text-muted-foreground">Verifica stato account in corso...</p></div>;
     }
 
     if (companyStatus.error) {
-      return <div className="flex flex-col items-center justify-center min-h-[60vh] text-center p-6"><p style={{ color: "red" }}>{companyStatus.error}</p></div>;
+      return <div className="centered-container"><p style={{ color: "red" }}>{companyStatus.error}</p></div>;
     }
 
     if (companyStatus.isActive && companyStatus.data) {
@@ -2632,18 +2477,18 @@ const AziendaPage: React.FC = () => {
       return <RegistrationForm walletAddress={account.address} />;
     }
 
-    return <div className="flex flex-col items-center justify-center min-h-[60vh] text-center p-6"><p>Connetti il wallet per continuare.</p></div>;
+    return <div className="centered-container"><p className="text-muted-foreground">Connetti il wallet per continuare.</p></div>;
   };
 
   if (!account) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center p-6">
+      <div className="login-container bg-background">
         <AziendaPageStyles />
-        <div style={{ textAlign: "center" }}>
-          <h1>Benvenuto</h1>
-          <p>Connetti il tuo wallet per accedere.</p>
-          <ConnectButton 
-            client={client} 
+        <div className="glass-card tech-shadow" style={{ padding: '2rem', textAlign: 'center' }}>
+          <h1 className="header-title-gradient">Benvenuto</h1>
+          <p className="text-muted-foreground" style={{ marginBottom: '1.5rem' }}>Connetti il tuo wallet per accedere.</p>
+          <ConnectButton
+            client={client}
             wallets={[inAppWallet()]}
             chain={polygon}
             accountAbstraction={{ chain: polygon, sponsorGas: true }}
@@ -2656,10 +2501,10 @@ const AziendaPage: React.FC = () => {
   return (
     <>
       <AziendaPageStyles />
-      <div className="min-h-screen bg-background px-6 py-6 container mx-auto">
-        <header className="flex flex-col md:flex-row items-center justify-between gap-4 bg-card/60 p-6 rounded-2xl border border-border">
-          <h1 className="text-2xl md:text-3xl font-bold text-foreground">EasyChain - Area Privata</h1>
-          <ConnectButton 
+      <div className="app-container-full bg-background">
+        <header className="main-header-bar">
+          <h1 className="header-title header-title-gradient">EasyChain - Area Privata</h1>
+          <ConnectButton
             client={client}
             chain={polygon}
             accountAbstraction={{ chain: polygon, sponsorGas: true }}
