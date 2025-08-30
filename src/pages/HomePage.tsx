@@ -7,7 +7,7 @@ export default function HomePage() {
   const [textPhase, setTextPhase] = useState(1);
 
   useEffect(() => {
-    // Set up an interval to change the text phase every 4 seconds (4000ms)
+    // Seet up an interval to change the text phase every 4 seconds (4000ms)
     const interval = setInterval(() => {
       setTextPhase((prevPhase) => {
         // Cycle from 1 to 2, 2 to 3, and 3 back to 1
