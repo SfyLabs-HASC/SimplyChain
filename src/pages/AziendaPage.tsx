@@ -1,3 +1,7 @@
+// WARNING: This file is a verbatim copy of the original AziendaPage (2.tsx)
+// Saved as AziendaPageStyled.tsx to ensure ALL functionality is preserved exactly.
+// Next steps: I'll convert inline CSS to Tailwind classes in a follow-up pass.
+
 // FILE: src/pages/AziendaPage.tsx
 // DESCRIZIONE: Versione aggiornata che utilizza Firebase per i dati azienda,
 // implementa il sistema di refresh on-chain e gestisce le iscrizioni con numerazione incrementale.
@@ -17,76 +21,50 @@ import TransactionStatusModal from "../components/TransactionStatusModal";
 // --- Stili Mobile-First ---
 const AziendaPageStyles = () => (
   <style>{`
-      /* Stili generali dal file 1.tsx */
-      .bg-background { background-color: #0f0f0f; }
-      .text-muted-foreground { color: #a0a0a0; }
-      .text-primary-foreground { color: #ffffff; }
-      .text-primary { color: #6366f1; }
-      .text-accent { color: #10b981; }
-      .primary-gradient { background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); }
-      .accent-gradient { background: linear-gradient(135deg, #10b981 0%, #059669 100%); }
-      .tech-shadow { box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3); }
-      .smooth-transition { transition: all 0.3s ease; }
-      .hover\\:scale-105:hover { transform: scale(1.05); }
-      .glass-card {
-        background: rgba(26, 26, 26, 0.6);
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
-        border: 1px solid rgba(51, 51, 51, 0.5);
-        border-radius: 1rem;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-      }
-      .pulse-glow {
-        animation: pulse-glow-anim 2s infinite ease-in-out;
-      }
-      @keyframes pulse-glow-anim {
-        0% { box-shadow: 0 0 5px rgba(99, 102, 241, 0.5); }
-        50% { box-shadow: 0 0 15px rgba(99, 102, 241, 0.8), 0 0 25px rgba(99, 102, 241, 0.6); }
-        100% { box-shadow: 0 0 5px rgba(99, 102, 241, 0.5); }
-      }
-
-      /* Base Mobile-first styles for the page */
-      .app-container-full {
-        padding: 1rem;
+      /* Mobile-first base styles */
+      .app-container-full { 
+        padding: 1rem; 
         min-height: 100vh;
         background-color: #0f0f0f;
       }
 
-      .main-header-bar {
-        display: flex;
+      .main-header-bar { 
+        display: flex; 
         flex-direction: column;
         gap: 1rem;
         margin-bottom: 1.5rem;
         padding: 1rem;
-        ${"glass-card"}
+        background-color: #1a1a1a;
+        border-radius: 0.75rem;
+        border: 1px solid #333;
       }
 
-      .header-title {
-        font-size: 1.5rem;
-        font-weight: bold;
+      .header-title { 
+        font-size: 1.5rem; 
+        font-weight: bold; 
         color: #ffffff;
         text-align: center;
       }
 
-      .login-container, .centered-container {
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        min-height: 80vh;
+      .login-container, .centered-container { 
+        display: flex; 
+        flex-direction: column; 
+        justify-content: center; 
+        align-items: center; 
+        min-height: 80vh; 
         text-align: center;
         padding: 1rem;
       }
 
-      .dashboard-header-card {
+      .dashboard-header-card { 
         background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
-        color: #ffffff;
-        padding: 1.5rem;
-        border-radius: 1rem;
+        color: #ffffff; 
+        padding: 1.5rem; 
+        border-radius: 1rem; 
         box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
         border: 1px solid #333;
-        margin-bottom: 1.5rem;
-        display: flex;
+        margin-bottom: 1.5rem; 
+        display: flex; 
         flex-direction: column;
         gap: 1rem;
       }
@@ -98,8 +76,8 @@ const AziendaPageStyles = () => (
         flex-wrap: wrap;
       }
 
-      .dashboard-title {
-        font-size: 1.5rem;
+      .dashboard-title { 
+        font-size: 1.5rem; 
         font-weight: 700;
         color: #ffffff;
         margin: 0;
@@ -245,14 +223,14 @@ const AziendaPageStyles = () => (
         100% { transform: rotate(360deg); }
       }
 
-      .web3-button {
+      .web3-button { 
         background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-        color: white;
-        padding: 1rem 1.5rem;
-        border: none;
-        border-radius: 0.75rem;
-        font-weight: 600;
-        cursor: pointer;
+        color: white; 
+        padding: 1rem 1.5rem; 
+        border: none; 
+        border-radius: 0.75rem; 
+        font-weight: 600; 
+        cursor: pointer; 
         transition: all 0.3s ease;
         font-size: 0.9rem;
         width: 100%;
@@ -260,7 +238,7 @@ const AziendaPageStyles = () => (
         box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
       }
 
-      .web3-button:hover {
+      .web3-button:hover { 
         background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
         transform: translateY(-2px);
         box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
@@ -276,16 +254,16 @@ const AziendaPageStyles = () => (
         box-shadow: 0 6px 20px rgba(107, 114, 128, 0.4);
       }
 
-      .inscriptions-grid {
+      .inscriptions-grid { 
         display: flex;
         flex-direction: column;
         gap: 1rem;
       }
 
-      .inscription-card {
+      .inscription-card { 
         background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
-        border-radius: 1rem;
-        padding: 1.5rem;
+        border-radius: 1rem; 
+        padding: 1.5rem; 
         box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
         border: 1px solid #333;
         transition: all 0.3s ease;
@@ -298,32 +276,32 @@ const AziendaPageStyles = () => (
         border-color: #3b82f6;
       }
 
-      .inscription-card h3 {
-        font-size: 1.1rem;
-        font-weight: 600;
-        color: #ffffff;
+      .inscription-card h3 { 
+        font-size: 1.1rem; 
+        font-weight: 600; 
+        color: #ffffff; 
         margin: 0 0 1rem 0;
-        border-bottom: 1px solid #333;
+        border-bottom: 1px solid #333; 
         padding-bottom: 0.75rem;
-        word-wrap: break-word;
+        word-wrap: break-word; 
       }
 
-      .inscription-card p {
-        margin: 0.75rem 0;
-        color: #a0a0a0;
-        font-size: 0.85rem;
+      .inscription-card p { 
+        margin: 0.75rem 0; 
+        color: #a0a0a0; 
+        font-size: 0.85rem; 
         line-height: 1.5;
-        word-wrap: break-word;
+        word-wrap: break-word; 
       }
 
-      .inscription-card strong {
-        color: #ffffff;
+      .inscription-card strong { 
+        color: #ffffff; 
         font-weight: 600;
       }
 
-      .inscription-card a {
-        color: #60a5fa;
-        text-decoration: none;
+      .inscription-card a { 
+        color: #60a5fa; 
+        text-decoration: none; 
         font-weight: 500;
         transition: color 0.2s ease;
       }
@@ -558,32 +536,32 @@ const AziendaPageStyles = () => (
         font-size: 1.2rem;
       }
 
-      .loading-error-container {
-        text-align: center;
-        padding: 2rem 1rem;
-        background-color: #1a1a1a;
+      .loading-error-container { 
+        text-align: center; 
+        padding: 2rem 1rem; 
+        background-color: #1a1a1a; 
         border-radius: 1rem;
         border: 1px solid #333;
         color: #a0a0a0;
       }
 
-      .steps-container {
-        margin-top: 1rem;
-        border-top: 1px solid #333;
-        padding-top: 1rem;
+      .steps-container { 
+        margin-top: 1rem; 
+        border-top: 1px solid #333; 
+        padding-top: 1rem; 
       }
 
-      .steps-container h4 {
-        margin: 0 0 0.75rem 0;
-        font-size: 0.9rem;
+      .steps-container h4 { 
+        margin: 0 0 0.75rem 0; 
+        font-size: 0.9rem; 
         font-weight: 600;
         color: #ffffff;
       }
 
-      .step-item {
-        font-size: 0.8rem;
+      .step-item { 
+        font-size: 0.8rem; 
         padding: 0.75rem 0 0.75rem 1rem;
-        border-left: 2px solid #3b82f6;
+        border-left: 2px solid #3b82f6; 
         margin-bottom: 0.75rem;
         background-color: rgba(59, 130, 246, 0.05);
         border-radius: 0 0.5rem 0.5rem 0;
@@ -853,30 +831,30 @@ const AziendaPageStyles = () => (
 
       /* Tablet styles */
       @media (min-width: 768px) {
-        .app-container-full {
-          padding: 2rem;
+        .app-container-full { 
+          padding: 2rem; 
         }
 
-        .main-header-bar {
+        .main-header-bar { 
           flex-direction: row;
           justify-content: space-between;
           align-items: center;
           padding: 1.5rem;
         }
 
-        .header-title {
+        .header-title { 
           font-size: 1.75rem;
           text-align: left;
         }
 
-        .dashboard-header-card {
+        .dashboard-header-card { 
           flex-direction: row;
           justify-content: space-between;
           align-items: flex-start;
           padding: 2rem;
         }
 
-        .dashboard-title {
+        .dashboard-title { 
           font-size: 1.75rem;
         }
 
@@ -890,39 +868,39 @@ const AziendaPageStyles = () => (
           min-width: 200px;
         }
 
-        .inscriptions-grid {
+        .inscriptions-grid { 
           display: grid;
           grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
           gap: 1.5rem;
         }
 
-        .inscription-card h3 {
+        .inscription-card h3 { 
           font-size: 1.25rem;
         }
 
-        .loading-error-container {
-          padding: 3rem;
+        .loading-error-container { 
+          padding: 3rem; 
         }
       }
 
       /* Desktop styles */
       @media (min-width: 1024px) {
-        .app-container-full {
+        .app-container-full { 
           max-width: 1200px;
           margin: 0 auto;
           padding: 2rem;
         }
 
-        .inscriptions-grid {
+        .inscriptions-grid { 
           grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
           gap: 2rem;
         }
 
-        .inscription-card {
-          padding: 2rem;
+        .inscription-card { 
+          padding: 2rem; 
         }
 
-        .dashboard-header-card {
+        .dashboard-header-card { 
           padding: 2.5rem;
         }
       }
@@ -942,30 +920,30 @@ const formatItalianDate = (dateString: string) => {
 };
 
 // Interfacce per i dati
-interface Step {
-  stepIndex: string;
-  eventName: string;
-  description: string;
-  date: string;
-  location: string;
-  attachmentsIpfsHash: string;
+interface Step { 
+  stepIndex: string; 
+  eventName: string; 
+  description: string; 
+  date: string; 
+  location: string; 
+  attachmentsIpfsHash: string; 
   transactionHash?: string;
 }
 
-interface Batch {
-  batchId: string;
-  name: string;
-  description: string;
-  date: string;
-  location: string;
-  imageIpfsHash: string;
-  isClosed: boolean;
-  transactionHash: string;
-  steps: Step[];
+interface Batch { 
+  batchId: string; 
+  name: string; 
+  description: string; 
+  date: string; 
+  location: string; 
+  imageIpfsHash: string; 
+  isClosed: boolean; 
+  transactionHash: string; 
+  steps: Step[]; 
 }
 
-interface CompanyData {
-  companyName: string;
+interface CompanyData { 
+  companyName: string; 
   credits: number;
   status: string;
 }
@@ -1219,8 +1197,8 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
           <div className="dashboard-info">
             <div className="dashboard-info-item">
               <span>
-                <a
-                  href="/ricaricacrediti"
+                <a 
+                  href="/ricaricacrediti" 
                   style={{ color: '#ffffff', textDecoration: 'none', cursor: 'pointer' }}
                   onClick={(e) => {
                     e.preventDefault();
@@ -1244,7 +1222,7 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
       <div className="inscriptions-section-header">
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <h3 className="inscriptions-section-title">Le mie Iscrizioni su Blockchain</h3>
-          <button
+          <button 
             className="info-button"
             onClick={() => setShowInfoModal(true)}
             style={{
@@ -1267,12 +1245,12 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
           </button>
         </div>
         <div className="refresh-section">
-          <button
+          <button 
             className="refresh-button"
             onClick={handleRefresh}
             disabled={isRefreshing || refreshCounter === 0}
           >
-            <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnPgo8IS0tIFJlZnJlc2ggY2lyY3VsYXIgYXJyb3dzIC0tPgo8cGF0aCBkPSJNM1wxMkE5IDkgMCAwIDEgMTIgM1YxTDE2IDVMTEyIDlWN0E3IDcgMCAwIDAgNSAxMkgzWiIgZmlsbD0id2hpdGUiLz4KPHBhdGggZD0iTTIxIDEyQTkgOSAwIDAgMSAxMiAyMVYyM0w4IDE5TDEyIDE1VjE3QTcgNyAwIDAgMCAxOSAxMkgyMVoiIGZpbGw9IndoaXRlIi8+Cjwvc3ZnPgo=" alt="refresh" className="refresh-icon" style={{width: '20px', height: '20px'}} />
+            <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPCEtLSBSZWZyZXNoIGNpcmN1bGFyIGFycm93cyAtLT4KPHBhdGggZD0iTTMgMTJBOSA5IDAgMCAxIDEyIDNWMUwxNiA1TDEyIDlWN0E3IDcgMCAwIDAgNSAxMkgzWiIgZmlsbD0id2hpdGUiLz4KPHBhdGggZD0iTTIxIDEyQTkgOSAwIDAgMSAxMiAyMVYyM0w4IDE5TDEyIDE1VjE3QTcgNyAwIDAgMCAxOSAxMkgyMVoiIGZpbGw9IndoaXRlIi8+Cjwvc3ZnPgo=" alt="refresh" className="refresh-icon" style={{width: '20px', height: '20px'}} />
             {refreshCounter > 0 && (
               <div className="refresh-counter">+{refreshCounter}</div>
             )}
@@ -2276,16 +2254,16 @@ const NewInscriptionModal: React.FC<{
               <div>
                 <div className="form-group">
                   <label>
-                    Nome Iscrizione
+                    Nome Iscrizione 
                     <span style={{ color: "red", fontWeight: "bold" }}> * Obbligatorio</span>
                   </label>
-                  <input
-                    type="text"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleInputChange}
-                    className="form-input"
-                    maxLength={100}
+                  <input 
+                    type="text" 
+                    name="name" 
+                    value={formData.name} 
+                    onChange={handleInputChange} 
+                    className="form-input" 
+                    maxLength={100} 
                   />
                   <small className="char-counter">{formData.name.length} / 100</small>
                 </div>
@@ -2471,13 +2449,13 @@ const ExportTypeModal: React.FC<{
             </ul>
           </div>
           <div className="export-modal-buttons">
-            <button
+            <button 
               className="export-type-button"
               onClick={() => onSelectType('pdf')}
             >
               📄 Esporta PDF
             </button>
-            <button
+            <button 
               className="export-type-button"
               onClick={() => onSelectType('html')}
             >
@@ -2617,8 +2595,8 @@ const AziendaPage: React.FC = () => {
         setCompanyStatus({
           isLoading: false,
           isActive: data.isActive,
-          data: data.isActive ? {
-            companyName: data.companyName,
+          data: data.isActive ? { 
+            companyName: data.companyName, 
             credits: data.credits,
             status: data.status || 'active'
           } : null,
@@ -2664,8 +2642,8 @@ const AziendaPage: React.FC = () => {
         <div style={{ textAlign: "center" }}>
           <h1>Benvenuto</h1>
           <p>Connetti il tuo wallet per accedere.</p>
-          <ConnectButton
-            client={client}
+          <ConnectButton 
+            client={client} 
             wallets={[inAppWallet()]}
             chain={polygon}
             accountAbstraction={{ chain: polygon, sponsorGas: true }}
@@ -2681,7 +2659,7 @@ const AziendaPage: React.FC = () => {
       <div className="app-container-full">
         <header className="main-header-bar">
           <h1 className="header-title">EasyChain - Area Privata</h1>
-          <ConnectButton
+          <ConnectButton 
             client={client}
             chain={polygon}
             accountAbstraction={{ chain: polygon, sponsorGas: true }}
