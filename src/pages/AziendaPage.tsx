@@ -1219,7 +1219,7 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
                             height: '30px',
                             display: 'flex',
                             alignItems: 'center',
-                            justify-content: 'center',
+                            justifycontent: 'center',
                             cursor: 'pointer',
                             color: 'white',
                             fontSize: '14px',
