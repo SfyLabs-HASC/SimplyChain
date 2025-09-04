@@ -364,9 +364,9 @@ const AziendaPageStyles = () => (
 
         border-radius: 50%;
 
-        width: 20px;
+        width: 26px;
 
-        height: 20px;
+        height: 26px;
 
         display: flex;
 
@@ -374,15 +374,19 @@ const AziendaPageStyles = () => (
 
         justify-content: center;
 
-        font-size: 0.7rem;
+        font-size: 0.9rem;
 
         font-weight: bold;
 
         position: absolute;
 
-        top: -5px;
+        top: -8px;
 
-        right: -5px;
+        right: -8px;
+
+        background: rgba(16, 185, 129, 0.12);
+
+        border: 1px solid rgba(16, 185, 129, 0.45);
 
       }
 
@@ -956,7 +960,7 @@ const AziendaPageStyles = () => (
 
       .bg-gray-800 p-4 rounded-xl border border-gray-700 mb-4 h4 {
 
-        color: #3b82f6;
+        color: #c4b5fd;
 
         margin: 0 0 1rem 0;
 
@@ -1660,6 +1664,50 @@ const AziendaPageStyles = () => (
 
 
 
+      /* Evidenzia pagina corrente della paginazione */
+
+      .pagination-btn {
+
+        background-color: transparent;
+
+        color: #ffffff;
+
+        border: 1px solid #333;
+
+        border-radius: 0.5rem;
+
+        padding: 0.75rem 1rem;
+
+        cursor: pointer;
+
+        transition: all 0.2s ease;
+
+        font-size: 0.9rem;
+
+      }
+
+      .pagination-btn:hover {
+
+        background-color: #333;
+
+      }
+
+      .pagination-btn.is-active {
+
+        background: linear-gradient(135deg, #8b5cf6 0%, #4f46e5 100%);
+
+        color: #ffffff;
+
+        border-color: #8b5cf6;
+
+        box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.35);
+
+        transform: translateY(-1px);
+
+      }
+
+
+
       /* Tablet styles */
 
       @media (min-width: 768px) {
@@ -1840,6 +1888,12 @@ const AziendaPageStyles = () => (
 
         transition: box-shadow 0.25s ease, border-color 0.25s ease, transform 0.25s ease;
 
+        width: 100%;
+
+        min-width: 0;
+
+        box-sizing: border-box;
+
       }
 
 
@@ -1874,6 +1928,10 @@ const AziendaPageStyles = () => (
 
         text-overflow: ellipsis;
 
+        display: block;
+
+        max-width: 100%;
+
       }
 
 
@@ -1899,6 +1957,22 @@ const AziendaPageStyles = () => (
         text-decoration: underline;
 
         text-decoration-color: #ffffff;
+
+      }
+
+
+
+      .info-button-reset {
+
+        background: transparent !important;
+
+        border: none !important;
+
+        box-shadow: none !important;
+
+        padding: 0;
+
+        line-height: 1;
 
       }
 
@@ -2018,7 +2092,7 @@ const contract = getContract({
 
 
 
-// Componente modale per visualizzare immagini
+// Componente modale per visualizzare immagini (fullscreen overlay)
 
 const ImageModal: React.FC<{ imageUrl: string; onClose: () => void }> = ({ imageUrl, onClose }) => {
 
@@ -2113,6 +2187,8 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
   const [nameFilter, setNameFilter] = useState("");
 
   const [locationFilter, setLocationFilter] = useState("");
+
+  const [dateFilter, setDateFilter] = useState("");
 
   const [statusFilter, setStatusFilter] = useState<"Aperto" | "Chiuso" | "">("");
 
@@ -2338,9 +2414,11 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
 
   const filteredBatches = batches.filter(batch => {
 
-    const nameMatch = batch.name.toLowerCase().includes(nameFilter.toLowerCase());
+    const nameMatch = (batch.name || '').toLowerCase().includes(nameFilter.toLowerCase());
 
-    const locationMatch = batch.location?.toLowerCase().includes(locationFilter.toLowerCase());
+    const locationMatch = (batch.location || '').toLowerCase().includes(locationFilter.toLowerCase());
+
+    const dateMatch = (batch.date || '').toLowerCase().includes(dateFilter.toLowerCase());
 
     let statusMatch = true;
 
@@ -2354,7 +2432,7 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
 
     }
 
-    return nameMatch && locationMatch && statusMatch;
+    return nameMatch && locationMatch && dateMatch && statusMatch;
 
   });
 
@@ -2542,39 +2620,9 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
 
           <button 
 
-            className="info-button"
+            className="info-button info-button-reset"
 
             onClick={() => setShowInfoModal(true)}
-
-            style={{
-
-              background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
-
-              border: 'none',
-
-              borderRadius: '50%',
-
-              width: '30px',
-
-              height: '30px',
-
-              display: 'flex',
-
-              alignItems: 'center',
-
-              justifyContent: 'center',
-
-              cursor: 'pointer',
-
-              color: 'white',
-
-              fontSize: '14px',
-
-              fontWeight: 'bold',
-
-              boxShadow: '0 4px 15px rgba(139, 92, 246, 0.3)'
-
-            }}
 
             aria-label="Informazioni"
 
@@ -2582,23 +2630,9 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
 
           >
 
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden="true">
 
-              <circle cx="12" cy="12" r="10" fill="url(#violetGrad)" />
-
-              <path d="M12 7.75a1.25 1.25 0 1 0 0 2.5 1.25 1.25 0 0 0 0-2.5Zm-1.25 4.25h2.5v6h-2.5v-6Z" fill="white"/>
-
-              <defs>
-
-                <linearGradient id="violetGrad" x1="0" y1="0" x2="24" y2="24">
-
-                  <stop offset="0%" stopColor="#8b5cf6"/>
-
-                  <stop offset="100%" stopColor="#a78bfa"/>
-
-                </linearGradient>
-
-              </defs>
+              <path d="M12 7.25a1.75 1.75 0 1 0 0 3.5 1.75 1.75 0 0 0 0-3.5ZM10.75 11.75h2.5v6.5h-2.5v-6.5Z" fill="#8b5cf6"/>
 
             </svg>
 
@@ -2674,6 +2708,24 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
 
         <div className="flex flex-col gap-2 min-w-[200px] flex-1">
 
+          <label className="text-sm font-medium text-foreground">Data</label>
+
+          <input
+
+            type="date"
+
+            className="p-3 rounded-lg bg-gray-800 border border-gray-700 text-foreground focus:ring-2 focus:ring-primary/50"
+
+            value={dateFilter}
+
+            onChange={(e) => setDateFilter(e.target.value)}
+
+          />
+
+        </div>
+
+        <div className="flex flex-col gap-2 min-w-[200px] flex-1">
+
           <label className="text-sm font-medium text-foreground">Stato</label>
 
           <select
@@ -2706,7 +2758,25 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
 
       ) : errorBatches ? (
 
-        <div className="bg-card p-6 rounded-xl border border-border text-muted-foreground text-center"><p style={{ color: 'red' }}>{errorBatches}</p></div>
+        <div className="bg-card p-6 rounded-xl border border-border text-muted-foreground text-center">
+
+          <p style={{ color: 'red' }}>{errorBatches}</p>
+
+          <button
+
+            onClick={() => window.location.reload()}
+
+            className="primary-gradient text-white px-4 py-2 rounded-2xl font-semibold hover:scale-105 transition"
+
+            style={{ marginTop: '10px' }}
+
+          >
+
+            REFRESHA
+
+          </button>
+
+        </div>
 
       ) : (
 
@@ -2731,6 +2801,16 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
                   <p><strong className="label-violet">Data:</strong> {formatItalianDate(batch.date)}</p>
 
                   <p><strong className="label-violet">Luogo:</strong> {batch.location || "N/D"}</p>
+
+                  <p>
+
+                    <strong>Stato:</strong> <span className={batch.isClosed ? 'text-red-500 font-semibold' : 'text-green-500 font-semibold'}>
+
+                      {batch.isClosed ? ' Chiuso' : ' Aperto'}
+
+                    </span>
+
+                  </p>
 
                   <p><strong className="label-violet">Tx Hash:</strong>
 
@@ -2944,7 +3024,9 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
 
                   key={number}
 
-                  className={`bg-transparent text-foreground border border-border px-3 py-2 rounded-md hover:bg-card ${currentPage === number ? 'active' : ''}`}
+                  className={`pagination-btn ${currentPage === number ? 'is-active' : ''}`}
+
+                  aria-current={currentPage === number ? 'page' : undefined}
 
                   onClick={() => paginate(number)}
 
@@ -3570,11 +3652,11 @@ const AddStepModal: React.FC<{
 
                     className="w-full p-3 rounded-lg bg-gray-800 border border-gray-700 text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
 
-                    maxLength={100}
+                    maxLength={50}
 
                   />
 
-                  <small className="char-counter">{formData.eventName.length} / 100</small>
+                  <small className="char-counter">{formData.eventName.length} / 50</small>
 
                 </div>
 
@@ -3632,11 +3714,11 @@ const AddStepModal: React.FC<{
 
                     rows={4}
 
-                    maxLength={500}
+                    maxLength={250}
 
                   ></textarea>
 
-                  <small className="char-counter">{formData.description.length} / 500</small>
+                  <small className="char-counter">{formData.description.length} / 250</small>
 
                 </div>
 
@@ -3678,11 +3760,11 @@ const AddStepModal: React.FC<{
 
                     className="w-full p-3 rounded-lg bg-gray-800 border border-gray-700 text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
 
-                    maxLength={100}
+                    maxLength={50}
 
                   />
 
-                  <small className="char-counter">{formData.location.length} / 100</small>
+                  <small className="char-counter">{formData.location.length} / 50</small>
 
                 </div>
 
@@ -4204,11 +4286,17 @@ const StepsModal: React.FC<{
 
                       <a
 
-                        href={`https://musical-emerald-partridge.myfilebase.com/ipfs/${step.attachmentsIpfsHash}`}
+                        href="#"
 
-                        target="_blank"
+                        onClick={(e) => {
 
-                        rel="noopener noreferrer"
+                          e.preventDefault();
+
+                          setSelectedImage(`https://musical-emerald-partridge.myfilebase.com/ipfs/${step.attachmentsIpfsHash}`);
+
+                        }}
+
+                        className="link-underline-hover"
 
                         style={{ marginLeft: '0.5rem' }}
 
@@ -4233,6 +4321,8 @@ const StepsModal: React.FC<{
                       target="_blank"
 
                       rel="noopener noreferrer"
+
+                      className="link-underline-hover"
 
                       style={{ marginLeft: '0.5rem' }}
 
@@ -4648,11 +4738,11 @@ const NewInscriptionModal: React.FC<{
 
                     className="w-full p-3 rounded-lg bg-gray-800 border border-gray-700 text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50" 
 
-                    maxLength={100} 
+                    maxLength={50} 
 
                   />
 
-                  <small className="char-counter">{formData.name.length} / 100</small>
+                  <small className="char-counter">{formData.name.length} / 50</small>
 
                 </div>
 
@@ -4708,11 +4798,11 @@ const NewInscriptionModal: React.FC<{
 
                     rows={4}
 
-                    maxLength={500}
+                    maxLength={250}
 
                   ></textarea>
 
-                  <small className="char-counter">{formData.description.length} / 500</small>
+                  <small className="char-counter">{formData.description.length} / 250</small>
 
                 </div>
 
@@ -4754,11 +4844,11 @@ const NewInscriptionModal: React.FC<{
 
                     className="w-full p-3 rounded-lg bg-gray-800 border border-gray-700 text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
 
-                    maxLength={100}
+                    maxLength={50}
 
                   />
 
-                  <small className="char-counter">{formData.location.length} / 100</small>
+                  <small className="char-counter">{formData.location.length} / 50</small>
 
                 </div>
 
