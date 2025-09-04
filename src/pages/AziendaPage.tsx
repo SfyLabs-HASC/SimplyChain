@@ -2620,9 +2620,39 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
 
           <button 
 
-            className="info-button info-button-reset"
+            className="info-button"
 
             onClick={() => setShowInfoModal(true)}
+
+            style={{
+
+              background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
+
+              border: 'none',
+
+              borderRadius: '50%',
+
+              width: '30px',
+
+              height: '30px',
+
+              display: 'flex',
+
+              alignItems: 'center',
+
+              justifyContent: 'center',
+
+              cursor: 'pointer',
+
+              color: 'white',
+
+              fontSize: '16px',
+
+              fontWeight: 'bold',
+
+              boxShadow: '0 4px 15px rgba(139, 92, 246, 0.3)'
+
+            }}
 
             aria-label="Informazioni"
 
@@ -2630,11 +2660,7 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
 
           >
 
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-
-              <path d="M12 7.25a1.75 1.75 0 1 0 0 3.5 1.75 1.75 0 0 0 0-3.5ZM10.75 11.75h2.5v6.5h-2.5v-6.5Z" fill="#8b5cf6"/>
-
-            </svg>
+            I
 
           </button>
 
@@ -4286,15 +4312,11 @@ const StepsModal: React.FC<{
 
                       <a
 
-                        href="#"
+                        href={`https://musical-emerald-partridge.myfilebase.com/ipfs/${step.attachmentsIpfsHash}`}
 
-                        onClick={(e) => {
+                        target="_blank"
 
-                          e.preventDefault();
-
-                          setSelectedImage(`https://musical-emerald-partridge.myfilebase.com/ipfs/${step.attachmentsIpfsHash}`);
-
-                        }}
+                        rel="noopener noreferrer"
 
                         className="link-underline-hover"
 
