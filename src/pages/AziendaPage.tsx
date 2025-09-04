@@ -1856,7 +1856,7 @@ const AziendaPageStyles = () => (
 
       .batch-title {
 
-        font-size: 2rem;
+        font-size: 1.4rem;
 
         font-weight: 800;
 
@@ -1867,6 +1867,38 @@ const AziendaPageStyles = () => (
         margin: 0 0 1rem 0;
 
         color: #ffffff;
+
+        white-space: nowrap;
+
+        overflow: hidden;
+
+        text-overflow: ellipsis;
+
+      }
+
+
+
+      .batch-number {
+
+        color: #c4b5fd;
+
+      }
+
+
+
+      .label-violet {
+
+        color: #c4b5fd !important;
+
+      }
+
+
+
+      .link-underline-hover:hover {
+
+        text-decoration: underline;
+
+        text-decoration-color: #ffffff;
 
       }
 
@@ -2544,9 +2576,31 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
 
             }}
 
+            aria-label="Informazioni"
+
+            title="Informazioni"
+
           >
 
-            ℹ️
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+
+              <circle cx="12" cy="12" r="10" fill="url(#violetGrad)" />
+
+              <path d="M12 7.75a1.25 1.25 0 1 0 0 2.5 1.25 1.25 0 0 0 0-2.5Zm-1.25 4.25h2.5v6h-2.5v-6Z" fill="white"/>
+
+              <defs>
+
+                <linearGradient id="violetGrad" x1="0" y1="0" x2="24" y2="24">
+
+                  <stop offset="0%" stopColor="#8b5cf6"/>
+
+                  <stop offset="100%" stopColor="#a78bfa"/>
+
+                </linearGradient>
+
+              </defs>
+
+            </svg>
 
           </button>
 
@@ -2666,19 +2720,39 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
 
                 <div key={batch.batchId} className="batch-card glass-card rounded-2xl p-6 tech-shadow hover:shadow-lg transition">
 
-                  <h3 className="batch-title">#{getBatchDisplayNumber(batch.batchId)} - {batch.name}</h3>
+                  <h3 className="batch-title">
 
-                  <p><strong>Descrizione:</strong> {batch.description ? truncateText(batch.description, window.innerWidth < 768 ? 80 : 100) : "N/D"}</p>
+                    <span className="batch-number">#{getBatchDisplayNumber(batch.batchId)}</span> - {batch.name}
 
-                  <p><strong>Data:</strong> {formatItalianDate(batch.date)}</p>
+                  </h3>
 
-                  <p><strong>Luogo:</strong> {batch.location || "N/D"}</p>
+                  <p><strong className="label-violet">Descrizione:</strong> {batch.description ? truncateText(batch.description, window.innerWidth < 768 ? 80 : 100) : "N/D"}</p>
 
-                  <p><strong>Stato:</strong> <span className={batch.isClosed ? 'text-red-500 font-semibold' : 'text-green-500 font-semibold'}>
+                  <p><strong className="label-violet">Data:</strong> {formatItalianDate(batch.date)}</p>
 
-                    {batch.isClosed ? ' Chiuso' : ' Aperto'}
+                  <p><strong className="label-violet">Luogo:</strong> {batch.location || "N/D"}</p>
 
-                  </span></p>
+                  <p><strong className="label-violet">Tx Hash:</strong>
+
+                    <a
+
+                      href={`https://polygonscan.com/inputdatadecoder?tx=${batch.transactionHash}`}
+
+                      target="_blank"
+
+                      rel="noopener noreferrer"
+
+                      className="link-underline-hover"
+
+                    >
+
+                      {truncateText(batch.transactionHash, 15)}
+
+                    </a>
+
+                  </p>
+
+
 
                   {batch.imageIpfsHash && batch.imageIpfsHash !== "N/A" && (
 
@@ -2696,6 +2770,8 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
 
                         }}
 
+                        className="link-underline-hover"
+
                       >
 
                         Apri L'immagine
@@ -2705,24 +2781,6 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
                     </p>
 
                   )}
-
-                  <p><strong>Tx Hash:</strong>
-
-                    <a
-
-                      href={`https://polygonscan.com/inputdatadecoder?tx=${batch.transactionHash}`}
-
-                      target="_blank"
-
-                      rel="noopener noreferrer"
-
-                    >
-
-                      {truncateText(batch.transactionHash, 15)}
-
-                    </a>
-
-                  </p>
 
 
 

@@ -40,8 +40,51 @@ function serializeBigInts(obj: any): any {
   return newObj;
 }
 
+// Utilità per tenere il payload sotto controllo
+const FIELD_LIMITS = {
+  name: 120,
+  description: 2000,
+  location: 200,
+  date: 50,
+  ipfs: 200,
+  eventName: 120,
+};
+
+function truncateString(value: any, max: number): any {
+  if (value == null) return value;
+  const s = String(value);
+  return s.length > max ? s.slice(0, max) : s;
+}
+
+function sanitizeStep(raw: any) {
+  return {
+    stepIndex: truncateString(raw.stepIndex, 100),
+    eventName: truncateString(raw.eventName, FIELD_LIMITS.eventName),
+    description: truncateString(raw.description, FIELD_LIMITS.description),
+    date: truncateString(raw.date, FIELD_LIMITS.date),
+    location: truncateString(raw.location, FIELD_LIMITS.location),
+    attachmentsIpfsHash: truncateString(raw.attachmentsIpfsHash, FIELD_LIMITS.ipfs),
+    transactionHash: raw.transactionHash,
+  };
+}
+
+function sanitizeBatch(raw: any) {
+  const steps = Array.isArray(raw.steps) ? raw.steps.map(sanitizeStep) : [];
+  return {
+    batchId: truncateString(raw.batchId, 100),
+    name: truncateString(raw.name, FIELD_LIMITS.name),
+    description: truncateString(raw.description, FIELD_LIMITS.description),
+    date: truncateString(raw.date, FIELD_LIMITS.date),
+    location: truncateString(raw.location, FIELD_LIMITS.location),
+    imageIpfsHash: truncateString(raw.imageIpfsHash, FIELD_LIMITS.ipfs),
+    isClosed: !!raw.isClosed,
+    transactionHash: raw.transactionHash,
+    steps,
+  };
+}
+
 // *** MODIFICA QUI PER RECUPERARE TUTTI GLI EVENTI ***
-async function handleBlockchainEvents(userAddress: string) {
+async function handleBlockchainEvents(userAddress: string, limit?: number) {
   const secretKey = process.env.THIRDWEB_SECRET_KEY;
   if (!secretKey) {
     throw new Error("Variabile d'ambiente del server mancante.");
@@ -54,6 +97,7 @@ async function handleBlockchainEvents(userAddress: string) {
   // Sostituisci questo numero con il blocco reale se è diverso.
   const DEPLOY_BLOCK = 50269000; 
 
+  // Carica tutti gli eventi e filtra
   const allEvents = await getContractEvents({
     contract,
     fromBlock: BigInt(DEPLOY_BLOCK),
@@ -82,11 +126,12 @@ async function handleBlockchainEvents(userAddress: string) {
         ...stepArgs,
         transactionHash: stepEvent.transactionHash
       };
+        // push "raw", verrà sanitizzato dopo
       stepsByBatchId.get(batchId)!.push(stepWithTx);
     }
   }
 
-  const combinedData = userBatches.map(batchEvent => {
+  const combinedDataRaw = userBatches.map(batchEvent => {
     const batchArgs = batchEvent.args as any;
     const batchId = batchArgs.batchId.toString();
 
@@ -98,13 +143,23 @@ async function handleBlockchainEvents(userAddress: string) {
 
     return {
       ...batchArgs,
+      batchId,
       transactionHash: batchEvent.transactionHash,
       steps: stepsByBatchId.get(batchId) || [],
       isClosed: isClosed
     };
   });
 
-  return serializeBigInts(combinedData);
+  // Ordina batch per id desc (opzionale)
+  combinedDataRaw.sort((a, b) => Number(b.batchId) - Number(a.batchId));
+
+  // Applica limite opzionale
+  const limited = typeof limit === 'number' && limit > 0 ? combinedDataRaw.slice(0, limit) : combinedDataRaw;
+
+  // Sanitize per tagliare i campi lunghi e rimuovere chiavi inutili
+  const combinedDataSanitized = limited.map(sanitizeBatch);
+
+  return serializeBigInts(combinedDataSanitized);
 }
 // *** FINE MODIFICA ***
 
@@ -139,10 +194,11 @@ export default async function handler(
   if (req.method !== 'GET') return res.status(405).json({ error: `Method ${req.method} Not Allowed` });
 
   try {
-    const { userAddress, address, source } = req.query;
+    const { userAddress, address, source, limit } = req.query;
     
     const targetAddress = (userAddress || address) as string;
-    const dataSource = source as string || 'blockchain';
+    const dataSource = (source as string) || 'blockchain';
+    const limitNumber = typeof limit === 'string' ? Math.max(0, Math.min(parseInt(limit, 10) || 0, 1000)) : undefined;
 
     if (!targetAddress || typeof targetAddress !== 'string') {
       return res.status(400).json({ error: "Il parametro 'userAddress' o 'address' è obbligatorio." });
@@ -154,7 +210,7 @@ export default async function handler(
       result = await handleFirebaseData(targetAddress);
       return res.status(200).json(result);
     } else {
-      result = await handleBlockchainEvents(targetAddress);
+      result = await handleBlockchainEvents(targetAddress, limitNumber);
       return res.status(200).json({ events: result });
     }
 
@@ -162,7 +218,7 @@ export default async function handler(
     console.error('ERRORE SERVER durante l\'esecuzione della funzione API:', error);
     return res.status(500).json({ 
       error: 'Errore interno del server.',
-      details: error.message 
+      details: error?.message || String(error)
     });
   }
 }
