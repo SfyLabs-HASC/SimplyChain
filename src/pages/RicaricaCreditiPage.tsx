@@ -1,29 +1,14 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { ConnectButton, useActiveAccount } from "https://esm.sh/thirdweb/react";
-import { createThirdwebClient } from "https://esm.sh/thirdweb";
-import { polygon } from "https://esm.sh/thirdweb/chains";
-import { inAppWallet } from "https://esm.sh/thirdweb/wallets";
-import { loadStripe } from "https://esm.sh/@stripe/stripe-js";
-import { Elements, PaymentElement, useStripe, useElements } from "https://esm.sh/@stripe/react-stripe-js";
-import { initializeApp } from 'firebase/app';
-import { getFirestore, doc, getDoc, setDoc } from 'firebase/firestore';
+import { ConnectButton, useActiveAccount } from "thirdweb/react";
+import { polygon } from "thirdweb/chains";
+import { inAppWallet } from "thirdweb/wallets";
+import { loadStripe } from "@stripe/stripe-js";
+import { Elements, PaymentElement, useStripe, useElements } from "@stripe/react-stripe-js";
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { getAuth, signInAnonymously } from "firebase/auth";
+import { app, db } from '../firebaseConfig';
+import { client } from '../client';
 
-// --- Configurazione Firebase (Esempio, adatta con la tua configurazione) ---
-// NOTA: Assicurati che la configurazione di Firebase sia caricata correttamente nel tuo progetto.
-// Potresti avere un file di configurazione separato da importare.
-const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "YOUR_AUTH_DOMAIN",
-    projectId: "YOUR_PROJECT_ID",
-    storageBucket: "YOUR_STORAGE_BUCKET",
-    messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-    appId: "YOUR_APP_ID"
-};
-
-// Inizializzazione Firebase
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
 const auth = getAuth(app);
 
 // --- Interfacce Dati ---
@@ -54,131 +39,11 @@ interface CreditPackage {
 }
 
 // --- Setup ---
-const client = createThirdwebClient({ clientId: "023dd6504a82409b2bc7cb971fd35b16" }); // Sostituisci con il tuo Client ID
-const stripePromise = loadStripe("pk_test_51RrJLQRx6E9RZt5ynBwc2dt3o7RT4YTwwij3O9xj3VdMwNKlI4GA9Yvbzkgwbxi0I5J9XnqPMlgY7bz2xHSgxmz000KCex9EiA"); // Sostituisci con la tua chiave pubblica Stripe
+// Nota: Vite espone import.meta.env; il type di ImportMetaEnv è già incluso nelle tipizzazioni di Vite
+// Fallback ad una chiave di test solo in dev
+const stripePromise = loadStripe((import.meta as any).env?.VITE_STRIPE_PUBLISHABLE_KEY || "pk_test_51RrJLQRx6E9RZt5ynBwc2dt3o7RT4YTwwij3O9xj3VdMwNKlI4GA9Yvbzkgwbxi0I5J9XnqPMlgY7bz2xHSgxmz000KCex9EiA");
 
-// --- Stili ---
-const RicaricaCreditiStyles = () => (
-    <style>{`
-        body, html {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
-            background-color: #0d1117;
-        }
-        .app-container-full {
-            min-height: 100vh;
-            background-color: #0d1117;
-            color: #c9d1d9;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
-            display: flex;
-            flex-direction: column;
-        }
-        .main-header-bar {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-            padding: 1rem;
-            background-color: #161b22;
-            border-bottom: 1px solid #30363d;
-        }
-        .header-title {
-            font-size: 1.5rem;
-            font-weight: 600;
-            color: #f0f6fc;
-            text-align: center;
-        }
-        .centered-container {
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-            padding: 1rem;
-        }
-        .web3-button {
-            background: linear-gradient(135deg, #238636 0%, #2ea043 100%);
-            color: white;
-            padding: 0.75rem 1.5rem;
-            border: 1px solid rgba(240, 246, 252, 0.1);
-            border-radius: 0.5rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s ease-in-out;
-            font-size: 1rem;
-            box-shadow: 0 1px 0 rgba(27, 31, 35, 0.04), inset 0 1px 0 hsla(0, 0%, 100%, 0.25);
-        }
-        .web3-button:hover:not(:disabled) {
-            background: linear-gradient(135deg, #2ea043 0%, #3fb950 100%);
-        }
-        .web3-button:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
-        .form-group { margin-bottom: 1rem; text-align: left; }
-        .form-group label { display: block; margin-bottom: 0.5rem; font-weight: 500; color: #c9d1d9; }
-        .form-input {
-            width: 100%;
-            padding: 0.75rem;
-            border: 1px solid #30363d;
-            border-radius: 0.5rem;
-            background-color: #0d1117;
-            color: #c9d1d9;
-            font-size: 1rem;
-            box-sizing: border-box;
-        }
-        .form-input:focus {
-            outline: none;
-            border-color: #2f81f7;
-            box-shadow: 0 0 0 3px rgba(47, 129, 247, 0.3);
-        }
-        .error-message { color: #f85149; font-size: 0.875rem; margin-top: 0.25rem; }
-        
-        .recharge-container { max-width: 900px; width: 100%; margin: 2rem auto; padding: 0 1rem; box-sizing: border-box; }
-        .info-card {
-            background-color: #161b22;
-            border: 1px solid #30363d;
-            border-radius: 0.75rem;
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
-        }
-        .info-card h2, .info-card h3 {
-             margin-top: 0;
-             color: #f0f6fc;
-             border-bottom: 1px solid #30363d;
-             padding-bottom: 0.75rem;
-             margin-bottom: 1.5rem;
-        }
-        .user-info-grid { display: grid; grid-template-columns: 1fr; gap: 1rem; }
-        .user-info-grid p { margin: 0; }
-        .status-active-text { color: #3fb950; }
-        .status-inactive-text { color: #f59e0b; }
-
-        .credit-packages-table { width: 100%; border-collapse: collapse; }
-        .credit-packages-table th, .credit-packages-table td { padding: 1rem; text-align: left; border-bottom: 1px solid #30363d; }
-        .credit-packages-table tr { cursor: pointer; transition: background-color 0.2s ease; }
-        .credit-packages-table tr:hover { background-color: #1f242c; }
-        .credit-packages-table tr.selected { background-color: #2f81f7; color: white; }
-        .credit-packages-table th { font-size: 0.9rem; color: #8b949e; text-transform: uppercase; }
-        
-        .billing-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
-        .edit-button { background: none; border: 1px solid #30363d; color: #58a6ff; cursor: pointer; font-size: 0.9rem; padding: 0.5rem 1rem; border-radius: 0.5rem; transition: all 0.2s; }
-        .edit-button:hover { background-color: #30363d; color: white; }
-        
-        /* Modal Popup */
-        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); display: flex; justify-content: center; align-items: center; z-index: 1000; }
-        .modal-content { background: #161b22; padding: 2rem; border-radius: 0.75rem; text-align: center; border: 1px solid #30363d; max-width: 500px; width: 90%; }
-        .modal-content h2 { color: #3fb950; }
-        
-        @media (min-width: 768px) {
-            .main-header-bar { flex-direction: row; justify-content: space-between; align-items: center; padding: 1rem 2rem; }
-            .header-title { text-align: left; }
-            .user-info-grid { grid-template-columns: repeat(2, 1fr); gap: 1.5rem; }
-        }
-    `}</style>
-);
+// (Nessuno stile inline: usiamo Tailwind e le utility globali per coerenza grafica)
 
 // --- Pacchetti Crediti ---
 const creditPackages: CreditPackage[] = [
@@ -192,7 +57,7 @@ const creditPackages: CreditPackage[] = [
 // --- Componente Form di Fatturazione ---
 const BillingForm: React.FC<{ initialDetails?: BillingDetails | null, onSave: (details: BillingDetails) => void, isSaving: boolean }> = ({ initialDetails, onSave, isSaving }) => {
     const [type, setType] = useState<'azienda' | 'privato'>(initialDetails?.type || 'azienda');
-    const [formData, setFormData] = useState(initialDetails || {});
+    const [formData, setFormData] = useState<Partial<BillingDetails>>(initialDetails || {});
     const [errors, setErrors] = useState<Partial<BillingDetails>>({});
 
     useEffect(() => {
@@ -220,7 +85,8 @@ const BillingForm: React.FC<{ initialDetails?: BillingDetails | null, onSave: (d
     };
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
+        const { name, value } = e.target as { name: keyof BillingDetails; value: string };
+        setFormData(prev => ({ ...prev, [name]: value }));
     };
 
     const handleSave = () => {
@@ -231,29 +97,29 @@ const BillingForm: React.FC<{ initialDetails?: BillingDetails | null, onSave: (d
     };
 
     return (
-        <div className="billing-form">
-            <div className="form-group">
-                <div style={{ display: 'flex', gap: '1rem' }}>
-                    <label><input type="radio" value="azienda" checked={type === 'azienda'} onChange={() => setType('azienda')} disabled={isSaving} /> Azienda</label>
-                    <label><input type="radio" value="privato" checked={type === 'privato'} onChange={() => setType('privato')} disabled={isSaving} /> Privato</label>
+        <div>
+            <div className="mb-4">
+                <div className="flex gap-4">
+                    <label className="flex items-center gap-2"><input type="radio" value="azienda" checked={type === 'azienda'} onChange={() => setType('azienda')} disabled={isSaving} /> Azienda</label>
+                    <label className="flex items-center gap-2"><input type="radio" value="privato" checked={type === 'privato'} onChange={() => setType('privato')} disabled={isSaving} /> Privato</label>
                 </div>
             </div>
             {type === 'azienda' ? (
                 <>
-                    <div className="form-group"><label>Denominazione Sociale</label><input type="text" name="ragioneSociale" value={formData.ragioneSociale || ''} onChange={handleInputChange} className="form-input" disabled={isSaving} />{errors.ragioneSociale && <p className="error-message">{errors.ragioneSociale}</p>}</div>
-                    <div className="form-group"><label>Indirizzo</label><input type="text" name="indirizzo" value={formData.indirizzo || ''} onChange={handleInputChange} className="form-input" disabled={isSaving} />{errors.indirizzo && <p className="error-message">{errors.indirizzo}</p>}</div>
-                    <div className="form-group"><label>Partita IVA</label><input type="text" name="pIvaCf" value={formData.pIvaCf || ''} onChange={handleInputChange} className="form-input" disabled={isSaving} />{errors.pIvaCf && <p className="error-message">{errors.pIvaCf}</p>}</div>
-                    <div className="form-group"><label>Codice Univoco (SDI) o PEC</label><input type="text" name="sdiPec" value={formData.sdiPec || ''} onChange={handleInputChange} className="form-input" disabled={isSaving} />{errors.sdiPec && <p className="error-message">{errors.sdiPec}</p>}</div>
+                    <div className="mb-4"><label className="block mb-2">Denominazione Sociale</label><input type="text" name="ragioneSociale" value={formData.ragioneSociale || ''} onChange={handleInputChange} className="w-full px-3 py-2 rounded-md border border-border bg-background text-foreground" disabled={isSaving} />{errors.ragioneSociale && <p className="text-destructive text-sm mt-1">{errors.ragioneSociale}</p>}</div>
+                    <div className="mb-4"><label className="block mb-2">Indirizzo</label><input type="text" name="indirizzo" value={formData.indirizzo || ''} onChange={handleInputChange} className="w-full px-3 py-2 rounded-md border border-border bg-background text-foreground" disabled={isSaving} />{errors.indirizzo && <p className="text-destructive text-sm mt-1">{errors.indirizzo}</p>}</div>
+                    <div className="mb-4"><label className="block mb-2">Partita IVA</label><input type="text" name="pIvaCf" value={formData.pIvaCf || ''} onChange={handleInputChange} className="w-full px-3 py-2 rounded-md border border-border bg-background text-foreground" disabled={isSaving} />{errors.pIvaCf && <p className="text-destructive text-sm mt-1">{errors.pIvaCf}</p>}</div>
+                    <div className="mb-4"><label className="block mb-2">Codice Univoco (SDI) o PEC</label><input type="text" name="sdiPec" value={formData.sdiPec || ''} onChange={handleInputChange} className="w-full px-3 py-2 rounded-md border border-border bg-background text-foreground" disabled={isSaving} />{errors.sdiPec && <p className="text-destructive text-sm mt-1">{errors.sdiPec}</p>}</div>
                 </>
             ) : (
                 <>
-                    <div className="form-group"><label>Nome</label><input type="text" name="nome" value={formData.nome || ''} onChange={handleInputChange} className="form-input" disabled={isSaving} />{errors.nome && <p className="error-message">{errors.nome}</p>}</div>
-                    <div className="form-group"><label>Cognome</label><input type="text" name="cognome" value={formData.cognome || ''} onChange={handleInputChange} className="form-input" disabled={isSaving} />{errors.cognome && <p className="error-message">{errors.cognome}</p>}</div>
-                    <div className="form-group"><label>Indirizzo</label><input type="text" name="indirizzo" value={formData.indirizzo || ''} onChange={handleInputChange} className="form-input" disabled={isSaving} />{errors.indirizzo && <p className="error-message">{errors.indirizzo}</p>}</div>
-                    <div className="form-group"><label>Codice Fiscale</label><input type="text" name="cf" value={formData.cf || ''} onChange={handleInputChange} className="form-input" disabled={isSaving} />{errors.cf && <p className="error-message">{errors.cf}</p>}</div>
+                    <div className="mb-4"><label className="block mb-2">Nome</label><input type="text" name="nome" value={formData.nome || ''} onChange={handleInputChange} className="w-full px-3 py-2 rounded-md border border-border bg-background text-foreground" disabled={isSaving} />{errors.nome && <p className="text-destructive text-sm mt-1">{errors.nome}</p>}</div>
+                    <div className="mb-4"><label className="block mb-2">Cognome</label><input type="text" name="cognome" value={formData.cognome || ''} onChange={handleInputChange} className="w-full px-3 py-2 rounded-md border border-border bg-background text-foreground" disabled={isSaving} />{errors.cognome && <p className="text-destructive text-sm mt-1">{errors.cognome}</p>}</div>
+                    <div className="mb-4"><label className="block mb-2">Indirizzo</label><input type="text" name="indirizzo" value={formData.indirizzo || ''} onChange={handleInputChange} className="w-full px-3 py-2 rounded-md border border-border bg-background text-foreground" disabled={isSaving} />{errors.indirizzo && <p className="text-destructive text-sm mt-1">{errors.indirizzo}</p>}</div>
+                    <div className="mb-4"><label className="block mb-2">Codice Fiscale</label><input type="text" name="cf" value={formData.cf || ''} onChange={handleInputChange} className="w-full px-3 py-2 rounded-md border border-border bg-background text-foreground" disabled={isSaving} />{errors.cf && <p className="text-destructive text-sm mt-1">{errors.cf}</p>}</div>
                 </>
             )}
-            <button onClick={handleSave} className="web3-button" style={{ marginTop: '1rem', width: '100%' }} disabled={isSaving}>
+            <button onClick={handleSave} className="primary-gradient text-white px-4 py-2 rounded-2xl font-semibold hover:scale-105 smooth-transition w-full mt-4" disabled={isSaving}>
                 {isSaving ? 'Salvataggio...' : 'Salva Dati di Fatturazione'}
             </button>
         </div>
@@ -290,10 +156,10 @@ const StripeCheckoutForm: React.FC<{onPaymentSuccess: () => void}> = ({onPayment
     return (
         <form id="payment-form" onSubmit={handleSubmit}>
             <PaymentElement id="payment-element" />
-            <button disabled={isProcessing || !stripe || !elements} id="submit" className="web3-button" style={{ width: '100%', marginTop: '2rem' }}>
+            <button disabled={isProcessing || !stripe || !elements} id="submit" className="primary-gradient text-white px-4 py-2 rounded-2xl font-semibold hover:scale-105 smooth-transition w-full mt-8">
                 <span>{isProcessing ? "Pagamento in corso..." : "Paga ora"}</span>
             </button>
-            {message && <div style={{ color: '#f85149', marginTop: '1rem' }}>{message}</div>}
+            {message && <div className="text-destructive mt-4">{message}</div>}
         </form>
     );
 };
@@ -301,17 +167,15 @@ const StripeCheckoutForm: React.FC<{onPaymentSuccess: () => void}> = ({onPayment
 // --- Componente Popup Successo ---
 const SuccessPopup: React.FC = () => {
     const handleRedirect = () => {
-        // Reindirizza alla pagina aziendapage.html
-        window.location.href = '/aziendapage.html';
+        window.location.href = '/azienda';
     };
 
     return (
-        <div className="modal-overlay">
-            <div className="modal-content">
-                <h2>Acquisto Completato!</h2>
-                <p>Complimenti, hai completato il tuo acquisto su EasyChain.</p>
-                <button onClick={handleRedirect} className="web3-button" style={{marginTop: "1.5rem"}}>
-                    Torna alla Dashboard
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
+            <div className="glass-card rounded-2xl p-8 tech-shadow text-center max-w-md w-[90%]">
+                <h2 className="text-2xl font-bold text-accent mb-2">Complimenti, hai completato il tuo acquisto su EasyChain</h2>
+                <button onClick={handleRedirect} className="primary-gradient text-white px-4 py-2 rounded-2xl font-semibold hover:scale-105 smooth-transition mt-6">
+                    Torna alla dashboard
                 </button>
             </div>
         </div>
@@ -396,12 +260,10 @@ const RicaricaCreditiPage: React.FC = () => {
         }
 
         try {
-            // Qui dovresti chiamare un backend sicuro (es. una Cloud Function) per creare il Payment Intent
-            // Per semplicità, simulo una chiamata a un endpoint API
-            const response = await fetch(`https://your-backend-url/create-payment-intent`, {
+            const response = await fetch(`/api/send-email?action=create-payment-intent`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ amount: pkg.totalPrice * 100 }),
+                body: JSON.stringify({ amount: pkg.totalPrice * 100, walletAddress: account?.address }),
             });
             if (!response.ok) throw new Error(`Errore dal server`);
             const data = await response.json();
@@ -418,7 +280,7 @@ const RicaricaCreditiPage: React.FC = () => {
         setError(null);
         try {
             const billingDocRef = doc(db, 'Fatturazione', account.address);
-            await setDoc(billingDocRef, details, { merge: true }); // setDoc sovrascrive, che è il comportamento richiesto
+            await setDoc(billingDocRef, details); // sovrascrive i dati precedenti
             setBillingDetails(details);
             setIsEditingBilling(false);
 
@@ -450,34 +312,40 @@ const RicaricaCreditiPage: React.FC = () => {
     };
 
     const renderContent = () => {
-        if (loading) return <div className="centered-container"><p>Caricamento dati utente...</p></div>;
-        if (error) return <div className="centered-container"><p style={{ color: "#f85149" }}>{error}</p></div>;
-        if (!userData) return <div className="centered-container"><p>Nessun dato utente trovato.</p></div>;
+        if (loading) return <div className="flex items-center justify-center min-h-[60vh] text-center p-6"><p>Caricamento dati utente...</p></div>;
+        if (error) return <div className="flex items-center justify-center min-h-[60vh] text-center p-6"><p className="text-destructive">{error}</p></div>;
+        if (!userData) return <div className="flex items-center justify-center min-h-[60vh] text-center p-6"><p>Nessun dato utente trovato.</p></div>;
 
         return (
-            <div className="recharge-container">
-                <div className="info-card">
-                    <h2>Riepilogo Account</h2>
-                    <div className="user-info-grid">
-                        <p><strong>Nome:</strong> {userData.companyName}</p>
-                        <p><strong>Email:</strong> {userData.email}</p>
-                        <p><strong>Crediti Rimanenti:</strong> {userData.credits}</p>
-                        <p><strong>Stato:</strong> <strong className={userData.status === 'active' ? 'status-active-text' : 'status-inactive-text'}>
+            <div className="container mx-auto px-6 py-6 max-w-5xl">
+                <div className="glass-card rounded-2xl p-6 tech-shadow mb-6">
+                    <h2 className="text-xl font-bold mb-4">Riepilogo Account</h2>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <p className="m-0"><strong>Nome:</strong> {userData.companyName}</p>
+                        <p className="m-0"><strong>Email:</strong> {userData.email}</p>
+                        <p className="m-0"><strong>Crediti Rimanenti:</strong> {userData.credits}</p>
+                        <p className="m-0"><strong>Stato:</strong> <strong className={userData.status === 'active' ? 'text-green-500' : 'text-yellow-500'}>
                             {userData.status === 'active' ? 'Attivo' : 'Disattivo'}
                         </strong></p>
                     </div>
                 </div>
 
-                <div className="info-card">
-                    <h2>Seleziona un Pacchetto Crediti</h2>
-                    <table className="credit-packages-table">
-                        <thead><tr><th>Crediti</th><th>Prezzo per credito</th><th>Prezzo totale</th></tr></thead>
+                <div className="glass-card rounded-2xl p-6 tech-shadow mb-6">
+                    <h2 className="text-xl font-bold mb-4">Seleziona un Pacchetto Crediti</h2>
+                    <table className="w-full border-separate border-spacing-y-2">
+                        <thead>
+                            <tr className="text-muted-foreground text-sm">
+                                <th className="text-left py-2">Crediti</th>
+                                <th className="text-left py-2">Prezzo per credito</th>
+                                <th className="text-left py-2">Prezzo totale</th>
+                            </tr>
+                        </thead>
                         <tbody>
                             {creditPackages.map(pkg => (
-                                <tr key={pkg.id} onClick={() => handleSelectPackage(pkg)} className={selectedPackage?.id === pkg.id ? 'selected' : ''}>
-                                    <td><strong>{pkg.credits}</strong></td>
-                                    <td>{pkg.pricePerCredit.toFixed(2)} €</td>
-                                    <td><strong>{pkg.totalPrice.toFixed(2)} €</strong></td>
+                                <tr key={pkg.id} onClick={() => handleSelectPackage(pkg)} className={`cursor-pointer hover:bg-card/40 rounded-xl ${selectedPackage?.id === pkg.id ? 'bg-primary/20' : ''}`}>
+                                    <td className="py-3 font-semibold">{pkg.credits}</td>
+                                    <td className="py-3">{pkg.pricePerCredit.toFixed(2)} €</td>
+                                    <td className="py-3 font-semibold">{pkg.totalPrice.toFixed(2)} €</td>
                                 </tr>
                             ))}
                         </tbody>
@@ -485,36 +353,38 @@ const RicaricaCreditiPage: React.FC = () => {
                 </div>
 
                 {selectedPackage && (
-                    <div className="info-card">
+                    <div className="glass-card rounded-2xl p-6 tech-shadow">
                         {billingDetails && !isEditingBilling ? (
                             <div>
-                                <div className="billing-header">
-                                    <h3>Dati di Fatturazione</h3>
-                                    <button className="edit-button" onClick={() => setIsEditingBilling(true)}>Modifica</button>
+                                <div className="flex items-center justify-between mb-4">
+                                    <h3 className="text-lg font-semibold">Dati di Fatturazione</h3>
+                                    <button className="text-accent border border-border rounded-md px-3 py-1 hover:bg-border/20 smooth-transition" onClick={() => setIsEditingBilling(true)}>Modifica</button>
                                 </div>
                                 {billingDetails.type === 'azienda' ? (
                                     <>
                                         <p><strong>Ragione Sociale:</strong> {billingDetails.ragioneSociale}</p>
-                                        <p><strong>P.IVA:</strong> {billingDetails.pIvaCf}</p>
+                                        <p><strong>Indirizzo:</strong> {billingDetails.indirizzo}</p>
+                                        <p><strong>P.IVA/CF:</strong> {billingDetails.pIvaCf}</p>
                                         <p><strong>SDI/PEC:</strong> {billingDetails.sdiPec}</p>
                                     </>
                                 ) : (
                                     <>
                                         <p><strong>Nome:</strong> {billingDetails.nome} {billingDetails.cognome}</p>
+                                        <p><strong>Indirizzo:</strong> {billingDetails.indirizzo}</p>
                                         <p><strong>Codice Fiscale:</strong> {billingDetails.cf}</p>
                                     </>
                                 )}
                             </div>
                         ) : (
                             <div>
-                                <h3>{billingDetails ? 'Modifica Dati di Fatturazione' : 'Inserisci i Dati di Fatturazione'}</h3>
+                                <h3 className="text-lg font-semibold mb-4">{billingDetails ? 'Modifica Dati di Fatturazione' : 'Inserisci i Dati di Fatturazione'}</h3>
                                 <BillingForm initialDetails={billingDetails} onSave={handleSaveBilling} isSaving={isSaving} />
                             </div>
                         )}
                         
                         {!isEditingBilling && clientSecret && (
-                            <div style={{ marginTop: '2rem' }}>
-                                <h3 style={{ borderTop: '1px solid #30363d', paddingTop: '1.5rem' }}>Procedi con il Pagamento</h3>
+                            <div className="mt-8 border-t border-border pt-6">
+                                <h3 className="text-lg font-semibold mb-4">Procedi con il Pagamento</h3>
                                 <Elements options={{ clientSecret }} stripe={stripePromise}>
                                     <StripeCheckoutForm onPaymentSuccess={onPaymentSuccess} />
                                 </Elements>
@@ -528,17 +398,21 @@ const RicaricaCreditiPage: React.FC = () => {
 
     return (
         <>
-            <RicaricaCreditiStyles />
             {showSuccessPopup && <SuccessPopup />}
-            <div className="app-container-full">
-                <header className="main-header-bar">
-                    <h1 className="header-title">EasyChain - Ricarica Crediti</h1>
-                    <ConnectButton client={client} wallets={[inAppWallet()]} chain={polygon} />
+            <div className="min-h-screen bg-background px-6 py-6 container mx-auto">
+                <header className="flex flex-col md:flex-row items-center justify-between gap-4 bg-card/60 p-6 rounded-2xl border border-border">
+                    <h1 className="text-2xl md:text-3xl font-bold text-foreground">EasyChain - Ricarica Crediti</h1>
+                    <ConnectButton 
+                        client={client} 
+                        wallets={[inAppWallet()]}
+                        chain={polygon}
+                        accountAbstraction={{ chain: polygon, sponsorGas: true }}
+                    />
                 </header>
-                <main style={{flexGrow: 1, display: 'flex', flexDirection: 'column'}}>
+                <main>
                     {!account ? (
-                        <div className="centered-container">
-                            <h1>Connetti il tuo Wallet</h1>
+                        <div className="flex flex-col items-center justify-center min-h-[60vh] text-center p-6">
+                            <h1 className="text-2xl font-bold mb-2">Connetti il tuo Wallet</h1>
                             <p>Per visualizzare e ricaricare i tuoi crediti, connetti il wallet associato alla tua azienda.</p>
                         </div>
                     ) : (
