@@ -229,8 +229,8 @@ const StripeCheckoutForm: React.FC<{ onPaymentSuccess: () => void }> = ({ onPaym
 const SuccessPopup: React.FC = () => (
   <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
     <div className="glass-card rounded-2xl p-8 tech-shadow text-center max-w-md w-[90%]">
-      <h2 className="text-2xl font-bold text-green-500 mb-2">Acquisto completato!</h2>
-      <p className="mb-6">I tuoi crediti sono stati aggiunti al tuo account.</p>
+      <h2 className="text-2xl font-bold text-green-500 mb-2">Complimenti, hai completato il tuo acquisto su EasyChain</h2>
+      <p className="mb-6"></p>
       <a href="/azienda" className="py-2 px-4 rounded-2xl bg-blue-600 text-white font-semibold hover:scale-105 transition-all">
         Torna alla dashboard
       </a>
@@ -257,7 +257,7 @@ export default function RicaricaCreditiPage() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`/api/company/status?walletAddress=${account.address}`);
+      const res = await fetch(`/api/get-company-status?walletAddress=${account.address}`);
       if (!res.ok) throw new Error('Errore nel recupero dei dati aziendali.');
       const data = await res.json();
       if (!data.isActive) throw new Error('Nessuna azienda attiva trovata per questo wallet.');
@@ -305,7 +305,7 @@ export default function RicaricaCreditiPage() {
     }
 
     try {
-      const response = await fetch(`/api/payments/create-intent`, {
+      const response = await fetch(`/api/send-email?action=create-payment-intent`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ amount: pkg.totalPrice * 100, walletAddress: account?.address }),
@@ -326,7 +326,7 @@ export default function RicaricaCreditiPage() {
     setIsSaving(true);
     setError(null);
     try {
-      const response = await fetch('/api/company/save-billing', {
+      const response = await fetch('/api/send-email?action=save-billing-details', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ walletAddress: account.address, details }),
@@ -347,30 +347,10 @@ export default function RicaricaCreditiPage() {
   };
 
   const onPaymentSuccess = async () => {
-    if (!account || !selectedPackage) return;
-    setIsFulfilling(true);
-    setError(null);
-    try {
-      const response = await fetch('/api/payments/fulfill-purchase', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          walletAddress: account.address,
-          packageId: selectedPackage.id,
-          creditsPurchased: selectedPackage.credits,
-        }),
-      });
-      if (!response.ok) throw new Error("Errore durante l'aggiornamento dei crediti.");
-
-      setShowSuccessPopup(true);
-      await fetchAllData();
-    } catch (err: any) {
-      setError(err.message || "Il tuo pagamento è andato a buon fine, ma non abbiamo potuto aggiungere i crediti. Contatta l'assistenza.");
-    } finally {
-      setIsFulfilling(false);
-      if (clientSecret) setClientSecret(null);
-      setSelectedPackage(null);
-    }
+    setShowSuccessPopup(true);
+    if (clientSecret) setClientSecret(null);
+    setSelectedPackage(null);
+    await fetchAllData();
   };
 
   if (isFulfilling) {
@@ -479,8 +459,8 @@ export default function RicaricaCreditiPage() {
   return (
     <>
       {showSuccessPopup && <SuccessPopup />}
-      <div className="min-h-screen bg-gray-100 px-6 py-6 container mx-auto">
-        <header className="flex flex-col md:flex-row items-center justify-between gap-4 bg-white p-6 rounded-2xl shadow-lg">
+      <div className="min-h-screen bg-background px-6 py-6 container mx-auto">
+        <header className="glass-card rounded-2xl p-6 tech-shadow flex flex-col md:flex-row items-center justify-between gap-4">
           <h1 className="text-3xl font-bold">EasyChain - Ricarica Crediti</h1>
           <ConnectButton client={client} wallets={[inAppWallet()]} chain={polygon} accountAbstraction={{ chain: polygon, sponsorGas: true }} />
         </header>

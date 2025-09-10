@@ -46,12 +46,30 @@ export default async (req, res) => {
       return res.status(200).json({ isActive: false });
     }
 
-    // Se il documento esiste, l'azienda è attiva. Restituisci i suoi dati.
+    // Se il documento esiste, l'azienda è attiva. Restituisci i suoi dati, includendo email, status e billing.
     const companyData = doc.data();
+
+    // Prova a leggere eventuali dati di fatturazione salvati nella collezione "Fatturazione"
+    let billingDetails = null;
+    try {
+      const billingRef = db.collection('Fatturazione').doc(walletAddress);
+      const billingSnap = await billingRef.get();
+      if (billingSnap.exists) {
+        const b = billingSnap.data();
+        billingDetails = b?.details || b || null;
+      }
+    } catch (e) {
+      // Non bloccare la risposta in caso di errore di lettura della fatturazione
+      console.warn('Impossibile leggere i dati di fatturazione:', e?.message || e);
+    }
+
     res.status(200).json({
       isActive: true,
       companyName: companyData?.companyName || 'Nome non trovato',
       credits: companyData?.credits !== undefined ? companyData.credits : 0,
+      contactEmail: companyData?.contactEmail || null,
+      status: companyData?.status || 'active',
+      billingDetails,
     });
 
   } catch (error) {
