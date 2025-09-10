@@ -4,11 +4,11 @@ import { polygon } from "thirdweb/chains";
 import { inAppWallet } from "thirdweb/wallets";
 import { loadStripe } from "@stripe/stripe-js";
 import { Elements, PaymentElement, useStripe, useElements } from "@stripe/react-stripe-js";
-// Nessun accesso diretto al client Firebase: usiamo API server-side
+// Assuming 'client' is a correctly configured ThirdwebClient instance
 import { client } from '../client';
 
 
-// --- Interfacce Dati ---
+// --- Data Interfaces ---
 interface UserData {
     companyName: string;
     credits: number;
@@ -36,13 +36,10 @@ interface CreditPackage {
 }
 
 // --- Setup ---
-// Nota: Vite espone import.meta.env; il type di ImportMetaEnv è già incluso nelle tipizzazioni di Vite
-// Fallback ad una chiave di test solo in dev
-const stripePromise = loadStripe((import.meta as any).env?.VITE_STRIPE_PUBLISHABLE_KEY || "pk_test_51RrJLQRx6E9RZt5ynBwc2dt3o7RT4YTwwij3O9xj3VdMwNKlI4GA9Yvbzkgwbxi0I5J9XnqPMlgY7bz2xHSgxmz000KCex9EiA");
+// Vite exposes import.meta.env. A fallback to a test key is used only in development.
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || "pk_test_51PTestKeyEXAMPLE...");
 
-// (Nessuno stile inline: usiamo Tailwind e le utility globali per coerenza grafica)
-
-// --- Pacchetti Crediti ---
+// --- Credit Packages ---
 const creditPackages: CreditPackage[] = [
     { id: 'price_1', credits: 10, pricePerCredit: 0.20, totalPrice: 2.00, description: 'Pacchetto 10 crediti' },
     { id: 'price_2', credits: 50, pricePerCredit: 0.12, totalPrice: 6.00, description: 'Pacchetto 50 crediti' },
@@ -51,11 +48,11 @@ const creditPackages: CreditPackage[] = [
     { id: 'price_5', credits: 1000, pricePerCredit: 0.07, totalPrice: 70.00, description: 'Pacchetto 1000 crediti' },
 ];
 
-// --- Componente Form di Fatturazione ---
+// --- Billing Form Component ---
 const BillingForm: React.FC<{ initialDetails?: BillingDetails | null, onSave: (details: BillingDetails) => void, isSaving: boolean }> = ({ initialDetails, onSave, isSaving }) => {
     const [type, setType] = useState<'azienda' | 'privato'>(initialDetails?.type || 'azienda');
     const [formData, setFormData] = useState<Partial<BillingDetails>>(initialDetails || {});
-    const [errors, setErrors] = useState<Partial<BillingDetails>>({});
+    const [errors, setErrors] = useState<Partial<Record<keyof BillingDetails, string>>>({});
 
     useEffect(() => {
         if (initialDetails) {
@@ -65,30 +62,35 @@ const BillingForm: React.FC<{ initialDetails?: BillingDetails | null, onSave: (d
     }, [initialDetails]);
 
     const validate = () => {
-        const newErrors: Partial<BillingDetails> = {};
+        const newErrors: Partial<Record<keyof BillingDetails, string>> = {};
         if (type === 'azienda') {
             if (!formData.ragioneSociale?.trim()) newErrors.ragioneSociale = "La denominazione sociale è obbligatoria.";
             if (!formData.indirizzo?.trim()) newErrors.indirizzo = "L'indirizzo è obbligatorio.";
+            // Correct validation for Italian Partita IVA (11 digits)
             if (!formData.pIvaCf?.trim() || !/^[0-9]{11}$/.test(formData.pIvaCf)) newErrors.pIvaCf = "La Partita IVA deve contenere 11 cifre.";
             if (!formData.sdiPec?.trim()) newErrors.sdiPec = "Il codice SDI o la PEC sono obbligatori.";
         } else {
             if (!formData.nome?.trim()) newErrors.nome = "Il nome è obbligatorio.";
             if (!formData.cognome?.trim()) newErrors.cognome = "Il cognome è obbligatorio.";
             if (!formData.indirizzo?.trim()) newErrors.indirizzo = "L'indirizzo è obbligatorio.";
-            if (!formData.cf?.trim() || !/^[A-Z0-9]{16}$/i.test(formData.cf)) newErrors.cf = "Il codice fiscale deve essere di 16 caratteri.";
+            // Correct validation for Italian Codice Fiscale (16 alphanumeric chars)
+            if (!formData.cf?.trim() || !/^[A-Z0-9]{16}$/i.test(formData.cf)) newErrors.cf = "Il codice fiscale non è valido.";
         }
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     };
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const { name, value } = e.target as { name: keyof BillingDetails; value: string };
+        const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
     const handleSave = () => {
         if (validate()) {
-            const detailsToSave: BillingDetails = { type, ...formData };
+            // Ensure all properties are defined before saving
+            const detailsToSave: BillingDetails = type === 'azienda'
+                ? { type, ragioneSociale: formData.ragioneSociale || '', indirizzo: formData.indirizzo || '', pIvaCf: formData.pIvaCf || '', sdiPec: formData.sdiPec || '' }
+                : { type, nome: formData.nome || '', cognome: formData.cognome || '', indirizzo: formData.indirizzo || '', cf: formData.cf || '' };
             onSave(detailsToSave);
         }
     };
@@ -123,8 +125,8 @@ const BillingForm: React.FC<{ initialDetails?: BillingDetails | null, onSave: (d
     );
 };
 
-// --- Componente Checkout Stripe ---
-const StripeCheckoutForm: React.FC<{onPaymentSuccess: () => void}> = ({onPaymentSuccess}) => {
+// --- Stripe Checkout Form Component ---
+const StripeCheckoutForm: React.FC<{ onPaymentSuccess: () => void }> = ({ onPaymentSuccess }) => {
     const stripe = useStripe();
     const elements = useElements();
     const [message, setMessage] = useState<string | null>(null);
@@ -134,19 +136,20 @@ const StripeCheckoutForm: React.FC<{onPaymentSuccess: () => void}> = ({onPayment
         e.preventDefault();
         if (!stripe || !elements) return;
         setIsProcessing(true);
+        setMessage(null);
 
         const { error } = await stripe.confirmPayment({
             elements,
-            redirect: "if_required" // Impedisce il reindirizzamento
+            redirect: "if_required" // Prevents redirect
         });
 
         if (error) {
-            setMessage(error.message || "Errore sconosciuto.");
-            setIsProcessing(false);
+            setMessage(error.message || "Errore sconosciuto durante il pagamento.");
+            setIsProcessing(false); // FIXED: Re-enable button on error
         } else {
-            setMessage(null);
-            // Pagamento riuscito
+            // Payment successful on client, now notify server
             onPaymentSuccess();
+            // The parent component will handle the final processing state
         }
     };
 
@@ -161,26 +164,23 @@ const StripeCheckoutForm: React.FC<{onPaymentSuccess: () => void}> = ({onPayment
     );
 };
 
-// --- Componente Popup Successo ---
+// --- Success Popup Component ---
 const SuccessPopup: React.FC = () => {
-    const handleRedirect = () => {
-        window.location.href = '/azienda';
-    };
-
     return (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
-            <div className="glass-card rounded-2zl p-8 tech-shadow text-center max-w-md w-[90%]">
-                <h2 className="text-2xl font-bold text-accent mb-2">Complimenti, hai completato il tuo acquisto su EasyChain</h2>
-                <button onClick={handleRedirect} className="primary-gradient text-white px-4 py-2 rounded-2xl font-semibold hover:scale-105 smooth-transition mt-6">
+            <div className="glass-card rounded-2xl p-8 tech-shadow text-center max-w-md w-[90%]">
+                <h2 className="text-2xl font-bold text-accent mb-2">Acquisto completato!</h2>
+                <p className="mb-6">I tuoi crediti sono stati aggiunti al tuo account.</p>
+                <a href="/azienda" className="primary-gradient text-white px-4 py-2 rounded-2xl font-semibold hover:scale-105 smooth-transition">
                     Torna alla dashboard
-                </button>
+                </a>
             </div>
         </div>
     );
 };
 
 
-// --- Componente Principale Pagina ---
+// --- Main Page Component ---
 export default function RicaricaCreditiPage() {
     const account = useActiveAccount();
 
@@ -192,6 +192,7 @@ export default function RicaricaCreditiPage() {
     const [clientSecret, setClientSecret] = useState<string | null>(null);
     const [isEditingBilling, setIsEditingBilling] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
+    const [isFulfilling, setIsFulfilling] = useState(false); // NEW: State for final fulfillment step
     const [showSuccessPopup, setShowSuccessPopup] = useState(false);
 
     const fetchAllData = useCallback(async () => {
@@ -199,8 +200,9 @@ export default function RicaricaCreditiPage() {
         setLoading(true);
         setError(null);
         try {
-            const res = await fetch(`/api/get-company-status?walletAddress=${account.address}`);
-            if (!res.ok) throw new Error('Errore nel recupero dei dati');
+            // Using a more semantic API endpoint
+            const res = await fetch(`/api/company/status?walletAddress=${account.address}`);
+            if (!res.ok) throw new Error('Errore nel recupero dei dati aziendali.');
             const data = await res.json();
             if (!data.isActive) throw new Error('Nessuna azienda attiva trovata per questo wallet.');
 
@@ -216,7 +218,7 @@ export default function RicaricaCreditiPage() {
                 setIsEditingBilling(false);
             } else {
                 setBillingDetails(null);
-                setIsEditingBilling(true);
+                setIsEditingBilling(true); // Force user to enter details if missing
             }
         } catch (err: any) {
             setError(err.message || 'Impossibile caricare i dati.');
@@ -229,7 +231,7 @@ export default function RicaricaCreditiPage() {
         if (account) {
             fetchAllData();
         } else {
-            setLoading(false);
+            setLoading(false); // Not loading if there's no account
             setUserData(null);
             setBillingDetails(null);
         }
@@ -237,24 +239,29 @@ export default function RicaricaCreditiPage() {
 
     const handleSelectPackage = async (pkg: CreditPackage) => {
         setSelectedPackage(pkg);
-        setClientSecret(null);
+        setClientSecret(null); // Reset previous payment intent
+        setError(null);
 
         if (!billingDetails) {
             setIsEditingBilling(true);
-            return;
+            return; // Wait for user to save billing details
         }
 
         try {
-            const response = await fetch(`/api/send-email?action=create-payment-intent`, {
+            // Using a more semantic API endpoint
+            const response = await fetch(`/api/payments/create-intent`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ amount: pkg.totalPrice * 100, walletAddress: account?.address }),
             });
-            if (!response.ok) throw new Error(`Errore dal server`);
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Errore dal server');
+            }
             const data = await response.json();
             setClientSecret(data.clientSecret);
-        } catch (error) {
-            setError("Non è stato possibile avviare il pagamento. Riprova.");
+        } catch (error: any) {
+            setError(error.message || "Non è stato possibile avviare il pagamento. Riprova.");
         }
     };
 
@@ -263,7 +270,8 @@ export default function RicaricaCreditiPage() {
         setIsSaving(true);
         setError(null);
         try {
-            const response = await fetch('/api/send-email?action=save-billing-details', {
+            // Using a more semantic API endpoint
+            const response = await fetch('/api/company/save-billing', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ walletAddress: account.address, details })
@@ -273,6 +281,7 @@ export default function RicaricaCreditiPage() {
             setBillingDetails(details);
             setIsEditingBilling(false);
 
+            // If a package was already selected, proceed to create the payment intent
             if (selectedPackage) {
                 await handleSelectPackage(selectedPackage);
             }
@@ -282,15 +291,53 @@ export default function RicaricaCreditiPage() {
             setIsSaving(false);
         }
     };
-    
+
+    // CRITICAL FIX: This function now tells the backend to credit the user's account
     const onPaymentSuccess = async () => {
-        if (!account || !selectedPackage || !userData) return;
-        setShowSuccessPopup(true);
+        if (!account || !selectedPackage) return;
+
+        setIsFulfilling(true);
+        setError(null);
+
+        try {
+            // Using a more semantic API endpoint
+            const response = await fetch('/api/payments/fulfill-purchase', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    walletAddress: account.address,
+                    packageId: selectedPackage.id,
+                    creditsPurchased: selectedPackage.credits
+                })
+            });
+            if (!response.ok) throw new Error('Errore durante l\'aggiornamento dei crediti.');
+
+            // Success!
+            setShowSuccessPopup(true);
+            // Optionally, refetch data to show updated credit balance immediately
+            await fetchAllData();
+
+        } catch (err: any) {
+            setError(err.message || "Il tuo pagamento è andato a buon fine, ma c'è stato un problema ad aggiungere i crediti. Contatta l'assistenza.");
+        } finally {
+            setIsFulfilling(false);
+            setClientSecret(null); // Clear the used payment intent
+            setSelectedPackage(null);
+        }
     };
 
+    if (isFulfilling) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-screen text-center p-6">
+                <h1 className="text-2xl font-bold mb-2">Stiamo finalizzando il tuo acquisto...</h1>
+                <p>Non chiudere questa pagina.</p>
+            </div>
+        );
+    }
+    
     const renderContent = () => {
         if (loading) return <div className="flex items-center justify-center min-h-[60vh] text-center p-6"><p>Caricamento dati utente...</p></div>;
-        if (error) return <div className="flex items-center justify-center min-h-[60vh] text-center p-6"><p className="text-destructive">{error}</p></div>;
+        if (error && !showSuccessPopup) return <div className="flex items-center justify-center min-h-[60vh] text-center p-6"><p className="text-destructive">{error}</p></div>;
         if (!userData) return <div className="flex items-center justify-center min-h-[60vh] text-center p-6"><p>Nessun dato utente trovato.</p></div>;
 
         return (
@@ -319,10 +366,10 @@ export default function RicaricaCreditiPage() {
                         </thead>
                         <tbody>
                             {creditPackages.map(pkg => (
-                                <tr key={pkg.id} onClick={() => handleSelectPackage(pkg)} className={`cursor-pointer hover:bg-card/40 rounded-xl ${selectedPackage?.id === pkg.id ? 'bg-primary/20' : ''}`}>
-                                    <td className="py-3 font-semibold">{pkg.credits}</td>
-                                    <td className="py-3">{pkg.pricePerCredit.toFixed(2)} €</td>
-                                    <td className="py-3 font-semibold">{pkg.totalPrice.toFixed(2)} €</td>
+                                <tr key={pkg.id} onClick={() => handleSelectPackage(pkg)} className={`cursor-pointer hover:bg-card/40 rounded-xl transition-colors ${selectedPackage?.id === pkg.id ? 'bg-primary/20 ring-2 ring-primary' : ''}`}>
+                                    <td className="py-3 px-4 font-semibold">{pkg.credits}</td>
+                                    <td className="py-3 px-4">{pkg.pricePerCredit.toFixed(2)} €</td>
+                                    <td className="py-3 px-4 font-semibold">{pkg.totalPrice.toFixed(2)} €</td>
                                 </tr>
                             ))}
                         </tbody>
@@ -362,7 +409,8 @@ export default function RicaricaCreditiPage() {
                         {!isEditingBilling && clientSecret && (
                             <div className="mt-8 border-t border-border pt-6">
                                 <h3 className="text-lg font-semibold mb-4">Procedi con il Pagamento</h3>
-                                <Elements options={{ clientSecret }} stripe={stripePromise}>
+                                {/* ROBUSTNESS: Added key prop to ensure Elements re-initializes on secret change */}
+                                <Elements options={{ clientSecret }} stripe={stripePromise} key={clientSecret}>
                                     <StripeCheckoutForm onPaymentSuccess={onPaymentSuccess} />
                                 </Elements>
                             </div>
@@ -388,7 +436,7 @@ export default function RicaricaCreditiPage() {
                 </header>
                 <main>
                     {!account ? (
-                        <div className="flex flex-col itemscenter justify-center min-h-[60vh] text-center p-6">
+                        <div className="flex flex-col items-center justify-center min-h-[60vh] text-center p-6">
                             <h1 className="text-2xl font-bold mb-2">Connetti il tuo Wallet</h1>
                             <p>Per visualizzare e ricaricare i tuoi crediti, connetti il wallet associato alla tua azienda.</p>
                         </div>
@@ -400,3 +448,4 @@ export default function RicaricaCreditiPage() {
         </>
     );
 }
+
