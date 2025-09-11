@@ -2337,6 +2337,7 @@ const FullPageLoading: React.FC<{ message?: string }> = ({ message }) => {
 const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
 
   const account = useActiveAccount();
+  const navigate = useNavigate();
 
   const [batches, setBatches] = useState<Batch[]>([]);
 
