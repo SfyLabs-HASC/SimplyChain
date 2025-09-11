@@ -300,11 +300,17 @@ const RicaricaCreditiPage: React.FC = () => {
       setLoading(true);
       setError(null);
       try {
+        console.log('Fetching company data for wallet:', account.address);
         const response = await fetch(`/api/get-company-status?walletAddress=${account.address}`);
+        console.log('Response status:', response.status, 'ok:', response.ok);
+        
         if (!response.ok) {
-          throw new Error('Azienda non trovata o errore nel recupero dati.');
+          const errorText = await response.text();
+          console.error('Error response:', errorText);
+          throw new Error(`Azienda non trovata o errore nel recupero dati: ${response.status}`);
         }
         const data = await response.json();
+        console.log('Firebase data received:', data);
 
         if (data.isActive) {
           setUserData({
