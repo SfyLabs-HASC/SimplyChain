@@ -31,6 +31,7 @@ export default function HomePage() {
   const [isVideoOpen, setIsVideoOpen] = useState(false);
   const [textPhase, setTextPhase] = useState(1);
   const [connectButtonRef, setConnectButtonRef] = useState<HTMLButtonElement | null>(null);
+  const [shouldAutoRedirect, setShouldAutoRedirect] = useState(false);
   const account = useActiveAccount();
   const navigate = useNavigate();
 
@@ -53,12 +54,15 @@ export default function HomePage() {
     };
   }, []); // Empty dependency array means this effect runs once on mount and cleans up on unmount
 
-  // Effect to handle user authentication and routing
+  // Effect to handle user authentication and routing (solo se l'utente ha cliccato sui pulsanti)
   useEffect(() => {
-    if (account && account.address) {
+    if (account && account.address && shouldAutoRedirect) {
       checkUserVerification();
+    } else if (!account) {
+      // Reset flag quando si disconnette
+      setShouldAutoRedirect(false);
     }
-  }, [account]);
+  }, [account, shouldAutoRedirect]);
 
   const checkUserVerification = async () => {
     if (!account?.address) return;
@@ -85,6 +89,7 @@ export default function HomePage() {
   };
 
   const handleAuthButtonClick = () => {
+    setShouldAutoRedirect(true);
     // Trova il ConnectButton nascosto e simula un click
     setTimeout(() => {
       const connectButtons = document.querySelectorAll('button');

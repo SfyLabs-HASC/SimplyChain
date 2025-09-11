@@ -554,6 +554,20 @@ const AziendaPageStyles = () => (
 
         flex-direction: column;
 
+        justify-content: space-between;
+
+      }
+
+
+
+      .card-buttons {
+
+        margin-top: auto;
+
+        padding-top: 1rem;
+
+        border-top: 1px solid #333;
+
       }
 
 
@@ -1890,9 +1904,11 @@ const AziendaPageStyles = () => (
 
       .credits-link:hover {
 
-        text-decoration: underline;
+        text-decoration: underline !important;
 
-        text-decoration-color: #ffffff;
+        text-decoration-color: #ffffff !important;
+
+        text-underline-offset: 2px;
 
       }
 
@@ -3104,11 +3120,11 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
 
                     )}
 
-                  </div>
+                  
 
+                  <div className="card-buttons">
 
-
-                  <div className="flex justify-between items-center mt-4">
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
 
                     <div className="text-sm text-muted-foreground">
 
@@ -3211,6 +3227,8 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
                         <span className="text-gray-400">🔒</span>
 
                       )}
+
+                    </div>
 
                     </div>
 
@@ -3582,7 +3600,41 @@ const AddStepModal: React.FC<{
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 
-    setSelectedFile(e.target.files?.[0] || null);
+    const file = e.target.files?.[0];
+
+    if (!file) {
+
+      setSelectedFile(null);
+
+      return;
+
+    }
+
+
+
+    // Validazione dimensione file
+
+    const maxSize = file.type.startsWith('image/') ? 5 * 1024 * 1024 : 10 * 1024 * 1024; // 5MB per immagini, 10MB per documenti
+
+    
+
+    if (file.size > maxSize) {
+
+      const maxSizeMB = file.type.startsWith('image/') ? '5MB' : '10MB';
+
+      alert(`Il file selezionato è troppo grande. Dimensione massima consentita: ${maxSizeMB}`);
+
+      e.target.value = ''; // Reset input
+
+      setSelectedFile(null);
+
+      return;
+
+    }
+
+
+
+    setSelectedFile(file);
 
   };
 
@@ -4672,7 +4724,41 @@ const NewInscriptionModal: React.FC<{
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 
-    setSelectedFile(e.target.files?.[0] || null);
+    const file = e.target.files?.[0];
+
+    if (!file) {
+
+      setSelectedFile(null);
+
+      return;
+
+    }
+
+
+
+    // Validazione dimensione file
+
+    const maxSize = file.type.startsWith('image/') ? 5 * 1024 * 1024 : 10 * 1024 * 1024; // 5MB per immagini, 10MB per documenti
+
+    
+
+    if (file.size > maxSize) {
+
+      const maxSizeMB = file.type.startsWith('image/') ? '5MB' : '10MB';
+
+      alert(`Il file selezionato è troppo grande. Dimensione massima consentita: ${maxSizeMB}`);
+
+      e.target.value = ''; // Reset input
+
+      setSelectedFile(null);
+
+      return;
+
+    }
+
+
+
+    setSelectedFile(file);
 
   };
 
@@ -5893,7 +5979,11 @@ const AziendaPage: React.FC = () => {
 
   useEffect(() => {
 
-    if (!account) {
+    // Solo reindirizza se l'account diventa null DOPO essere stato presente
+
+    // Evita redirect al primo caricamento della pagina
+
+    if (!account && companyStatus.data !== null) {
 
       navigate('/');
 
@@ -5901,7 +5991,7 @@ const AziendaPage: React.FC = () => {
 
     }
 
-  }, [account, navigate]);
+  }, [account, navigate, companyStatus.data]);
 
 
 
