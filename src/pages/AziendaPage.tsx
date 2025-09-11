@@ -540,6 +540,12 @@ const AziendaPageStyles = () => (
 
         position: relative;
 
+        display: flex;
+
+        flex-direction: column;
+
+        height: 100%;
+
       }
 
 
@@ -632,7 +638,7 @@ const AziendaPageStyles = () => (
 
         align-items: center;
 
-        margin-top: 1rem;
+        margin-top: auto;
 
         padding-top: 1rem;
 
@@ -1936,7 +1942,7 @@ const AziendaPageStyles = () => (
 
       .batch-number {
 
-        color: #c4b5fd;
+        color: #7c3aed;
 
       }
 
