@@ -10,89 +10,275 @@ import { inAppWallet } from "thirdweb/wallets";
 import { supplyChainABI as abi } from "../abi/contractABI";
 import "../App.css";
 
-// --- NUOVO: Componente per gli stili della pagina ---
+// --- Stili AdminPage con design moderno come AziendaPage ---
 const AdminPageStyles = () => (
   <style>{`
-    .header {
-      flex-wrap: wrap;
+    /* Base styles matching AziendaPage */
+    .admin-container {
+      padding: 1rem;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 100%);
     }
+
+    .admin-header {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      padding: 1.5rem;
+      background: rgba(26, 26, 26, 0.8);
+      backdrop-filter: blur(20px);
+      border-radius: 1rem;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+    }
+
+    .admin-title {
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: #ffffff;
+      text-align: center;
+      background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .admin-content {
+      background: rgba(26, 26, 26, 0.8);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 1rem;
+      padding: 2rem;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+    }
+
     .filters-container {
       display: flex;
       flex-wrap: wrap;
       gap: 1rem;
       margin-bottom: 1.5rem;
-    }
-    .filters-container > .form-input {
-      flex-grow: 1;
-      min-width: 200px; /* Evita che i filtri diventino troppo piccoli */
-    }
-    .company-table .desktop-row {
-      display: table-row;
-    }
-    .company-table .mobile-card-row {
-      display: none;
+      padding: 1rem;
+      background: rgba(26, 26, 26, 0.6);
+      border-radius: 0.75rem;
+      border: 1px solid rgba(255, 255, 255, 0.1);
     }
 
-    /* Media Query per schermi sotto i 768px (tablet e telefoni) */
-    @media (max-width: 768px) {
-      .header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 1rem;
+    .filter-group {
+      flex: 1;
+      min-width: 200px;
+    }
+
+    .filter-label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+      color: #e5e7eb;
+      font-size: 0.9rem;
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 0.75rem;
+      color: #ffffff;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+    }
+
+    .form-input:focus {
+      outline: none;
+      border-color: #6366f1;
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    }
+
+    .companies-grid {
+      display: grid;
+      gap: 1.5rem;
+      grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    }
+
+    .company-card {
+      background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+      border-radius: 1rem;
+      padding: 1.5rem;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      transition: all 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+
+    .company-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+      border-color: #6366f1;
+    }
+
+    .company-header {
+      margin-bottom: 1rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .company-name {
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: #ffffff;
+      margin: 0;
+    }
+
+    .company-info {
+      flex: 1;
+      margin-bottom: 1rem;
+    }
+
+    .company-info p {
+      margin: 0.5rem 0;
+      color: #d1d5db;
+      font-size: 0.9rem;
+    }
+
+    .company-info strong {
+      color: #ffffff;
+      font-weight: 600;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      border-radius: 50px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .status-active {
+      background: rgba(16, 185, 129, 0.2);
+      color: #10b981;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .status-pending {
+      background: rgba(245, 158, 11, 0.2);
+      color: #f59e0b;
+      border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+
+    .status-deactivated {
+      background: rgba(239, 68, 68, 0.2);
+      color: #ef4444;
+      border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+
+    .company-actions {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      margin-top: auto;
+      padding-top: 1rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .action-button {
+      flex: 1;
+      min-width: 100px;
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 0.5rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+      color: white;
+      box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+    }
+
+    .btn-primary:hover {
+      background: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+    }
+
+    .btn-success {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      color: white;
+      box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+    }
+
+    .btn-success:hover {
+      background: linear-gradient(135deg, #059669 0%, #047857 100%);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+    }
+
+    .btn-danger {
+      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+      color: white;
+      box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+    }
+
+    .btn-danger:hover {
+      background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
+    }
+
+    .btn-secondary {
+      background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+      color: white;
+      box-shadow: 0 4px 15px rgba(107, 114, 128, 0.3);
+    }
+
+    .btn-secondary:hover {
+      background: linear-gradient(135deg, #4b5563 0%, #374151 100%);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(107, 114, 128, 0.4);
+    }
+
+    /* Tablet styles */
+    @media (min-width: 768px) {
+      .admin-container {
+        padding: 2rem;
       }
-      .filters-container {
-        flex-direction: column;
-      }
-      .filters-container > .form-input {
-        width: 100%;
-      }
-      .company-table thead {
-        display: none; /* Nasconde l'header della tabella su mobile */
-      }
-      .company-table .desktop-row {
-        display: none; /* Nasconde la riga desktop su mobile */
-      }
-      .company-table .mobile-card-row {
-        display: block; /* Mostra la riga-card su mobile */
-        margin-bottom: 1rem;
-        border: 1px solid #3e3e3e;
-        border-radius: 8px;
-        background-color: #2c2c2c;
-      }
-      .company-table .mobile-card-row td {
-        display: block;
-        width: 100%;
-        padding: 1rem;
-      }
-      .mobile-card-header {
-        display: flex;
+      
+      .admin-header {
+        flex-direction: row;
         justify-content: space-between;
         align-items: center;
-        border-bottom: 1px solid #444;
-        padding-bottom: 0.75rem;
-        margin-bottom: 0.75rem;
+        padding: 2rem;
       }
-      .mobile-card-header h4 {
-        margin: 0;
-        font-size: 1.1rem;
+      
+      .admin-title {
+        text-align: left;
+        font-size: 1.75rem;
       }
-      .mobile-card-body p {
-        margin: 0.5rem 0;
-        display: flex;
-        justify-content: space-between;
+      
+      .companies-grid {
+        grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+        gap: 2rem;
       }
-      .mobile-card-body p strong {
-        color: #aaa;
-        margin-right: 1rem;
+    }
+
+    /* Desktop styles */
+    @media (min-width: 1024px) {
+      .admin-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem;
       }
-      .mobile-card-footer {
-        margin-top: 1rem;
-        padding-top: 1rem;
-        border-top: 1px solid #444;
-      }
-      .mobile-card-footer .web3-button {
-        width: 100%;
-      }
+    }
+
+    /* Animations */
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
     }
   `}</style>
 );
@@ -265,13 +451,87 @@ const CompanyList = () => {
     return (
         <div style={{ marginTop: '2rem' }}>
             <div className="filters-container">
-                <input type="text" placeholder="Cerca per nome azienda..." className="form-input" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
-                <select className="form-input" value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
-                    <option value="all">Tutti gli stati</option><option value="active">Attivate</option><option value="pending">In Pending</option><option value="deactivated">Disattivate</option>
-                </select>
+                <div className="filter-group">
+                    <label className="filter-label">Cerca Azienda</label>
+                    <input 
+                        type="text" 
+                        className="form-input" 
+                        placeholder="Nome azienda..." 
+                        value={searchTerm} 
+                        onChange={(e) => setSearchTerm(e.target.value)} 
+                    />
+                </div>
+                <div className="filter-group">
+                    <label className="filter-label">Stato</label>
+                    <select className="form-input" value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
+                        <option value="all">Tutti gli stati</option>
+                        <option value="active">Attivate</option>
+                        <option value="pending">In Pending</option>
+                        <option value="deactivated">Disattivate</option>
+                    </select>
+                </div>
             </div>
-            {error && <p style={{ color: '#ef4444' }}>{error}</p>}
-            <table className="company-table">
+            
+            {error && <p style={{ color: '#ef4444', textAlign: 'center', marginBottom: '1rem' }}>{error}</p>}
+            
+            {isLoading ? (
+                <div style={{ textAlign: 'center', padding: '3rem', color: '#d1d5db' }}>
+                    <div style={{ 
+                        width: '40px', 
+                        height: '40px', 
+                        border: '4px solid #333', 
+                        borderTop: '4px solid #6366f1', 
+                        borderRadius: '50%', 
+                        animation: 'spin 1s linear infinite', 
+                        margin: '0 auto 1rem' 
+                    }}></div>
+                    <p>Caricamento aziende...</p>
+                </div>
+            ) : filteredCompanies.length > 0 ? (
+                <div className="companies-grid">
+                    {filteredCompanies.map(company => (
+                        <div key={company.id} className="company-card">
+                            <div className="company-header">
+                                <h3 className="company-name">{company.companyName}</h3>
+                                <span className={`status-badge status-${company.status}`}>
+                                    {company.status === 'active' ? 'Attiva' : 
+                                     company.status === 'pending' ? 'In Attesa' : 'Disattivata'}
+                                </span>
+                            </div>
+                            
+                            <div className="company-info">
+                                <p><strong>📧 Email:</strong> {company.contactEmail || "Non fornita"}</p>
+                                <p><strong>👛 Wallet:</strong> {company.walletAddress.substring(0, 6)}...{company.walletAddress.substring(38)}</p>
+                                <p><strong>💰 Crediti:</strong> {company.credits || 0}</p>
+                            </div>
+                            
+                            <div className="company-actions">
+                                <button 
+                                    onClick={() => setSelectedCompany(company)} 
+                                    className="action-button btn-primary"
+                                >
+                                    Gestisci
+                                </button>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            ) : (
+                <div style={{ 
+                    textAlign: 'center', 
+                    padding: '3rem', 
+                    color: '#d1d5db',
+                    background: 'rgba(26, 26, 26, 0.6)',
+                    borderRadius: '1rem',
+                    border: '1px solid rgba(255, 255, 255, 0.1)'
+                }}>
+                    <p style={{ fontSize: '1.1rem', marginBottom: '0.5rem' }}>Nessuna azienda trovata</p>
+                    <p style={{ fontSize: '0.9rem', opacity: 0.7 }}>Prova a modificare i filtri di ricerca</p>
+                </div>
+            )}
+            
+            {selectedCompany && <EditCompanyModal company={selectedCompany} onClose={() => setSelectedCompany(null)} onUpdate={fetchCompanies} />}
+        </div>
                 <thead>
                     <tr className="desktop-row">
                         <th>Stato</th><th>Nome Azienda</th><th>Wallet</th><th>Email</th><th>Azione</th>
@@ -363,15 +623,17 @@ export default function AdminPage() {
   }, [account, navigate]);
 
   return (
-    <div className="app-container">
-      <AdminPageStyles /> {/* Includi gli stili qui */}
-      <main className="main-content" style={{width: '100%'}}>
-        <header className="header" style={{ justifyContent: 'space-between', alignItems: 'center' }}>
-          <h1 className="page-title">Pannello Amministrazione</h1>
+    <>
+      <AdminPageStyles />
+      <div className="admin-container">
+        <header className="admin-header">
+          <h1 className="admin-title">Sistema di Gestione Aziendale</h1>
           <ConnectButton client={client} wallets={wallets} chain={polygon} />
         </header>
-        <AdminContent />
-      </main>
-    </div>
+        <main className="admin-content">
+          <AdminContent />
+        </main>
+      </div>
+    </>
   );
 }

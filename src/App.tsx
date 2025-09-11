@@ -21,7 +21,7 @@ function App() {
       <Route path="/" element={<HomePage />} />
 
       {/* Rotte specifiche per le altre sezioni */}
-      <Route path="/admin" element={<AdminPage />} />
+      <Route path="/sys-mgmt-panel" element={<AdminPage />} />
       <Route path="/azienda" element={<AziendaPage />} />
       <Route path="/form" element={<FormPage />} />
 
