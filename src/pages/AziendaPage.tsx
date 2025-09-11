@@ -2672,6 +2672,10 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
 
     try {
 
+      console.log('Iniziando export per batch:', batch.batchId, 'tipo:', exportType);
+
+      
+
       const response = await fetch('/api/export-batch', {
 
         method: 'POST',
@@ -2692,9 +2696,51 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
 
 
 
+      console.log('Response status:', response.status, 'ok:', response.ok);
+
+      
+
       if (response.ok) {
 
+        const contentType = response.headers.get('content-type');
+
+        console.log('Content-Type:', contentType);
+
+        
+
+        // Verifica che sia effettivamente un PDF
+
+        if (exportType === 'pdf' && !contentType?.includes('pdf')) {
+
+          console.warn('Content-Type non è PDF:', contentType);
+
+        }
+
+        
+
         const blob = await response.blob();
+
+        console.log('Blob size:', blob.size, 'type:', blob.type);
+
+        
+
+        if (blob.size === 0) {
+
+          throw new Error('File generato vuoto');
+
+        }
+
+        
+
+        // Verifica che il blob abbia il tipo corretto
+
+        if (exportType === 'pdf' && !blob.type.includes('pdf')) {
+
+          console.warn('Blob type non è PDF:', blob.type);
+
+        }
+
+        
 
         const url = window.URL.createObjectURL(blob);
 
@@ -2722,11 +2768,27 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
 
         }
 
+      } else {
+
+        // Gestisci errore response
+
+        const errorText = await response.text();
+
+        console.error('Errore response:', response.status, errorText);
+
+        throw new Error(`Errore server: ${response.status} - ${errorText}`);
+
       }
 
     } catch (error) {
 
       console.error('Errore durante l\'esportazione:', error);
+
+      
+
+      // Mostra errore all'utente
+
+      alert(`Errore durante l'esportazione: ${error instanceof Error ? error.message : 'Errore sconosciuto'}`);
 
     }
 
