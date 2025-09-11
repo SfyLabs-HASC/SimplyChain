@@ -3009,253 +3009,127 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
 
 
       {isLoadingBatches && !showFullPageLoading ? (
-
-        <div className="bg-card p-6 rounded-xl border border-border text-muted-foreground text-center"><p>Caricamento delle tue iscrizioni...</p></div>
-
-      ) : errorBatches ? (
-
         <div className="bg-card p-6 rounded-xl border border-border text-muted-foreground text-center">
-
-          <p style={{ color: 'red' }}>{errorBatches}</p>
-
-          <button
-
-            onClick={() => window.location.reload()}
-
-            className="primary-gradient text-white px-4 py-2 rounded-2xl font-semibold hover:scale-105 transition"
-
-            style={{ marginTop: '10px' }}
-
-          >
-
-            REFRESHA
-
-          </button>
-
+          <p>Caricamento delle tue iscrizioni...</p>
         </div>
-
+      ) : errorBatches ? (
+        <div className="bg-card p-6 rounded-xl border border-border text-muted-foreground text-center">
+          <p style={{ color: 'red' }}>{errorBatches}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="primary-gradient text-white px-4 py-2 rounded-2xl font-semibold hover:scale-105 transition"
+            style={{ marginTop: '10px' }}
+          >
+            REFRESHA
+          </button>
+        </div>
       ) : (
-
-        <>
-
+        <div>
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-
             {currentItems.length > 0 ? (
-
               currentItems.map((batch) => (
-
                 <div key={batch.batchId} className="batch-card glass-card rounded-2xl p-6 tech-shadow hover:shadow-lg transition">
-
                   <div className="card-content">
-
                     <h3 className="batch-title">
-
                       <span className="batch-number">#{getBatchDisplayNumber(batch.batchId)}</span> - {batch.name}
-
                     </h3>
-
                     <p><strong className="label-violet">Descrizione:</strong> {batch.description ? truncateText(batch.description, window.innerWidth < 768 ? 80 : 100) : "N/D"}</p>
-
                     <p><strong className="label-violet">Data:</strong> {formatItalianDate(batch.date)}</p>
-
                     <p><strong className="label-violet">Luogo:</strong> {batch.location || "N/D"}</p>
-
                     <p>
-
                       <strong>Stato:</strong> <span className={batch.isClosed ? 'text-red-500 font-semibold' : 'text-green-500 font-semibold'}>
-
                         {batch.isClosed ? ' Chiuso' : ' Aperto'}
-
                       </span>
-
                     </p>
-
                     <p><strong className="label-violet">Tx Hash:</strong>
-
                       <a
-
                         href={`https://polygonscan.com/inputdatadecoder?tx=${batch.transactionHash}`}
-
                         target="_blank"
-
                         rel="noopener noreferrer"
-
                         className="link-underline-hover"
-
                       >
-
                         {truncateText(batch.transactionHash, 15)}
-
                       </a>
-
                     </p>
-
-
-
                     {batch.imageIpfsHash && batch.imageIpfsHash !== "N/A" && (
-
                       <p>
-
                         <a
-
                           href="#"
-
                           onClick={(e) => {
-
                             e.preventDefault();
-
                             setSelectedImage(`https://musical-emerald-partridge.myfilebase.com/ipfs/${batch.imageIpfsHash}`);
-
                           }}
-
                           className="link-underline-hover"
-
                         >
-
                           Apri L'immagine
-
                         </a>
-
                       </p>
-
                     )}
-
-                  
-
-                  <div className="card-buttons">
-
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-
-                    <div className="text-sm text-muted-foreground">
-
-                      {batch.steps && batch.steps.length > 0 ? (
-
-                        <button
-
-                          className="accent-gradient text-white px-3 py-2 rounded-md hover:scale-105 transition"
-
-                          onClick={() => setSelectedBatchForSteps(batch)}
-
-                        >
-
-                          {batch.steps.length} steps
-
-                        </button>
-
-                      ) : (
-
-                        <button
-
-                          className="accent-gradient text-white px-3 py-2 rounded-md hover:scale-105 transition disabled"
-
-                          disabled={true}
-
-                        >
-
-                          0 steps
-
-                        </button>
-
-                      )}
-
-                    </div>
-
-
-
-                    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-
-                      {/* Pulsante Esporta - mostrato solo per batch chiusi */}
-
-                      {batch.isClosed && (
-
-                        <button
-
-                          className="primary-gradient text-white px-3 py-2 rounded-md hover:scale-105 transition"
-
-                          onClick={() => {
-
-                            setSelectedBatchForExport(batch);
-
-                            setShowExportModal(true);
-
-                          }}
-
-                        >
-
-                          Esporta
-
-                        </button>
-
-                      )}
-
-
-
-                      {/* Pulsanti Aggiungi Step e Finalizza per iscrizioni aperte, lucchetto per quelle chiuse */}
-
-                      {!batch.isClosed ? (
-
-                        <>
-
-                          <button
-
-                            className="bg-emerald-500 text-white px-3 py-2 rounded-md hover:scale-105 transition"
-
-                            onClick={() => setSelectedBatchForStep(batch)}
-
-                          >
-
-                            Aggiungi Step
-
-                          </button>
-
-                          <button
-
-                            className="bg-amber-500 text-white px-3 py-2 rounded-md hover:scale-105 transition"
-
-                            onClick={() => setSelectedBatchForFinalize(batch)}
-
-                          >
-
-                            Finalizza
-
-                          </button>
-
-                        </>
-
-                      ) : (
-
-                        <span className="text-gray-400">🔒</span>
-
-                      )}
-
-                    </div>
-
-                    </div>
-
                   </div>
-
+                  <div className="card-buttons">
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div className="text-sm text-muted-foreground">
+                        {batch.steps && batch.steps.length > 0 ? (
+                          <button
+                            className="accent-gradient text-white px-3 py-2 rounded-md hover:scale-105 transition"
+                            onClick={() => setSelectedBatchForSteps(batch)}
+                          >
+                            {batch.steps.length} steps
+                          </button>
+                        ) : (
+                          <button
+                            className="accent-gradient text-white px-3 py-2 rounded-md hover:scale-105 transition disabled"
+                            disabled={true}
+                          >
+                            0 steps
+                          </button>
+                        )}
+                      </div>
+                      <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                        {batch.isClosed && (
+                          <button
+                            className="primary-gradient text-white px-3 py-2 rounded-md hover:scale-105 transition"
+                            onClick={() => {
+                              setSelectedBatchForExport(batch);
+                              setShowExportModal(true);
+                            }}
+                          >
+                            Esporta
+                          </button>
+                        )}
+                        {!batch.isClosed ? (
+                          <>
+                            <button
+                              className="bg-emerald-500 text-white px-3 py-2 rounded-md hover:scale-105 transition"
+                              onClick={() => setSelectedBatchForStep(batch)}
+                            >
+                              Aggiungi Step
+                            </button>
+                            <button
+                              className="bg-amber-500 text-white px-3 py-2 rounded-md hover:scale-105 transition"
+                              onClick={() => setSelectedBatchForFinalize(batch)}
+                            >
+                              Finalizza
+                            </button>
+                          </>
+                        ) : (
+                          <span className="text-gray-400">🔒</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
                 </div>
-
               ))
-
             ) : (
-
               <div className="bg-card p-8 rounded-xl border border-border text-center text-muted-foreground">
-
                 <p>Non hai ancora inizializzato nessuna iscrizione con questo account.</p>
-
                 <p style={{ fontSize: '0.8rem', marginTop: '0.5rem', opacity: 0.7 }}>
-
                   Clicca su "Inizializza Nuova Iscrizione" per iniziare
-
                 </p>
-
               </div>
-
+            )}
           </div>
-
-        </>
-
+        </div>
       )}
 
 
