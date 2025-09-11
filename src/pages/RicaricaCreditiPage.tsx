@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { ConnectButton, useActiveAccount } from "thirdweb/react";
+import { useNavigate } from "react-router-dom";
 import { createThirdwebClient } from "thirdweb";
 import { polygon } from "thirdweb/chains";
 import { inAppWallet } from "thirdweb/wallets";
@@ -266,6 +267,7 @@ const StripeCheckoutForm: React.FC = () => {
 // --- Componente Principale Pagina ---
 const RicaricaCreditiPage: React.FC = () => {
   const account = useActiveAccount();
+  const navigate = useNavigate();
   
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -275,6 +277,14 @@ const RicaricaCreditiPage: React.FC = () => {
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [isEditingBilling, setIsEditingBilling] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+
+  // Effect per gestire il disconnect e reindirizzare alla homepage
+  useEffect(() => {
+    if (!account) {
+      navigate('/');
+      return;
+    }
+  }, [account, navigate]);
 
   useEffect(() => {
     if (!account) {

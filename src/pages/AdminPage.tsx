@@ -351,6 +351,17 @@ const AdminContent = () => {
 
 
 export default function AdminPage() {
+  const account = useActiveAccount();
+  const navigate = useNavigate();
+
+  // Effect per gestire il disconnect e reindirizzare alla homepage
+  useEffect(() => {
+    if (!account) {
+      navigate('/');
+      return;
+    }
+  }, [account, navigate]);
+
   return (
     <div className="app-container">
       <AdminPageStyles /> {/* Includi gli stili qui */}

@@ -2744,7 +2744,7 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
 
           >
 
-            I
+            i
 
           </button>
 

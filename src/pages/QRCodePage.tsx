@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Network } from 'lucide-react';
-import { ConnectButton } from "thirdweb/react";
+import { ConnectButton, useActiveAccount } from "thirdweb/react";
 import { createThirdwebClient } from "thirdweb";
 import { polygon } from "thirdweb/chains";
 import { inAppWallet } from "thirdweb/wallets";
@@ -138,6 +138,16 @@ export default function App() {
   const [size, setSize] = useState(500); // Dimensione predefinita del QR code
   const [error, setError] = useState(''); // Per gestire i messaggi di errore
   const [isModalOpen, setIsModalOpen] = useState(false); // Stato per il modale
+  const account = useActiveAccount();
+  const navigate = useNavigate();
+
+  // Effect per gestire il disconnect e reindirizzare alla homepage
+  useEffect(() => {
+    if (!account) {
+      navigate('/');
+      return;
+    }
+  }, [account, navigate]);
 
   const resolutions = [
     { label: 'Bassa', value: 250 },

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ConnectButton, useActiveAccount, useReadContract, useSendTransaction } from 'thirdweb/react';
 import { createThirdwebClient, getContract, prepareContractCall, readContract } from 'thirdweb';
 import { polygon } from 'thirdweb/chains';
@@ -227,7 +227,16 @@ const BatchSummaryCard = ({ batchInfo, eventCount, onAddEventoClick, onFinalize 
 export default function GestisciPage() {
     const { batchId } = useParams<{ batchId: string }>();
     const account = useActiveAccount();
+    const navigate = useNavigate();
     const { mutate: sendTransaction, isPending: isFinalizing } = useSendTransaction();
+
+    // Effect per gestire il disconnect e reindirizzare alla homepage
+    useEffect(() => {
+        if (!account) {
+            navigate('/');
+            return;
+        }
+    }, [account, navigate]);
 
     const [batchInfo, setBatchInfo] = useState<any>(null);
     const [eventi, setEventi] = useState<any[]>([]);
