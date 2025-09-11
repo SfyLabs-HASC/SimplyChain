@@ -217,7 +217,7 @@ export default async function handler(
   } catch (error: any) {
     console.error('ERRORE SERVER durante l\'esecuzione della funzione API:', error);
     return res.status(500).json({ 
-      error: 'Errore interno del server.',
+      error: 'Ops Sembra esserci qualche problema!\nRifresha o riprova tra poco, alcune volte c\'è bisogno di tempo affinchè i dati siano correttamente sincronizzati.',
       details: error?.message || String(error)
     });
   }

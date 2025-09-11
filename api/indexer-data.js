@@ -82,7 +82,7 @@ export default async function handler(req, res) {
   } catch (error) {
     console.error('Errore in indexer-data:', error);
     return res.status(500).json({ 
-      error: 'Errore interno del server',
+      error: 'Ops Sembra esserci qualche problema!\nRifresha o riprova tra poco, alcune volte c\'è bisogno di tempo affinchè i dati siano correttamente sincronizzati.',
       details: error.message 
     });
   }
