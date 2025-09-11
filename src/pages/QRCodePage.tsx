@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
+import { ArrowLeft, Network } from 'lucide-react';
 
 // Icona per il download (SVG inlined)
 const DownloadIcon = () => (
@@ -18,30 +20,81 @@ const InfoModal = ({ isOpen, onClose }) => {
   return (
     // Sfondo semi-trasparente
     <div 
-      className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4 animate-fade-in-fast"
+      style={{ 
+        position: 'fixed', 
+        top: 0, 
+        left: 0, 
+        right: 0, 
+        bottom: 0, 
+        background: 'rgba(0, 0, 0, 0.75)', 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'center', 
+        zIndex: 1000, 
+        padding: '1rem' 
+      }}
       onClick={onClose} // Chiude il modale cliccando sullo sfondo
     >
       {/* Contenitore del modale */}
       <div 
-        className="bg-gray-800/80 border border-gray-700 backdrop-blur-lg rounded-2xl p-6 sm:p-8 max-w-2xl w-full text-left relative transform animate-slide-up"
+        style={{ 
+          background: 'rgba(26, 26, 26, 0.95)', 
+          border: '1px solid rgba(255, 255, 255, 0.1)', 
+          backdropFilter: 'blur(20px)', 
+          borderRadius: '1.5rem', 
+          padding: '2rem', 
+          maxWidth: '600px', 
+          width: '100%', 
+          textAlign: 'left', 
+          position: 'relative',
+          boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.4)'
+        }}
         onClick={(e) => e.stopPropagation()} // Evita la chiusura cliccando sul contenuto
       >
-        <h2 className="text-2xl font-bold text-white mb-4">Come funziona? Il controllo è tuo.</h2>
-        <p className="text-gray-300 mb-4">
+        <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#ffffff', marginBottom: '1rem' }}>Come funziona? Il controllo è tuo.</h2>
+        <p style={{ color: '#d1d5db', marginBottom: '1rem' }}>
           Il QR Code che generi punterà alla <strong>pagina web di tracciabilità (il file .html) che hai appena creato</strong>. Per renderla accessibile a tutti, devi prima caricarla sul tuo spazio web personale (sito aziendale, server privato, hosting, ecc.).
         </p>
-        <ol className="list-decimal list-inside space-y-2 text-gray-300">
-          <li>La <strong>pagina di tracciabilità (.html)</strong> è stata appena generata e scaricata sul tuo computer.</li>
-          <li><strong>Carica questo file HTML</strong> sul tuo server o hosting (es. via FTP o dal pannello di controllo).</li>
-          <li><strong>Copia l'URL pubblico</strong> del file HTML una volta caricato (es. `https://www.mia-azienda.it/tracciabilita/prodotto-123.html`).</li>
-          <li><strong>Incolla l'URL</strong> nel campo qui sotto per generare il QR Code corrispondente.</li>
+        <ol style={{ listStyleType: 'decimal', paddingLeft: '1.5rem', color: '#d1d5db', marginBottom: '1.5rem' }}>
+          <li style={{ marginBottom: '0.5rem' }}>La <strong>pagina di tracciabilità (.html)</strong> è stata appena generata e scaricata sul tuo computer.</li>
+          <li style={{ marginBottom: '0.5rem' }}><strong>Carica questo file HTML</strong> sul tuo server o hosting (es. via FTP o dal pannello di controllo).</li>
+          <li style={{ marginBottom: '0.5rem' }}><strong>Copia l'URL pubblico</strong> del file HTML una volta caricato (es. `https://www.mia-azienda.it/tracciabilita/prodotto-123.html`).</li>
+          <li style={{ marginBottom: '0.5rem' }}><strong>Incolla l'URL</strong> nel campo qui sotto per generare il QR Code corrispondente.</li>
         </ol>
-        <p className="mt-6 text-sm text-blue-400 bg-blue-900/30 p-3 rounded-lg border border-blue-500/30">
+        <p style={{ 
+          marginTop: '1.5rem', 
+          fontSize: '0.9rem', 
+          color: '#60a5fa', 
+          background: 'rgba(59, 130, 246, 0.1)', 
+          padding: '0.75rem', 
+          borderRadius: '0.75rem', 
+          border: '1px solid rgba(59, 130, 246, 0.3)' 
+        }}>
           <strong>Vantaggio:</strong> In questo modo, sei tu il proprietario del link. Puoi aggiornare il file di destinazione in qualsiasi momento senza dover cambiare il QR Code già stampato.
         </p>
         <button
           onClick={onClose}
-          className="mt-6 w-full sm:w-auto float-right bg-blue-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-blue-700 transition-colors duration-300"
+          style={{ 
+            marginTop: '1.5rem', 
+            float: 'right', 
+            background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)', 
+            color: 'white', 
+            fontWeight: '600', 
+            padding: '0.75rem 1.5rem', 
+            borderRadius: '0.75rem', 
+            border: 'none', 
+            cursor: 'pointer',
+            transition: 'all 0.3s ease',
+            boxShadow: '0 4px 15px rgba(99, 102, 241, 0.3)'
+          }}
+          onMouseOver={(e) => {
+            e.target.style.background = 'linear-gradient(135deg, #4f46e5 0%, #3730a3 100%)';
+            e.target.style.transform = 'translateY(-1px)';
+          }}
+          onMouseOut={(e) => {
+            e.target.style.background = 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)';
+            e.target.style.transform = 'none';
+          }}
         >
           Chiudi
         </button>
@@ -146,116 +199,353 @@ export default function App() {
   };
 
   return (
-    <div className="bg-gray-900 min-h-screen font-sans text-white p-4 sm:p-6 lg:p-8 flex flex-col items-center">
-      <div className="w-full max-w-5xl">
-        
-        {/* --- INTESTAZIONE --- */}
-        <header className="text-center mb-10">
-          <h1 className="text-4xl sm:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500 mb-3">
-            Generatore QR Code per Tracciabilità
-          </h1>
-          <p className="text-gray-400 max-w-3xl mx-auto text-sm sm:text-base">
-            Crea un QR Code da applicare ai tuoi prodotti per fornire informazioni di tracciabilità in modo semplice e diretto.
-          </p>
-        </header>
-
-        {/* --- TRIGGER PER IL MODALE ESPLICATIVO --- */}
-        <div className="text-center mb-10">
-            <button
-                onClick={() => setIsModalOpen(true)}
-                className="text-lg font-semibold text-blue-400 hover:text-blue-300 transition-colors duration-200 underline decoration-dotted underline-offset-4"
-            >
-                Come funziona? Il controllo è tuo.
-            </button>
+    <div className="min-h-screen" style={{ background: 'linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 100%)' }}>
+      <style>{`
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+        @keyframes fadeIn {
+          0% { opacity: 0; transform: translateY(10px); }
+          100% { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
+      {/* Header */}
+      <header style={{ 
+        background: 'rgba(26, 26, 26, 0.9)', 
+        backdropFilter: 'blur(20px)', 
+        borderBottom: '1px solid rgba(255, 255, 255, 0.1)', 
+        padding: '1rem 0' 
+      }}>
+        <div style={{ 
+          maxWidth: '1200px', 
+          margin: '0 auto', 
+          padding: '0 2rem', 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center', 
+          flexWrap: 'wrap', 
+          gap: '1rem' 
+        }}>
+          <Link to="/azienda" style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '0.75rem', 
+            textDecoration: 'none', 
+            color: 'inherit' 
+          }}>
+            <span style={{ 
+              fontSize: '1.5rem', 
+              fontWeight: 'bold', 
+              background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)', 
+              WebkitBackgroundClip: 'text', 
+              backgroundClip: 'text', 
+              WebkitTextFillColor: 'transparent' 
+            }}>
+              EasyChain
+            </span>
+          </Link>
+          <Link to="/azienda" style={{ 
+            display: 'inline-flex', 
+            alignItems: 'center', 
+            gap: '0.5rem', 
+            color: '#9ca3af', 
+            textDecoration: 'none', 
+            fontSize: '0.9rem', 
+            transition: 'all 0.3s ease' 
+          }}>
+            <ArrowLeft size={16} />
+            Torna all'Area Privata
+          </Link>
         </div>
+      </header>
 
-        <main className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-start">
+      <div className="p-4 sm:p-6 lg:p-8 flex flex-col items-center">
+        <div className="w-full max-w-5xl">
           
-          {/* --- PANNELLO DI CONTROLLO (SINISTRA) --- */}
-          <div className="bg-gray-800/50 p-6 rounded-2xl border border-gray-700 backdrop-blur-sm">
-            
-            {/* Input URL */}
-            <div className="mb-6">
-              <label htmlFor="url-input" className="block text-sm font-medium text-gray-300 mb-2">
-                URL pubblico della tua pagina HTML di tracciabilità
-              </label>
-              <input
-                id="url-input"
-                type="url"
-                value={url}
-                onChange={(e) => setUrl(e.target.value)}
-                className="w-full bg-gray-900 border border-gray-600 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow duration-200"
-                placeholder="https://il-tuo-sito.com/prodotto.html"
-              />
-            </div>
+          {/* --- INTESTAZIONE --- */}
+          <header className="text-center mb-10" style={{ marginTop: '3rem' }}>
+            <h1 style={{ 
+              fontSize: 'clamp(2rem, 5vw, 3rem)', 
+              fontWeight: 'bold', 
+              background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)', 
+              WebkitBackgroundClip: 'text', 
+              backgroundClip: 'text', 
+              WebkitTextFillColor: 'transparent', 
+              marginBottom: '1rem' 
+            }}>
+              Generatore QR Code per Tracciabilità
+            </h1>
+            <p style={{ color: '#9ca3af', maxWidth: '600px', margin: '0 auto', fontSize: '1.1rem', lineHeight: '1.6' }}>
+              Crea un QR Code da applicare ai tuoi prodotti per fornire informazioni di tracciabilità in modo semplice e diretto.
+            </p>
+          </header>
 
-            {/* Selettore Risoluzione */}
-            <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-300 mb-2">
-                Risoluzione (PNG)
-              </label>
-              <div className="grid grid-cols-3 gap-2 bg-gray-900 p-1 rounded-lg border border-gray-600">
-                {resolutions.map((res) => (
-                  <button
-                    key={res.value}
-                    onClick={() => setSize(res.value)}
-                    className={`w-full py-2 text-sm font-semibold rounded-md transition-colors duration-200 ${
-                      size === res.value
-                        ? 'bg-blue-600 text-white shadow-md'
-                        : 'bg-transparent text-gray-400 hover:bg-gray-700'
-                    }`}
-                  >
-                    {res.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Pulsante Genera */}
-            <button 
-              onClick={generateQRCode} 
-              className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white font-bold py-3 px-4 rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed disabled:scale-100"
-              disabled={isGenerating}
-            >
-              {isGenerating ? 'Generazione in corso...' : 'Genera QR Code'}
-            </button>
-
-            {/* Messaggio di Errore */}
-            {error && (
-              <p className="text-red-400 text-sm mt-4 text-center bg-red-900/50 p-2 rounded-lg border border-red-500/50">
-                {error}
-              </p>
-            )}
+          {/* --- TRIGGER PER IL MODALE ESPLICATIVO --- */}
+          <div className="text-center mb-10">
+              <button
+                  onClick={() => setIsModalOpen(true)}
+                  style={{ 
+                    fontSize: '1.1rem', 
+                    fontWeight: '600', 
+                    color: '#6366f1', 
+                    background: 'none', 
+                    border: 'none', 
+                    cursor: 'pointer', 
+                    textDecoration: 'underline', 
+                    textDecorationStyle: 'dotted', 
+                    textUnderlineOffset: '4px',
+                    transition: 'color 0.2s ease'
+                  }}
+                  onMouseOver={(e) => e.target.style.color = '#4f46e5'}
+                  onMouseOut={(e) => e.target.style.color = '#6366f1'}
+              >
+                  Come funziona? Il controllo è tuo.
+              </button>
           </div>
 
-          {/* --- AREA RISULTATO (DESTRA)- --- */}
-          <div className="bg-gray-800/50 p-6 rounded-2xl border border-gray-700 flex flex-col items-center justify-center min-h-[300px] transition-all duration-300">
-            {isGenerating ? (
-              <div className="flex flex-col items-center text-gray-400">
-                <svg className="animate-spin h-8 w-8 text-white mb-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                <span>Generazione...</span>
+          <main className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-start">
+            
+            {/* --- PANNELLO DI CONTROLLO (SINISTRA) --- */}
+            <div style={{ 
+              background: 'rgba(26, 26, 26, 0.8)', 
+              backdropFilter: 'blur(20px)', 
+              border: '1px solid rgba(255, 255, 255, 0.1)', 
+              borderRadius: '1.5rem', 
+              padding: '2rem', 
+              boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)' 
+            }}>
+            
+              {/* Input URL */}
+              <div style={{ marginBottom: '1.5rem' }}>
+                <label htmlFor="url-input" style={{ 
+                  display: 'block', 
+                  fontSize: '0.9rem', 
+                  fontWeight: '500', 
+                  color: '#e5e7eb', 
+                  marginBottom: '0.5rem' 
+                }}>
+                  URL pubblico della tua pagina HTML di tracciabilità
+                </label>
+                <input
+                  id="url-input"
+                  type="url"
+                  value={url}
+                  onChange={(e) => setUrl(e.target.value)}
+                  style={{ 
+                    width: '100%', 
+                    background: 'rgba(0, 0, 0, 0.3)', 
+                    border: '1px solid rgba(255, 255, 255, 0.2)', 
+                    borderRadius: '0.75rem', 
+                    padding: '0.75rem 1rem', 
+                    color: '#ffffff', 
+                    fontSize: '1rem',
+                    transition: 'all 0.3s ease'
+                  }}
+                  placeholder="https://il-tuo-sito.com/prodotto.html"
+                  onFocus={(e) => {
+                    e.target.style.borderColor = '#6366f1';
+                    e.target.style.boxShadow = '0 0 0 3px rgba(99, 102, 241, 0.1)';
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+                    e.target.style.boxShadow = 'none';
+                  }}
+                />
               </div>
-            ) : qrCode ? (
-              <div className="flex flex-col items-center w-full animate-fade-in">
-                <div className="bg-white p-3 rounded-lg shadow-lg mb-6">
-                  <img src={qrCode} alt="QR Code Generato" className="max-w-full h-auto" />
+
+              {/* Selettore Risoluzione */}
+              <div style={{ marginBottom: '1.5rem' }}>
+                <label style={{ 
+                  display: 'block', 
+                  fontSize: '0.9rem', 
+                  fontWeight: '500', 
+                  color: '#e5e7eb', 
+                  marginBottom: '0.5rem' 
+                }}>
+                  Risoluzione (PNG)
+                </label>
+                <div style={{ 
+                  display: 'grid', 
+                  gridTemplateColumns: 'repeat(3, 1fr)', 
+                  gap: '0.5rem', 
+                  background: 'rgba(0, 0, 0, 0.3)', 
+                  padding: '0.25rem', 
+                  borderRadius: '0.75rem', 
+                  border: '1px solid rgba(255, 255, 255, 0.2)' 
+                }}>
+                  {resolutions.map((res) => (
+                    <button
+                      key={res.value}
+                      onClick={() => setSize(res.value)}
+                      style={{ 
+                        width: '100%', 
+                        padding: '0.5rem', 
+                        fontSize: '0.9rem', 
+                        fontWeight: '600', 
+                        borderRadius: '0.5rem', 
+                        border: 'none', 
+                        cursor: 'pointer',
+                        transition: 'all 0.2s ease',
+                        background: size === res.value ? 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)' : 'transparent',
+                        color: size === res.value ? 'white' : '#9ca3af',
+                        boxShadow: size === res.value ? '0 4px 15px rgba(99, 102, 241, 0.3)' : 'none'
+                      }}
+                      onMouseOver={(e) => {
+                        if (size !== res.value) {
+                          e.target.style.background = 'rgba(255, 255, 255, 0.1)';
+                        }
+                      }}
+                      onMouseOut={(e) => {
+                        if (size !== res.value) {
+                          e.target.style.background = 'transparent';
+                        }
+                      }}
+                    >
+                      {res.label}
+                    </button>
+                  ))}
                 </div>
-                <button 
-                  onClick={downloadQRCode} 
-                  className="w-full max-w-xs bg-green-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-green-700 transition-colors duration-300 flex items-center justify-center gap-2"
-                >
-                  <DownloadIcon />
-                  Scarica PNG
-                </button>
               </div>
-            ) : (
-              <div className="text-center text-gray-500">
-                <p>Il tuo QR code apparirà qui.</p>
-              </div>
-            )}
+
+              {/* Pulsante Genera */}
+              <button 
+                onClick={generateQRCode} 
+                style={{ 
+                  width: '100%', 
+                  background: isGenerating ? 'linear-gradient(135deg, #6b7280 0%, #4b5563 100%)' : 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)', 
+                  color: 'white', 
+                  fontWeight: '600', 
+                  padding: '1rem 1.5rem', 
+                  borderRadius: '0.75rem', 
+                  border: 'none', 
+                  cursor: isGenerating ? 'not-allowed' : 'pointer',
+                  transition: 'all 0.3s ease',
+                  fontSize: '1rem',
+                  boxShadow: '0 4px 15px rgba(99, 102, 241, 0.3)',
+                  opacity: isGenerating ? 0.6 : 1
+                }}
+                disabled={isGenerating}
+                onMouseOver={(e) => {
+                  if (!isGenerating) {
+                    e.target.style.background = 'linear-gradient(135deg, #4f46e5 0%, #3730a3 100%)';
+                    e.target.style.transform = 'translateY(-2px)';
+                    e.target.style.boxShadow = '0 6px 20px rgba(99, 102, 241, 0.4)';
+                  }
+                }}
+                onMouseOut={(e) => {
+                  if (!isGenerating) {
+                    e.target.style.background = 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)';
+                    e.target.style.transform = 'none';
+                    e.target.style.boxShadow = '0 4px 15px rgba(99, 102, 241, 0.3)';
+                  }
+                }}
+              >
+                {isGenerating ? 'Generazione in corso...' : 'Genera QR Code'}
+              </button>
+
+              {/* Messaggio di Errore */}
+              {error && (
+                <p style={{ 
+                  color: '#ef4444', 
+                  fontSize: '0.9rem', 
+                  marginTop: '1rem', 
+                  textAlign: 'center', 
+                  background: 'rgba(239, 68, 68, 0.1)', 
+                  padding: '0.75rem', 
+                  borderRadius: '0.75rem', 
+                  border: '1px solid rgba(239, 68, 68, 0.3)' 
+                }}>
+                  {error}
+                </p>
+              )}
+            </div>
+
+            {/* --- AREA RISULTATO (DESTRA)- --- */}
+            <div style={{ 
+              background: 'rgba(26, 26, 26, 0.8)', 
+              backdropFilter: 'blur(20px)', 
+              border: '1px solid rgba(255, 255, 255, 0.1)', 
+              borderRadius: '1.5rem', 
+              padding: '2rem', 
+              boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              minHeight: '300px',
+              transition: 'all 0.3s ease'
+            }}>
+              {isGenerating ? (
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', color: '#9ca3af' }}>
+                  <svg style={{ 
+                    animation: 'spin 1s linear infinite', 
+                    height: '2rem', 
+                    width: '2rem', 
+                    color: 'white', 
+                    marginBottom: '0.75rem' 
+                  }} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle style={{ opacity: 0.25 }} cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path style={{ opacity: 0.75 }} fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  <span>Generazione...</span>
+                </div>
+              ) : qrCode ? (
+                <div style={{ 
+                  display: 'flex', 
+                  flexDirection: 'column', 
+                  alignItems: 'center', 
+                  width: '100%',
+                  animation: 'fadeIn 0.3s ease-in'
+                }}>
+                  <div style={{ 
+                    background: 'white', 
+                    padding: '1rem', 
+                    borderRadius: '0.75rem', 
+                    boxShadow: '0 10px 25px rgba(0, 0, 0, 0.3)', 
+                    marginBottom: '1.5rem' 
+                  }}>
+                    <img src={qrCode} alt="QR Code Generato" style={{ maxWidth: '100%', height: 'auto' }} />
+                  </div>
+                  <button 
+                    onClick={downloadQRCode} 
+                    style={{ 
+                      width: '100%', 
+                      maxWidth: '300px', 
+                      background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', 
+                      color: 'white', 
+                      fontWeight: '600', 
+                      padding: '0.75rem 1rem', 
+                      borderRadius: '0.75rem', 
+                      border: 'none', 
+                      cursor: 'pointer',
+                      transition: 'all 0.3s ease',
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      justifyContent: 'center', 
+                      gap: '0.5rem',
+                      boxShadow: '0 4px 15px rgba(16, 185, 129, 0.3)'
+                    }}
+                    onMouseOver={(e) => {
+                      e.target.style.background = 'linear-gradient(135deg, #059669 0%, #047857 100%)';
+                      e.target.style.transform = 'translateY(-1px)';
+                      e.target.style.boxShadow = '0 6px 20px rgba(16, 185, 129, 0.4)';
+                    }}
+                    onMouseOut={(e) => {
+                      e.target.style.background = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
+                      e.target.style.transform = 'none';
+                      e.target.style.boxShadow = '0 4px 15px rgba(16, 185, 129, 0.3)';
+                    }}
+                  >
+                    <DownloadIcon />
+                    Scarica PNG
+                  </button>
+                </div>
+              ) : (
+                <div style={{ textAlign: 'center', color: '#6b7280' }}>
+                  <p>Il tuo QR code apparirà qui.</p>
+                </div>
+              )}
           </div>
         </main>
 

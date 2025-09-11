@@ -2154,7 +2154,32 @@ const ImageModal: React.FC<{ imageUrl: string; onClose: () => void }> = ({ image
 
 // Componente per il loading a pagina piena
 
-const FullPageLoading: React.FC<{ message: string }> = ({ message }) => {
+const FullPageLoading: React.FC<{ message?: string }> = ({ message }) => {
+  const [currentMessage, setCurrentMessage] = useState(0);
+  const [fade, setFade] = useState(true);
+
+  const loadingMessages = [
+    "Stiamo aggiornando i tuoi dati",
+    "Attendi qualche secondo",
+    "Le tue iscrizioni appariranno qui",
+    "Ci siamo quasi",
+    "Caricamento delle informazioni",
+    "Sincronizzazione con la blockchain"
+  ];
+
+  useEffect(() => {
+    if (!message) {
+      const interval = setInterval(() => {
+        setFade(false);
+        setTimeout(() => {
+          setCurrentMessage(prev => (prev + 1) % loadingMessages.length);
+          setFade(true);
+        }, 300);
+      }, 2000);
+
+      return () => clearInterval(interval);
+    }
+  }, [message]);
 
   return (
 
@@ -2162,7 +2187,14 @@ const FullPageLoading: React.FC<{ message: string }> = ({ message }) => {
 
       <div className="loading-spinner"></div>
 
-      <p>{message}</p>
+      <p style={{ 
+        opacity: fade ? 1 : 0.3, 
+        transition: 'opacity 0.3s ease',
+        fontSize: '1.1rem',
+        fontWeight: '500'
+      }}>
+        {message || loadingMessages[currentMessage]}
+      </p>
 
     </div>
 
@@ -2580,7 +2612,7 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
 
       {showFullPageLoading && (
 
-        <FullPageLoading message="Aggiornamento dati in corso..." />
+        <FullPageLoading />
 
       )}
 
@@ -5550,21 +5582,11 @@ const AziendaPage: React.FC = () => {
 
         <div style={{ textAlign: "center" }}>
 
-          <h1>Benvenuto</h1>
+          <h1>Accesso non autorizzato</h1>
 
-          <p>Connetti il tuo wallet per accedere.</p>
+          <p>Devi accedere dalla homepage per utilizzare questa sezione.</p>
 
-          <ConnectButton 
-
-            client={client} 
-
-            wallets={wallets}
-
-            chain={polygon}
-
-            accountAbstraction={{ chain: polygon, sponsorGas: true }}
-
-          />
+          <a href="/" style={{ color: '#3b82f6', textDecoration: 'underline' }}>Torna alla Homepage</a>
 
         </div>
 
@@ -5587,18 +5609,6 @@ const AziendaPage: React.FC = () => {
         <header className="flex flex-col md:flex-row items-center justify-between gap-4 bg-card/60 p-6 rounded-2xl border border-border">
 
           <h1 className="text-2xl md:text-3xl font-bold text-foreground">EasyChain - Area Privata</h1>
-
-          <ConnectButton 
-
-            client={client}
-
-            wallets={wallets}
-
-            chain={polygon}
-
-            accountAbstraction={{ chain: polygon, sponsorGas: true }}
-
-          />
 
         </header>
 

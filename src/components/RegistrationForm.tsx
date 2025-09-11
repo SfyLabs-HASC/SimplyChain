@@ -3,6 +3,8 @@
 // per inviare effettivamente i dati di registrazione al tuo backend.
 
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
+import { ArrowLeft } from 'lucide-react';
 
 interface RegistrationFormProps {
   walletAddress: string;
@@ -56,6 +58,12 @@ const RegistrationForm: React.FC<RegistrationFormProps> = ({ walletAddress }) =>
       <div className="card" style={{ marginTop: '2rem', textAlign: 'center' }}>
         <h3>Richiesta Inviata!</h3>
         <p>{status.message}</p>
+        <div style={{ marginTop: '2rem', paddingTop: '2rem', borderTop: '1px solid #333' }}>
+          <Link to="/" className="back-button" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', color: '#9ca3af', textDecoration: 'none', fontSize: '0.9rem', transition: 'all 0.3s ease' }}>
+            <ArrowLeft size={16} />
+            Torna alla Home
+          </Link>
+        </div>
       </div>
     );
   }
@@ -79,6 +87,12 @@ const RegistrationForm: React.FC<RegistrationFormProps> = ({ walletAddress }) =>
         <div className="form-group"><label>TikTok</label><input type="url" name="tiktok" className="form-input" onChange={handleInputChange} placeholder="https://tiktok.com/..." /></div>
         <button type="submit" className="web3-button" disabled={isLoading} style={{width: '100%', marginTop: '1rem'}}>{isLoading ? "Invio in corso..." : "Invia Richiesta di Attivazione"}</button>
         {status && status.type !== 'success' && (<p style={{ marginTop: '1rem', color: status.type === 'error' ? '#ff4d4d' : '#888', textAlign: 'center' }}>{status.message}</p>)}
+        <div style={{ marginTop: '2rem', paddingTop: '2rem', borderTop: '1px solid #333', textAlign: 'center' }}>
+          <Link to="/" className="back-button" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', color: '#9ca3af', textDecoration: 'none', fontSize: '0.9rem', transition: 'all 0.3s ease' }}>
+            <ArrowLeft size={16} />
+            Torna alla Home
+          </Link>
+        </div>
       </form>
     </div>
   );

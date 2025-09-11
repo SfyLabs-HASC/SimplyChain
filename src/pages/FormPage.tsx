@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { ConnectButton, useActiveAccount } from "thirdweb/react";
 import { createThirdwebClient } from "thirdweb";
 import { polygon } from "thirdweb/chains";
@@ -93,7 +93,7 @@ const FormPageStyles = () => (
     .form-brand-text {
       font-size: 1.5rem;
       font-weight: bold;
-      background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+      background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
       -webkit-background-clip: text;
       background-clip: text;
       -webkit-text-fill-color: transparent;
@@ -376,6 +376,34 @@ const FormPageStyles = () => (
 
 const FormPage: React.FC = () => {
   const account = useActiveAccount();
+  const [hasRequestSent, setHasRequestSent] = useState(false);
+  const [isCheckingRequest, setIsCheckingRequest] = useState(false);
+
+  useEffect(() => {
+    if (account?.address) {
+      checkIfRequestAlreadySent();
+    }
+  }, [account]);
+
+  const checkIfRequestAlreadySent = async () => {
+    if (!account?.address) return;
+    
+    setIsCheckingRequest(true);
+    try {
+      const response = await fetch(`/api/get-company-status?walletAddress=${account.address}`);
+      if (response.ok) {
+        const data = await response.json();
+        // Se l'utente esiste nel database ma non è attivo, significa che ha già inviato la richiesta
+        if (data.exists && !data.isActive) {
+          setHasRequestSent(true);
+        }
+      }
+    } catch (error) {
+      console.error('Errore durante il controllo della richiesta:', error);
+    } finally {
+      setIsCheckingRequest(false);
+    }
+  };
 
   return (
     <>
@@ -393,9 +421,6 @@ const FormPage: React.FC = () => {
         <header className="form-header">
           <div className="form-header-content">
             <Link to="/" className="form-brand">
-              <div className="form-brand-icon">
-                <Network size={20} />
-              </div>
               <span className="form-brand-text">EasyChain</span>
             </Link>
             <ConnectButton 
@@ -411,11 +436,6 @@ const FormPage: React.FC = () => {
         <main className="form-main">
           <div className="form-content">
             <div className="form-hero">
-              <Link to="/" className="back-button">
-                <ArrowLeft size={16} />
-                Torna alla Home
-              </Link>
-              
               <div className="form-badge">
                 <Sparkles size={16} />
                 Registrazione Aziendale
@@ -438,6 +458,26 @@ const FormPage: React.FC = () => {
                   <p className="connect-wallet-subtitle">
                     Per procedere con la registrazione, devi prima connettere il tuo wallet
                   </p>
+                </div>
+              ) : isCheckingRequest ? (
+                <div className="connect-wallet-section">
+                  <h2 className="connect-wallet-title">Controllo stato richiesta...</h2>
+                  <p className="connect-wallet-subtitle">
+                    Stiamo verificando se hai già inviato una richiesta
+                  </p>
+                </div>
+              ) : hasRequestSent ? (
+                <div className="connect-wallet-section">
+                  <h2 className="connect-wallet-title">RICHIESTA INVIATA</h2>
+                  <p className="connect-wallet-subtitle">
+                    Hai già inviato una richiesta di attivazione. Verrai ricontattato dopo l'approvazione del tuo account.
+                  </p>
+                  <div style={{ marginTop: '2rem', paddingTop: '2rem', borderTop: '1px solid rgba(255, 255, 255, 0.1)' }}>
+                    <Link to="/" className="back-button" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', color: '#9ca3af', textDecoration: 'none', fontSize: '0.9rem', transition: 'all 0.3s ease' }}>
+                      <ArrowLeft size={16} />
+                      Torna alla Home
+                    </Link>
+                  </div>
                 </div>
               ) : (
                 <RegistrationForm walletAddress={account.address} />

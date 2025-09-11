@@ -30,7 +30,7 @@ const wallets = [
 export default function HomePage() {
   const [isVideoOpen, setIsVideoOpen] = useState(false);
   const [textPhase, setTextPhase] = useState(1);
-  const [showConnectButton, setShowConnectButton] = useState(false);
+  const [connectButtonRef, setConnectButtonRef] = useState<HTMLButtonElement | null>(null);
   const account = useActiveAccount();
   const navigate = useNavigate();
 
@@ -85,11 +85,33 @@ export default function HomePage() {
   };
 
   const handleAuthButtonClick = () => {
-    setShowConnectButton(true);
+    // Trova il ConnectButton nascosto e simula un click
+    setTimeout(() => {
+      const connectButtons = document.querySelectorAll('button');
+      for (let button of connectButtons) {
+        if (button.textContent?.includes('Connect Wallet') || 
+            button.textContent?.includes('Connetti') ||
+            button.getAttribute('data-testid')?.includes('connect') ||
+            button.closest('[style*="left: -9999px"]')) {
+          button.click();
+          break;
+        }
+      }
+    }, 100);
   };
 
   return (
     <div className="min-h-screen bg-background">
+      {/* ConnectButton nascosto per triggare il popup */}
+      <div style={{ position: 'absolute', left: '-9999px', opacity: 0, pointerEvents: 'none' }}>
+        <ConnectButton 
+          client={client} 
+          wallets={wallets}
+          chain={polygon}
+          accountAbstraction={{ chain: polygon, sponsorGas: true }}
+        />
+      </div>
+      
       {/* Hero Section */}
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
         {/* Animated Background */}
@@ -122,22 +144,13 @@ export default function HomePage() {
             </p>
             
             <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-16">
-              {!showConnectButton ? (
-                <button 
-                  onClick={handleAuthButtonClick}
-                  className="group primary-gradient text-xl px-10 py-5 rounded-2xl tech-shadow smooth-transition hover:scale-105 text-primary-foreground font-semibold flex items-center gap-3"
-                >
-                  Accedi
-                  <ArrowRight className="w-6 h-6 group-hover:translate-x-1 smooth-transition" />
-                </button>
-              ) : (
-                <ConnectButton 
-                  client={client} 
-                  wallets={wallets}
-                  chain={polygon}
-                  accountAbstraction={{ chain: polygon, sponsorGas: true }}
-                />
-              )}
+              <button 
+                onClick={handleAuthButtonClick}
+                className="group primary-gradient text-xl px-10 py-5 rounded-2xl tech-shadow smooth-transition hover:scale-105 text-primary-foreground font-semibold flex items-center gap-3"
+              >
+                Accedi
+                <ArrowRight className="w-6 h-6 group-hover:translate-x-1 smooth-transition" />
+              </button>
               <button
                 onClick={() => setIsVideoOpen(true)}
                 className="text-muted-foreground hover:text-accent smooth-transition text-lg underline decoration-accent/50 hover:decoration-accent flex items-center gap-2"
@@ -385,24 +398,13 @@ export default function HomePage() {
               <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5"></div>
               
               <div className="relative z-10">
-                {!showConnectButton ? (
-                  <button 
-                    onClick={handleAuthButtonClick}
-                    className="group primary-gradient text-2xl px-16 py-8 rounded-3xl tech-shadow smooth-transition hover:scale-105 text-primary-foreground font-bold flex items-center gap-4 mx-auto"
-                  >
-                    Registra la tua Azienda
-                    <ArrowRight className="w-8 h-8 group-hover:translate-x-2 smooth-transition" />
-                  </button>
-                ) : (
-                  <div className="flex justify-center">
-                    <ConnectButton 
-                      client={client} 
-                      wallets={wallets}
-                      chain={polygon}
-                      accountAbstraction={{ chain: polygon, sponsorGas: true }}
-                    />
-                  </div>
-                )}
+                <button 
+                  onClick={handleAuthButtonClick}
+                  className="group primary-gradient text-2xl px-16 py-8 rounded-3xl tech-shadow smooth-transition hover:scale-105 text-primary-foreground font-bold flex items-center gap-4 mx-auto"
+                >
+                  Registra la tua Azienda
+                  <ArrowRight className="w-8 h-8 group-hover:translate-x-2 smooth-transition" />
+                </button>
                 
                 <p className="text-muted-foreground mt-6 text-lg">
                   Registrazione gratuita • Nessun costo nascosto • Attivazione su verifica
