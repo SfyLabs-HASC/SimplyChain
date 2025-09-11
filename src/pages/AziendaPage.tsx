@@ -4534,7 +4534,7 @@ const FinalizeModal: React.FC<{
 
 
 
-// Componente modale per visualizzare steps
+// Componente modale per visualizzare steps con slide
 
 const StepsModal: React.FC<{
 
@@ -4546,6 +4546,50 @@ const StepsModal: React.FC<{
 
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
+  const [currentStep, setCurrentStep] = useState(0);
+
+  const [isAnimating, setIsAnimating] = useState(false);
+
+
+
+  const steps = batch.steps || [];
+
+
+
+  const nextStep = () => {
+
+    if (isAnimating || currentStep >= steps.length - 1) return;
+
+    setIsAnimating(true);
+
+    setTimeout(() => {
+
+      setCurrentStep(prev => prev + 1);
+
+      setIsAnimating(false);
+
+    }, 150);
+
+  };
+
+
+
+  const prevStep = () => {
+
+    if (isAnimating || currentStep <= 0) return;
+
+    setIsAnimating(true);
+
+    setTimeout(() => {
+
+      setCurrentStep(prev => prev - 1);
+
+      setIsAnimating(false);
+
+    }, 150);
+
+  };
+
 
 
   return (
@@ -4554,101 +4598,349 @@ const StepsModal: React.FC<{
 
       <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4" onClick={onClose}>
 
-        <div className="bg-card p-4 rounded-2xl border border-border max-w-3xl w-full max-h-[80vh] overflow-auto text-foreground" onClick={(e) => e.stopPropagation()}>
+        <div className="bg-card p-6 rounded-2xl border border-border max-w-4xl w-full max-h-[85vh] overflow-hidden text-foreground" onClick={(e) => e.stopPropagation()}>
 
-          <div className="steps-p-4 border-b border-border">
+          <div className="p-4 border-b border-border" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
 
-            <h2>Steps - {batch.name}</h2>
+            <h2 style={{ margin: 0 }}>
+
+              <span style={{ fontSize: '1.5rem', marginRight: '0.5rem' }}>📋</span>
+
+              Steps - {batch.name}
+
+            </h2>
+
+            {steps.length > 1 && (
+
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
+
+                {steps.map((_, index) => (
+
+                  <div
+
+                    key={index}
+
+                    style={{
+
+                      width: '8px',
+
+                      height: '8px',
+
+                      borderRadius: '50%',
+
+                      background: index === currentStep ? '#6366f1' : 'rgba(255, 255, 255, 0.3)',
+
+                      cursor: 'pointer',
+
+                      transition: 'all 0.3s ease'
+
+                    }}
+
+                    onClick={() => setCurrentStep(index)}
+
+                  />
+
+                ))}
+
+              </div>
+
+            )}
 
           </div>
 
-          <div className="steps-p-4">
 
-            {batch.steps && batch.steps.length > 0 ? (
 
-              batch.steps.map((step, index) => (
+          <div className="p-4" style={{ minHeight: '400px', overflow: 'auto' }}>
 
-                <div key={index} className="bg-gray-800 p-4 rounded-xl border border-gray-700 mb-4">
+            {steps.length > 0 ? (
 
-                  <h4>Step {index + 1}: {step.eventName}</h4>
+              <div style={{ 
 
-                  <p><strong>📄 Descrizione:</strong> {step.description || "N/D"}</p>
+                opacity: isAnimating ? 0.5 : 1, 
 
-                  <p><strong>📅 Data:</strong> {formatItalianDate(step.date)}</p>
+                transition: 'opacity 0.15s ease',
 
-                  <p><strong>📍 Luogo:</strong> {step.location || "N/D"}</p>
+                transform: isAnimating ? 'translateY(10px)' : 'translateY(0)',
 
-                  {step.attachmentsIpfsHash && step.attachmentsIpfsHash !== "N/A" && (
+              }}>
 
-                    <p>
+                <div style={{ 
 
-                      <strong>📎 Allegati:</strong>
+                  background: 'linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%)', 
+
+                  padding: '2rem', 
+
+                  borderRadius: '1rem', 
+
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+
+                  boxShadow: '0 8px 25px rgba(0, 0, 0, 0.3)'
+
+                }}>
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
+
+                    <div style={{ 
+
+                      width: '50px', 
+
+                      height: '50px', 
+
+                      background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)', 
+
+                      borderRadius: '50%', 
+
+                      display: 'flex', 
+
+                      alignItems: 'center', 
+
+                      justifyContent: 'center', 
+
+                      color: 'white', 
+
+                      fontWeight: 'bold', 
+
+                      fontSize: '1.2rem',
+
+                      boxShadow: '0 4px 15px rgba(99, 102, 241, 0.3)'
+
+                    }}>
+
+                      {currentStep + 1}
+
+                    </div>
+
+                    <div>
+
+                      <h3 style={{ margin: 0, color: '#ffffff', fontSize: '1.3rem', fontWeight: '600' }}>
+
+                        {steps[currentStep].eventName}
+
+                      </h3>
+
+                      <p style={{ margin: '0.25rem 0 0 0', color: '#9ca3af', fontSize: '0.9rem' }}>
+
+                        Step {currentStep + 1} di {steps.length}
+
+                      </p>
+
+                    </div>
+
+                  </div>
+
+
+
+                  <div style={{ display: 'grid', gap: '1rem' }}>
+
+                    <div style={{ background: 'rgba(99, 102, 241, 0.1)', padding: '1rem', borderRadius: '0.75rem', border: '1px solid rgba(99, 102, 241, 0.3)' }}>
+
+                      <h5 style={{ color: '#6366f1', margin: '0 0 0.5rem 0', fontWeight: '600' }}>📄 Descrizione</h5>
+
+                      <p style={{ margin: 0, color: '#d1d5db', fontSize: '0.9rem' }}>{steps[currentStep].description || "Nessuna descrizione fornita"}</p>
+
+                    </div>
+
+
+
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
+
+                      <div style={{ background: 'rgba(16, 185, 129, 0.1)', padding: '1rem', borderRadius: '0.75rem', border: '1px solid rgba(16, 185, 129, 0.3)' }}>
+
+                        <h5 style={{ color: '#10b981', margin: '0 0 0.5rem 0', fontWeight: '600' }}>📅 Data</h5>
+
+                        <p style={{ margin: 0, color: '#d1d5db', fontSize: '0.9rem' }}>{formatItalianDate(steps[currentStep].date) || "Non specificata"}</p>
+
+                      </div>
+
+
+
+                      <div style={{ background: 'rgba(245, 158, 11, 0.1)', padding: '1rem', borderRadius: '0.75rem', border: '1px solid rgba(245, 158, 11, 0.3)' }}>
+
+                        <h5 style={{ color: '#f59e0b', margin: '0 0 0.5rem 0', fontWeight: '600' }}>📍 Luogo</h5>
+
+                        <p style={{ margin: 0, color: '#d1d5db', fontSize: '0.9rem' }}>{steps[currentStep].location || "Non specificato"}</p>
+
+                      </div>
+
+                    </div>
+
+
+
+                    {steps[currentStep].attachmentsIpfsHash && steps[currentStep].attachmentsIpfsHash !== "N/A" && (
+
+                      <div style={{ background: 'rgba(139, 92, 246, 0.1)', padding: '1rem', borderRadius: '0.75rem', border: '1px solid rgba(139, 92, 246, 0.3)' }}>
+
+                        <h5 style={{ color: '#8b5cf6', margin: '0 0 0.5rem 0', fontWeight: '600' }}>📎 Allegati</h5>
+
+                        <a
+
+                          href={`https://musical-emerald-partridge.myfilebase.com/ipfs/${steps[currentStep].attachmentsIpfsHash}`}
+
+                          target="_blank"
+
+                          rel="noopener noreferrer"
+
+                          style={{ color: '#8b5cf6', textDecoration: 'none', fontWeight: '600' }}
+
+                          onMouseOver={(e) => e.target.style.textDecoration = 'underline'}
+
+                          onMouseOut={(e) => e.target.style.textDecoration = 'none'}
+
+                        >
+
+                          Visualizza Allegato →
+
+                        </a>
+
+                      </div>
+
+                    )}
+
+
+
+                    <div style={{ background: 'rgba(59, 130, 246, 0.1)', padding: '1rem', borderRadius: '0.75rem', border: '1px solid rgba(59, 130, 246, 0.3)' }}>
+
+                      <h5 style={{ color: '#3b82f6', margin: '0 0 0.5rem 0', fontWeight: '600' }}>🔗 Verifica Blockchain</h5>
 
                       <a
 
-                        href={`https://musical-emerald-partridge.myfilebase.com/ipfs/${step.attachmentsIpfsHash}`}
+                        href={`https://polygonscan.com/inputdatadecoder?tx=${steps[currentStep].transactionHash}`}
 
                         target="_blank"
 
                         rel="noopener noreferrer"
 
-                        className="link-underline-hover"
+                        style={{ color: '#3b82f6', textDecoration: 'none', fontWeight: '600', fontSize: '0.9rem' }}
 
-                        style={{ marginLeft: '0.5rem' }}
+                        onMouseOver={(e) => e.target.style.textDecoration = 'underline'}
+
+                        onMouseOut={(e) => e.target.style.textDecoration = 'none'}
 
                       >
 
-                        Visualizza
+                        {truncateText(steps[currentStep].transactionHash, 25)} →
 
                       </a>
 
-                    </p>
+                    </div>
 
-                  )}
-
-                  <p>
-
-                    <strong>🔗 Verifica su Blockchain:</strong>
-
-                    <a
-
-                      href={`https://polygonscan.com/inputdatadecoder?tx=${step.transactionHash}`}
-
-                      target="_blank"
-
-                      rel="noopener noreferrer"
-
-                      className="link-underline-hover"
-
-                      style={{ marginLeft: '0.5rem' }}
-
-                    >
-
-                      {truncateText(step.transactionHash, 15)}
-
-                    </a>
-
-                  </p>
+                  </div>
 
                 </div>
 
-              ))
+              </div>
 
             ) : (
 
-              <p>Nessuno step disponibile per questa iscrizione.</p>
+              <div style={{ 
+
+                textAlign: 'center', 
+
+                padding: '3rem', 
+
+                color: '#9ca3af',
+
+                background: 'rgba(26, 26, 26, 0.6)',
+
+                borderRadius: '1rem',
+
+                border: '1px solid rgba(255, 255, 255, 0.1)'
+
+              }}>
+
+                <p style={{ fontSize: '1.1rem', marginBottom: '0.5rem' }}>Nessuno step disponibile</p>
+
+                <p style={{ fontSize: '0.9rem', opacity: 0.7 }}>Questa iscrizione non ha ancora step registrati</p>
+
+              </div>
 
             )}
 
-            <div style={{ textAlign: 'center', marginTop: '2rem' }}>
+          </div>
 
-              <button onClick={onClose} className="primary-gradient text-white px-4 py-2 rounded-2xl font-semibold hover:scale-105 transition">
 
-                Indietro
 
-              </button>
+          <div className="p-4 border-t border-border" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
 
-            </div>
+            {steps.length > 1 && (
+
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
+
+                <button 
+
+                  onClick={prevStep} 
+
+                  disabled={isAnimating || currentStep === 0}
+
+                  style={{ 
+
+                    background: currentStep === 0 ? 'rgba(107, 114, 128, 0.5)' : 'rgba(255, 255, 255, 0.1)', 
+
+                    border: '1px solid rgba(255, 255, 255, 0.2)', 
+
+                    color: '#ffffff', 
+
+                    padding: '0.5rem 1rem', 
+
+                    borderRadius: '0.5rem', 
+
+                    cursor: currentStep === 0 ? 'not-allowed' : 'pointer',
+
+                    transition: 'all 0.3s ease',
+
+                    opacity: isAnimating ? 0.5 : 1
+
+                  }}
+
+                >
+
+                  ← Step Precedente
+
+                </button>
+
+                <button 
+
+                  onClick={nextStep} 
+
+                  disabled={isAnimating || currentStep === steps.length - 1}
+
+                  style={{ 
+
+                    background: currentStep === steps.length - 1 ? 'rgba(107, 114, 128, 0.5)' : 'rgba(255, 255, 255, 0.1)', 
+
+                    border: '1px solid rgba(255, 255, 255, 0.2)', 
+
+                    color: '#ffffff', 
+
+                    padding: '0.5rem 1rem', 
+
+                    borderRadius: '0.5rem', 
+
+                    cursor: currentStep === steps.length - 1 ? 'not-allowed' : 'pointer',
+
+                    transition: 'all 0.3s ease',
+
+                    opacity: isAnimating ? 0.5 : 1
+
+                  }}
+
+                >
+
+                  Step Successivo →
+
+                </button>
+
+              </div>
+
+            )}
+
+            
+
+            <button onClick={onClose} className="primary-gradient text-white px-4 py-2 rounded-2xl font-semibold hover:scale-105 transition" style={{ marginLeft: 'auto' }}>
+
+              Chiudi
+
+            </button>
 
           </div>
 
