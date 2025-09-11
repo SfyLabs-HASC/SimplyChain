@@ -1900,6 +1900,16 @@ const AziendaPageStyles = () => (
 
 
 
+      .batch-number {
+
+        color: #7c3aed;
+
+        font-weight: bold;
+
+      }
+
+
+
       .batch-card {
 
         transition: box-shadow 0.25s ease, border-color 0.25s ease, transform 0.25s ease;
