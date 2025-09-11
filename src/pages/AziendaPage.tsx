@@ -4734,7 +4734,31 @@ const NewInscriptionModal: React.FC<{
 
 
 
-              )}
+        // Il successo viene ora gestito dal click su OK nel modal
+        // setTimeout(() => {
+        //   onSuccess();
+        //   setLoadingMessage("");
+        // }, 1500);
+
+      },
+
+      onError: (err) => {
+
+        clearTimeout(timeoutId);
+
+        setTxResult({
+
+          status: "error",
+
+          message: err.message.toLowerCase().includes("insufficient funds") ? "Crediti Insufficienti" : "Errore nella transazione."
+
+        });
+
+        setLoadingMessage("");
+
+      },
+
+    });
 
             </div>
 
