@@ -18,6 +18,8 @@ import React, { useState, useEffect } from "react";
 
 import { ConnectButton, useActiveAccount, useReadContract, useSendTransaction } from "thirdweb/react";
 
+import { useNavigate } from "react-router-dom";
+
 import { createThirdwebClient, getContract, prepareContractCall } from "thirdweb";
 
 import { polygon } from "thirdweb/chains";
@@ -5735,6 +5737,8 @@ const AziendaPage: React.FC = () => {
 
   const account = useActiveAccount();
 
+  const navigate = useNavigate();
+
 
 
   const [companyStatus, setCompanyStatus] = useState<{
@@ -5758,6 +5762,22 @@ const AziendaPage: React.FC = () => {
     error: null,
 
   });
+
+
+
+  // Effect per gestire il disconnect e reindirizzare alla homepage
+
+  useEffect(() => {
+
+    if (!account) {
+
+      navigate('/');
+
+      return;
+
+    }
+
+  }, [account, navigate]);
 
 
 
