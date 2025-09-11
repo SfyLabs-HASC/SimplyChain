@@ -568,6 +568,28 @@ const AziendaPageStyles = () => (
 
       }
 
+      
+
+      .grid.gap-6 {
+
+        display: grid;
+
+        gap: 1.5rem;
+
+        align-items: stretch;
+
+      }
+
+      
+
+      .grid.gap-6 .batch-card {
+
+        height: 100%;
+
+        min-height: 400px;
+
+      }
+
 
 
       .glass-card rounded-2xl p-6 tech-shadow hover:shadow-lg transition:hover {
