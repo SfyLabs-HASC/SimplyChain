@@ -551,9 +551,10 @@ export default function App() {
 
       </div>
       
-      {/* --- MODALE INFORMATIVO --- */}
-      <InfoModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+        {/* --- MODALE INFORMATIVO --- */}
+        <InfoModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
 
+      </div>
     </div>
   );
 }

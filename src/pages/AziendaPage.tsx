@@ -2748,7 +2748,9 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
 
             onClick={handleRefresh}
 
-            disabled={isRefreshing || refreshCounter === 0}
+            disabled={isRefreshing}
+
+            title="Clicca Refresh per aggiornare la tua lista"
 
           >
 
