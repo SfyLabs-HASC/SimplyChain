@@ -376,12 +376,6 @@ const AziendaPageStyles = () => (
 
         font-weight: bold;
 
-        position: absolute;
-
-        top: -8px;
-
-        right: -8px;
-
         background: rgba(16, 185, 129, 0.12);
 
         border: 1px solid rgba(16, 185, 129, 0.45);
@@ -545,6 +539,18 @@ const AziendaPageStyles = () => (
         flex-direction: column;
 
         height: 100%;
+
+      }
+
+      
+
+      .card-content {
+
+        flex: 1;
+
+        display: flex;
+
+        flex-direction: column;
 
       }
 
@@ -1874,6 +1880,8 @@ const AziendaPageStyles = () => (
 
         cursor: pointer;
 
+        transition: all 0.3s ease;
+
       }
 
 
@@ -2742,23 +2750,31 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
 
         <div className="flex items-center gap-2">
 
-          <button 
+          <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
 
-            className="w-12 h-12 rounded-full flex items-center justify-center primary-gradient shadow-md hover:scale-105 transition"
+            {refreshCounter > 0 && (
 
-            onClick={handleRefresh}
+              <div className="refresh-counter" style={{ position: 'relative', marginBottom: '0.5rem' }}>+{refreshCounter}</div>
 
-            disabled={isRefreshing}
+            )}
 
-            title="Clicca Refresh per aggiornare la tua lista"
+            <button 
 
-          >
+              className="w-12 h-12 rounded-full flex items-center justify-center primary-gradient shadow-md hover:scale-105 transition"
 
-            <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPCEtLSBSZWZyZXNoIGNpcmN1bGFyIGFycm93cyAtLT4KPHBhdGggZD0iTTMgMTJBOSA5IDAgMCAxIDEyIDNWMUwxNiA1TDEyIDlWN0E3IDcgMCAwIDAgNSAxMkgzWiIgZmlsbD0id2hpdGUiLz4KPHBhdGggZD0iTTIxIDEyQTkgOSAwIDAgMSAxMiAyMVYyM0w4IDE5TDEyIDE1VjE3QTcgNyAwIDAgMCAxOSAxMkgyMVoiIGZpbGw9IndoaXRlIi8+Cjwvc3ZnPgo=" alt="refresh" className="w-5 h-5 text-white" style={{width: '20px', height: '20px'}} />
+              onClick={handleRefresh}
 
-            <div className="refresh-counter">+{refreshCounter}</div>
+              disabled={isRefreshing || refreshCounter === 0}
 
-          </button>
+              title="Clicca Refresh per aggiornare la tua lista"
+
+            >
+
+              <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPCEtLSBSZWZyZXNoIGNpcmN1bGFyIGFycm93cyAtLT4KPHBhdGggZD0iTTMgMTJBOSA5IDAgMCAxIDEyIDNWMUwxNiA1TDEyIDlWN0E3IDcgMCAwIDAgNSAxMkgzWiIgZmlsbD0id2hpdGUiLz4KPHBhdGggZD0iTTIxIDEyQTkgOSAwIDAgMSAxMiAyMVYyM0w4IDE5TDEyIDE1VjE3QTcgNyAwIDAgMCAxOSAxMkgyMVoiIGZpbGw9IndoaXRlIi8+Cjwvc3ZnPgo=" alt="refresh" className="w-5 h-5 text-white" style={{width: '20px', height: '20px'}} />
+
+            </button>
+
+          </div>
 
         </div>
 
@@ -2888,77 +2904,81 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
 
                 <div key={batch.batchId} className="batch-card glass-card rounded-2xl p-6 tech-shadow hover:shadow-lg transition">
 
-                  <h3 className="batch-title">
+                  <div className="card-content">
 
-                    <span className="batch-number">#{getBatchDisplayNumber(batch.batchId)}</span> - {batch.name}
+                    <h3 className="batch-title">
 
-                  </h3>
+                      <span className="batch-number">#{getBatchDisplayNumber(batch.batchId)}</span> - {batch.name}
 
-                  <p><strong className="label-violet">Descrizione:</strong> {batch.description ? truncateText(batch.description, window.innerWidth < 768 ? 80 : 100) : "N/D"}</p>
+                    </h3>
 
-                  <p><strong className="label-violet">Data:</strong> {formatItalianDate(batch.date)}</p>
+                    <p><strong className="label-violet">Descrizione:</strong> {batch.description ? truncateText(batch.description, window.innerWidth < 768 ? 80 : 100) : "N/D"}</p>
 
-                  <p><strong className="label-violet">Luogo:</strong> {batch.location || "N/D"}</p>
+                    <p><strong className="label-violet">Data:</strong> {formatItalianDate(batch.date)}</p>
 
-                  <p>
-
-                    <strong>Stato:</strong> <span className={batch.isClosed ? 'text-red-500 font-semibold' : 'text-green-500 font-semibold'}>
-
-                      {batch.isClosed ? ' Chiuso' : ' Aperto'}
-
-                    </span>
-
-                  </p>
-
-                  <p><strong className="label-violet">Tx Hash:</strong>
-
-                    <a
-
-                      href={`https://polygonscan.com/inputdatadecoder?tx=${batch.transactionHash}`}
-
-                      target="_blank"
-
-                      rel="noopener noreferrer"
-
-                      className="link-underline-hover"
-
-                    >
-
-                      {truncateText(batch.transactionHash, 15)}
-
-                    </a>
-
-                  </p>
-
-
-
-                  {batch.imageIpfsHash && batch.imageIpfsHash !== "N/A" && (
+                    <p><strong className="label-violet">Luogo:</strong> {batch.location || "N/D"}</p>
 
                     <p>
 
+                      <strong>Stato:</strong> <span className={batch.isClosed ? 'text-red-500 font-semibold' : 'text-green-500 font-semibold'}>
+
+                        {batch.isClosed ? ' Chiuso' : ' Aperto'}
+
+                      </span>
+
+                    </p>
+
+                    <p><strong className="label-violet">Tx Hash:</strong>
+
                       <a
 
-                        href="#"
+                        href={`https://polygonscan.com/inputdatadecoder?tx=${batch.transactionHash}`}
 
-                        onClick={(e) => {
+                        target="_blank"
 
-                          e.preventDefault();
-
-                          setSelectedImage(`https://musical-emerald-partridge.myfilebase.com/ipfs/${batch.imageIpfsHash}`);
-
-                        }}
+                        rel="noopener noreferrer"
 
                         className="link-underline-hover"
 
                       >
 
-                        Apri L'immagine
+                        {truncateText(batch.transactionHash, 15)}
 
                       </a>
 
                     </p>
 
-                  )}
+
+
+                    {batch.imageIpfsHash && batch.imageIpfsHash !== "N/A" && (
+
+                      <p>
+
+                        <a
+
+                          href="#"
+
+                          onClick={(e) => {
+
+                            e.preventDefault();
+
+                            setSelectedImage(`https://musical-emerald-partridge.myfilebase.com/ipfs/${batch.imageIpfsHash}`);
+
+                          }}
+
+                          className="link-underline-hover"
+
+                        >
+
+                          Apri L'immagine
+
+                        </a>
+
+                      </p>
+
+                    )}
+
+                  </div>
 
 
 
@@ -5349,7 +5369,7 @@ const QRCodeOfferModal: React.FC<{
 
 
 
-// Componente modale info
+// Componente modale info con slide
 
 const InfoModal: React.FC<{
 
@@ -5357,63 +5377,339 @@ const InfoModal: React.FC<{
 
 }> = ({ onClose }) => {
 
-  return (
+  const [currentSlide, setCurrentSlide] = useState(0);
 
-    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4" onClick={onClose}>
-
-      <div className="bg-card p-6 rounded-2xl border border-border max-w-2xl w-full text-foreground" onClick={(e) => e.stopPropagation()}>
-
-        <div className="p-4 border-b border-border">
-
-          <h2>Informazioni Iscrizioni</h2>
-
-        </div>
-
-        <div className="p-4">
-
-          <div style={{ textAlign: 'left' }}>
-
-            <h4>COME FUNZIONA</h4>
-
-            <ul style={{ paddingLeft: '20px', margin: '1rem 0' }}>
-
-              <li><strong>Inizializza Nuova Iscrizione:</strong> Crea una nuova iscrizione con i dati base del prodotto</li>
-
-              <li><strong>Aggiungi Steps:</strong> Registra ogni fase della filiera produttiva</li>
-
-              <li><strong>Finalizza:</strong> Chiudi l'iscrizione quando completata, non potrai aggiungere nuovi steps</li>
-
-              <li><strong>Esporta:</strong> Genera certificati PDF o HTML per i tuoi clienti</li>
-
-            </ul>
+  const [isAnimating, setIsAnimating] = useState(false);
 
 
 
-            <h4>Stati dell'iscrizione:</h4>
+  const slides = [
 
-            <ul style={{ paddingLeft: '20px', margin: '1rem 0' }}>
+    {
 
-              <li><span style={{ color: '#10b981' }}>Aperto</span>: Puoi aggiungere nuovi step</li>
+      title: "Come Funziona EasyChain",
 
-              <li><span style={{ color: '#ef4444' }}>Chiuso</span>: Finalizzato, pronto per l'esportazione</li>
+      icon: "🚀",
 
-            </ul>
+      content: (
 
+        <div>
 
+          <div style={{ display: 'grid', gap: '1rem', marginBottom: '1.5rem' }}>
 
-            <h4>Riguardo i Costi:</h4>
+            <div style={{ background: 'rgba(99, 102, 241, 0.1)', padding: '1rem', borderRadius: '0.75rem', border: '1px solid rgba(99, 102, 241, 0.3)' }}>
 
-            <p>Dopo l'attivazione del tuo account avrai a disposizione crediti gratuiti per avviare la tua attività di certificazione su Blockchain.</p>
+              <h5 style={{ color: '#6366f1', margin: '0 0 0.5rem 0', fontWeight: '600' }}>🔷 Inizializza Nuova Iscrizione</h5>
 
-            <p>Ogni operazione (nuova iscrizione, aggiunta step, finalizzazione) consuma 1 credito.</p>
+              <p style={{ margin: 0, color: '#d1d5db', fontSize: '0.9rem' }}>Crea una nuova iscrizione con i dati base del prodotto</p>
 
-            <p>Se hai bisogno di piu' crediti per le tue operazioni vai alla pagina <a href="/ricaricacrediti" style={{ color: '#3b82f6', textDecoration: 'none' }}>Ricarica Crediti</a>.</p>
+            </div>
+
+            <div style={{ background: 'rgba(16, 185, 129, 0.1)', padding: '1rem', borderRadius: '0.75rem', border: '1px solid rgba(16, 185, 129, 0.3)' }}>
+
+              <h5 style={{ color: '#10b981', margin: '0 0 0.5rem 0', fontWeight: '600' }}>📋 Aggiungi Steps</h5>
+
+              <p style={{ margin: 0, color: '#d1d5db', fontSize: '0.9rem' }}>Registra ogni fase della filiera produttiva</p>
+
+            </div>
+
+            <div style={{ background: 'rgba(245, 158, 11, 0.1)', padding: '1rem', borderRadius: '0.75rem', border: '1px solid rgba(245, 158, 11, 0.3)' }}>
+
+              <h5 style={{ color: '#f59e0b', margin: '0 0 0.5rem 0', fontWeight: '600' }}>🔒 Finalizza</h5>
+
+              <p style={{ margin: 0, color: '#d1d5db', fontSize: '0.9rem' }}>Chiudi l'iscrizione quando completata</p>
+
+            </div>
+
+            <div style={{ background: 'rgba(139, 92, 246, 0.1)', padding: '1rem', borderRadius: '0.75rem', border: '1px solid rgba(139, 92, 246, 0.3)' }}>
+
+              <h5 style={{ color: '#8b5cf6', margin: '0 0 0.5rem 0', fontWeight: '600' }}>📄 Esporta</h5>
+
+              <p style={{ margin: 0, color: '#d1d5db', fontSize: '0.9rem' }}>Genera certificati PDF o HTML per i tuoi clienti</p>
+
+            </div>
 
           </div>
 
         </div>
 
-        <div className="p-4 border-t border-border flex justify-between gap-4">
+      )
+
+    },
+
+    {
+
+      title: "Stati delle Iscrizioni",
+
+      icon: "📊",
+
+      content: (
+
+        <div>
+
+          <div style={{ display: 'grid', gap: '1rem', marginBottom: '1.5rem' }}>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', background: 'rgba(16, 185, 129, 0.1)', padding: '1rem', borderRadius: '0.75rem', border: '1px solid rgba(16, 185, 129, 0.3)' }}>
+
+              <div style={{ width: '40px', height: '40px', background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem' }}>✅</div>
+
+              <div>
+
+                <h5 style={{ color: '#10b981', margin: '0 0 0.25rem 0', fontWeight: '600' }}>Aperto</h5>
+
+                <p style={{ margin: 0, color: '#d1d5db', fontSize: '0.9rem' }}>Puoi aggiungere nuovi step alla tua iscrizione</p>
+
+              </div>
+
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', background: 'rgba(239, 68, 68, 0.1)', padding: '1rem', borderRadius: '0.75rem', border: '1px solid rgba(239, 68, 68, 0.3)' }}>
+
+              <div style={{ width: '40px', height: '40px', background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem' }}>🔒</div>
+
+              <div>
+
+                <h5 style={{ color: '#ef4444', margin: '0 0 0.25rem 0', fontWeight: '600' }}>Chiuso</h5>
+
+                <p style={{ margin: 0, color: '#d1d5db', fontSize: '0.9rem' }}>Finalizzato, pronto per l'esportazione</p>
+
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      )
+
+    },
+
+    {
+
+      title: "Sistema Crediti",
+
+      icon: "💰",
+
+      content: (
+
+        <div>
+
+          <div style={{ background: 'rgba(99, 102, 241, 0.1)', padding: '1.5rem', borderRadius: '1rem', border: '1px solid rgba(99, 102, 241, 0.3)', marginBottom: '1rem' }}>
+
+            <h5 style={{ color: '#6366f1', margin: '0 0 1rem 0', fontWeight: '600', fontSize: '1.1rem' }}>💎 Crediti Gratuiti</h5>
+
+            <p style={{ margin: '0 0 0.5rem 0', color: '#d1d5db' }}>Dopo l'attivazione del tuo account avrai crediti gratuiti per iniziare.</p>
+
+            <p style={{ margin: '0 0 1rem 0', color: '#d1d5db' }}>Ogni operazione consuma <strong style={{ color: '#ffffff' }}>1 credito</strong>:</p>
+
+            <ul style={{ paddingLeft: '1.5rem', color: '#d1d5db', margin: 0 }}>
+
+              <li>Nuova iscrizione</li>
+
+              <li>Aggiunta step</li>
+
+              <li>Finalizzazione</li>
+
+            </ul>
+
+          </div>
+
+          <div style={{ textAlign: 'center', background: 'rgba(139, 92, 246, 0.1)', padding: '1rem', borderRadius: '0.75rem', border: '1px solid rgba(139, 92, 246, 0.3)' }}>
+
+            <p style={{ margin: '0 0 1rem 0', color: '#d1d5db' }}>Hai bisogno di più crediti?</p>
+
+            <a href="/ricaricacrediti" style={{ color: '#8b5cf6', textDecoration: 'none', fontWeight: '600', fontSize: '1rem' }}>
+
+              Vai alla Ricarica Crediti →
+
+            </a>
+
+          </div>
+
+        </div>
+
+      )
+
+    }
+
+  ];
+
+
+
+  const nextSlide = () => {
+
+    if (isAnimating) return;
+
+    setIsAnimating(true);
+
+    setTimeout(() => {
+
+      setCurrentSlide((prev) => (prev + 1) % slides.length);
+
+      setIsAnimating(false);
+
+    }, 150);
+
+  };
+
+
+
+  const prevSlide = () => {
+
+    if (isAnimating) return;
+
+    setIsAnimating(true);
+
+    setTimeout(() => {
+
+      setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length);
+
+      setIsAnimating(false);
+
+    }, 150);
+
+  };
+
+
+
+  return (
+
+    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4" onClick={onClose}>
+
+      <div className="bg-card p-6 rounded-2xl border border-border max-w-3xl w-full text-foreground" onClick={(e) => e.stopPropagation()}>
+
+        <div className="p-4 border-b border-border" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+
+          <h2 style={{ margin: 0 }}>
+
+            <span style={{ fontSize: '1.5rem', marginRight: '0.5rem' }}>{slides[currentSlide].icon}</span>
+
+            {slides[currentSlide].title}
+
+          </h2>
+
+          <div style={{ display: 'flex', gap: '0.5rem' }}>
+
+            {slides.map((_, index) => (
+
+              <div
+
+                key={index}
+
+                style={{
+
+                  width: '8px',
+
+                  height: '8px',
+
+                  borderRadius: '50%',
+
+                  background: index === currentSlide ? '#6366f1' : 'rgba(255, 255, 255, 0.3)',
+
+                  cursor: 'pointer',
+
+                  transition: 'all 0.3s ease'
+
+                }}
+
+                onClick={() => setCurrentSlide(index)}
+
+              />
+
+            ))}
+
+          </div>
+
+        </div>
+
+        <div className="p-4" style={{ minHeight: '300px' }}>
+
+          <div style={{ 
+
+            opacity: isAnimating ? 0.5 : 1, 
+
+            transition: 'opacity 0.15s ease',
+
+            transform: isAnimating ? 'translateY(10px)' : 'translateY(0)',
+
+          }}>
+
+            {slides[currentSlide].content}
+
+          </div>
+
+        </div>
+
+        <div className="p-4 border-t border-border" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+
+          <div style={{ display: 'flex', gap: '0.5rem' }}>
+
+            <button 
+
+              onClick={prevSlide} 
+
+              disabled={isAnimating}
+
+              style={{ 
+
+                background: 'rgba(255, 255, 255, 0.1)', 
+
+                border: '1px solid rgba(255, 255, 255, 0.2)', 
+
+                color: '#ffffff', 
+
+                padding: '0.5rem 1rem', 
+
+                borderRadius: '0.5rem', 
+
+                cursor: 'pointer',
+
+                transition: 'all 0.3s ease',
+
+                opacity: isAnimating ? 0.5 : 1
+
+              }}
+
+            >
+
+              ← Indietro
+
+            </button>
+
+            <button 
+
+              onClick={nextSlide} 
+
+              disabled={isAnimating}
+
+              style={{ 
+
+                background: 'rgba(255, 255, 255, 0.1)', 
+
+                border: '1px solid rgba(255, 255, 255, 0.2)', 
+
+                color: '#ffffff', 
+
+                padding: '0.5rem 1rem', 
+
+                borderRadius: '0.5rem', 
+
+                cursor: 'pointer',
+
+                transition: 'all 0.3s ease',
+
+                opacity: isAnimating ? 0.5 : 1
+
+              }}
+
+            >
+
+              Avanti →
+
+            </button>
+
+          </div>
 
           <button onClick={onClose} className="primary-gradient text-white px-4 py-2 rounded-2xl font-semibold hover:scale-105 transition">
 
