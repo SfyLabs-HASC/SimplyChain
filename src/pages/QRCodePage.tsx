@@ -1,6 +1,31 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, Network } from 'lucide-react';
+import { ConnectButton } from "thirdweb/react";
+import { createThirdwebClient } from "thirdweb";
+import { polygon } from "thirdweb/chains";
+import { inAppWallet } from "thirdweb/wallets";
+
+const client = createThirdwebClient({ clientId: "023dd6504a82409b2bc7cb971fd35b16" });
+
+// Configurazione wallet con opzioni social multiple
+const wallets = [
+  inAppWallet({
+    auth: {
+      options: [
+        "google",
+        "discord",
+        "telegram",
+        "email",
+        "x",
+        "twitch",
+        "facebook",
+        "apple",
+        "tiktok",
+      ],
+    },
+  }),
+];
 
 // Icona per il download (SVG inlined)
 const DownloadIcon = () => (
@@ -245,18 +270,26 @@ export default function App() {
               EasyChain
             </span>
           </Link>
-          <Link to="/azienda" style={{ 
-            display: 'inline-flex', 
-            alignItems: 'center', 
-            gap: '0.5rem', 
-            color: '#9ca3af', 
-            textDecoration: 'none', 
-            fontSize: '0.9rem', 
-            transition: 'all 0.3s ease' 
-          }}>
-            <ArrowLeft size={16} />
-            Torna all'Area Privata
-          </Link>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <Link to="/azienda" style={{ 
+              display: 'inline-flex', 
+              alignItems: 'center', 
+              gap: '0.5rem', 
+              color: '#9ca3af', 
+              textDecoration: 'none', 
+              fontSize: '0.9rem', 
+              transition: 'all 0.3s ease' 
+            }}>
+              <ArrowLeft size={16} />
+              Torna all'Area Privata
+            </Link>
+            <ConnectButton 
+              client={client} 
+              wallets={wallets}
+              chain={polygon}
+              accountAbstraction={{ chain: polygon, sponsorGas: true }}
+            />
+          </div>
         </div>
       </header>
 

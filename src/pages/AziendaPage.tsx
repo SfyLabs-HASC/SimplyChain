@@ -5617,6 +5617,18 @@ const AziendaPage: React.FC = () => {
 
           <h1 className="text-2xl md:text-3xl font-bold text-foreground">EasyChain - Area Privata</h1>
 
+          <ConnectButton 
+
+            client={client}
+
+            wallets={wallets}
+
+            chain={polygon}
+
+            accountAbstraction={{ chain: polygon, sponsorGas: true }}
+
+          />
+
         </header>
 
         <main>
