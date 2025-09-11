@@ -1890,9 +1890,11 @@ const AziendaPageStyles = () => (
 
       .credits-link:hover {
 
-        text-decoration: underline;
+        text-decoration: underline !important;
 
-        text-decoration-color: #ffffff;
+        text-decoration-color: #ffffff !important;
+
+        text-underline-offset: 2px;
 
       }
 
