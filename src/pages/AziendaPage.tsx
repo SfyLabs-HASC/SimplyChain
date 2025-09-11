@@ -556,6 +556,18 @@ const AziendaPageStyles = () => (
 
       }
 
+      
+
+      .card-buttons {
+
+        margin-top: auto;
+
+        padding-top: 1rem;
+
+        border-top: 1px solid #333;
+
+      }
+
 
 
       .glass-card rounded-2xl p-6 tech-shadow hover:shadow-lg transition:hover {
@@ -638,21 +650,6 @@ const AziendaPageStyles = () => (
 
 
 
-      .flex justify-between items-center mt-4 {
-
-        display: flex;
-
-        justify-content: space-between;
-
-        align-items: center;
-
-        margin-top: auto;
-
-        padding-top: 1rem;
-
-        border-top: 1px solid #333;
-
-      }
 
 
 
@@ -3118,7 +3115,7 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
 
 
 
-                    <div className="flex justify-between items-center mt-4">
+                    <div className="card-buttons flex justify-between items-center">
 
                     <div className="text-sm text-muted-foreground">
 
