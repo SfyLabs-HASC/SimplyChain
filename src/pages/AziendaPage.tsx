@@ -4760,6 +4760,372 @@ const NewInscriptionModal: React.FC<{
 
     });
 
+  };
+
+
+
+  const isProcessing = loadingMessage !== "" || isPending;
+
+  const today = new Date().toISOString().split("T")[0];
+
+  const helpTextStyle = {
+
+    backgroundColor: "#343a40",
+
+    border: "1px solid #495057",
+
+    borderRadius: "8px",
+
+    padding: "16px",
+
+    marginTop: "16px",
+
+    fontSize: "0.9rem",
+
+    color: "#f8f9fa"
+
+  };
+
+
+
+  return (
+
+    <>
+
+      <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4" onClick={onClose}>
+
+        <div className="bg-card p-6 rounded-2xl border border-border max-w-2xl w-full text-foreground" onClick={(e) => e.stopPropagation()}>
+
+          <div className="p-4 border-b border-border">
+
+            <h2>Nuova Iscrizione ({currentStep}/6)</h2>
+
+          </div>
+
+          <div className="p-4" style={{ minHeight: "350px" }}>
+
+            {currentStep === 1 && (
+
+              <div>
+
+                <div className="mb-4">
+
+                  <label>
+
+                    Nome Iscrizione 
+
+                    <span style={{ color: "red", fontWeight: "bold" }}> * Obbligatorio</span>
+
+                  </label>
+
+                  <input 
+
+                    type="text" 
+
+                    name="name" 
+
+                    value={formData.name} 
+
+                    onChange={handleInputChange} 
+
+                    className="w-full p-3 rounded-lg bg-gray-800 border border-gray-700 text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50" 
+
+                    maxLength={50} 
+
+                  />
+
+                  <small className="char-counter">{formData.name.length} / 50</small>
+
+                </div>
+
+                <div style={helpTextStyle}>
+
+                  <p><strong>ℹ️ Come scegliere il Nome Iscrizione</strong></p>
+
+                  <p>Il Nome Iscrizione è un'etichetta descrittiva che ti aiuta a identificare in modo chiaro ciò che stai registrando on-chain. Ad esempio:</p>
+
+                  <ul style={{ textAlign: "left", paddingLeft: "20px" }}>
+
+                    <li>Il nome di un prodotto o varietà: <em>Pomodori San Marzano 2025, Olio Extravergine Frantoio</em></li>
+
+                    <li>Un lotto o una produzione: <em>Lotto Pasta Artigianale LT1025, Produzione Vino Rosso 2024</em></li>
+
+                    <li>Un servizio o processo: <em>Trasporto Merci Roma-Milano, Certificazione Biologico 2025</em></li>
+
+                  </ul>
+
+                  <p style={{ marginTop: "1rem" }}><strong>📌 Consiglio:</strong> scegli un nome breve ma significativo, che ti permetta di ritrovare facilmente l'iscrizione anche dopo mesi o anni.</p>
+
+                </div>
+
+              </div>
+
+            )}
+
+
+
+            {currentStep === 2 && (
+
+              <div>
+
+                <div className="mb-4">
+
+                  <label>
+
+                    Descrizione
+
+                    <span style={{ color: "#6c757d" }}> Non obbligatorio</span>
+
+                  </label>
+
+                  <textarea
+
+                    name="description"
+
+                    value={formData.description}
+
+                    onChange={handleInputChange}
+
+                    className="w-full p-3 rounded-lg bg-gray-800 border border-gray-700 text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+
+                    rows={4}
+
+                    maxLength={250}
+
+                  ></textarea>
+
+                  <small className="char-counter">{formData.description.length} / 250</small>
+
+                </div>
+
+                <div style={helpTextStyle}>
+
+                  <p>Inserisci una descrizione dettagliata di ciò che stai registrando. Fornisci tutte le informazioni utili per identificare chiaramente il prodotto, il servizio o il processo a cui appartiene questa iscrizione.</p>
+
+                </div>
+
+              </div>
+
+            )}
+
+
+
+            {currentStep === 3 && (
+
+              <div>
+
+                <div className="mb-4">
+
+                  <label>
+
+                    Luogo di Produzione
+
+                    <span style={{ color: "#6c757d" }}> Non obbligatorio</span>
+
+                  </label>
+
+                  <input
+
+                    type="text"
+
+                    name="location"
+
+                    value={formData.location}
+
+                    onChange={handleInputChange}
+
+                    className="w-full p-3 rounded-lg bg-gray-800 border border-gray-700 text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+
+                    maxLength={50}
+
+                  />
+
+                  <small className="char-counter">{formData.location.length} / 50</small>
+
+                </div>
+
+                <div style={helpTextStyle}>
+
+                  <p>Inserisci il luogo di origine o produzione, come una città, una regione, un'azienda agricola o uno stabilimento. Serve a indicare con precisione dove ha avuto origine ciò che stai registrando.</p>
+
+                </div>
+
+              </div>
+
+            )}
+
+
+
+            {currentStep === 4 && (
+
+              <div>
+
+                <div className="mb-4">
+
+                  <label>
+
+                    Data di Origine
+
+                    <span style={{ color: "#6c757d" }}> Non obbligatorio</span>
+
+                  </label>
+
+                  <input
+
+                    type="date"
+
+                    name="date"
+
+                    value={formData.date}
+
+                    onChange={handleInputChange}
+
+                    className="w-full p-3 rounded-lg bg-gray-800 border border-gray-700 text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+
+                    max={today}
+
+                  />
+
+                </div>
+
+                <div style={helpTextStyle}>
+
+                  <p>Inserisci una data di origine, puoi utilizzare il giorno attuale o una data precedente alla registrazione di questa iscrizione.</p>
+
+                </div>
+
+              </div>
+
+            )}
+
+
+
+            {currentStep === 5 && (
+
+              <div>
+
+                <div className="mb-4">
+
+                  <label>
+
+                    Immagine Prodotto
+
+                    <span style={{ color: "#6c757d" }}> Non obbligatorio</span>
+
+                  </label>
+
+                  <input
+
+                    type="file"
+
+                    name="image"
+
+                    onChange={handleFileChange}
+
+                    className="w-full p-3 rounded-lg bg-gray-800 border border-gray-700 text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+
+                    accept="image/png, image/jpeg, image/webp"
+
+                  />
+
+                  <small style={{ marginTop: "4px" }}>
+
+                    Formati supportati: PNG, JPG, WEBP. Dimensione massima: 5 MB.
+
+                  </small>
+
+                  {selectedFile && (
+
+                    <p className="text-primary underline mt-2 block">File: {selectedFile.name}</p>
+
+                  )}
+
+                </div>
+
+                <div style={helpTextStyle}>
+
+                  <p>Carica un'immagine rappresentativa di ciò che stai registrando, come una foto del prodotto, del luogo di produzione o di un documento. Rispetta i formati e i limiti di peso.</p>
+
+                </div>
+
+              </div>
+
+            )}
+
+
+
+            {currentStep === 6 && (
+
+              <div>
+
+                <h4>Riepilogo Dati</h4>
+
+                <div className="bg-gray-800 p-4 rounded-md border border-gray-700">
+
+                  <p><strong>Nome:</strong> {truncateText(formData.name, 40) || "N/D"}</p>
+
+                  <p><strong>Descrizione:</strong> {truncateText(formData.description, 60) || "N/D"}</p>
+
+                  <p><strong>Luogo:</strong> {truncateText(formData.location, 40) || "N/D"}</p>
+
+                  <p><strong>Data:</strong> {formData.date ? formData.date.split("-").reverse().join("/") : "N/D"}</p>
+
+                  <p><strong>Immagine:</strong> {truncateText(selectedFile?.name || "", 40) || "Nessuna"}</p>
+
+                </div>
+
+                <p>Vuoi confermare e registrare questa iscrizione sulla blockchain?</p>
+
+              </div>
+
+            )}
+
+          </div>
+
+          <div className="p-4 border-t border-border flex justify-between gap-4">
+
+            <div>
+
+              {currentStep > 1 && (
+
+                <button onClick={handlePrevStep} className="primary-gradient text-white px-4 py-2 rounded-2xl font-semibold hover:scale-105 transition secondary" disabled={isProcessing}>
+
+                  Indietro
+
+                </button>
+
+              )}
+
+            </div>
+
+            <div style={{ display: 'flex', gap: '1rem' }}>
+
+              <button onClick={onClose} className="primary-gradient text-white px-4 py-2 rounded-2xl font-semibold hover:scale-105 transition secondary" disabled={isProcessing}>
+
+                Chiudi
+
+              </button>
+
+              {currentStep < 6 && (
+
+                <button onClick={handleNextStep} className="primary-gradient text-white px-4 py-2 rounded-2xl font-semibold hover:scale-105 transition">
+
+                  Avanti
+
+                </button>
+
+              )}
+
+              {currentStep === 6 && (
+
+                <button onClick={handleSubmit} disabled={isProcessing} className="primary-gradient text-white px-4 py-2 rounded-2xl font-semibold hover:scale-105 transition">
+
+                  {isProcessing ? "Conferma..." : "Conferma e Registra"}
+
+                </button>
+
+              )}
+
             </div>
 
           </div>
