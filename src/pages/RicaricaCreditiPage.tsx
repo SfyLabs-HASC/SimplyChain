@@ -280,11 +280,13 @@ const RicaricaCreditiPage: React.FC = () => {
 
   // Effect per gestire il disconnect e reindirizzare alla homepage
   useEffect(() => {
-    if (!account) {
+    // Solo reindirizza se l'account diventa null DOPO essere stato presente
+    // Evita redirect se l'utente accede direttamente alla pagina senza wallet
+    if (!account && userData !== null) {
       navigate('/');
       return;
     }
-  }, [account, navigate]);
+  }, [account, navigate, userData]);
 
   useEffect(() => {
     if (!account) {

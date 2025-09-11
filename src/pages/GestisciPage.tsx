@@ -231,12 +231,21 @@ export default function GestisciPage() {
     const { mutate: sendTransaction, isPending: isFinalizing } = useSendTransaction();
 
     // Effect per gestire il disconnect e reindirizzare alla homepage
+    const [wasConnected, setWasConnected] = useState(false);
+    
     useEffect(() => {
-        if (!account) {
+        if (account) {
+            setWasConnected(true);
+        }
+    }, [account]);
+
+    useEffect(() => {
+        // Solo reindirizza se l'utente era connesso e poi si è disconnesso
+        if (!account && wasConnected) {
             navigate('/');
             return;
         }
-    }, [account, navigate]);
+    }, [account, navigate, wasConnected]);
 
     const [batchInfo, setBatchInfo] = useState<any>(null);
     const [eventi, setEventi] = useState<any[]>([]);

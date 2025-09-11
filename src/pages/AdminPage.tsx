@@ -572,14 +572,23 @@ const AdminContent = () => {
 export default function AdminPage() {
   const account = useActiveAccount();
   const navigate = useNavigate();
+  const [wasConnected, setWasConnected] = useState(false);
+
+  // Effect per tracciare se l'utente era connesso
+  useEffect(() => {
+    if (account) {
+      setWasConnected(true);
+    }
+  }, [account]);
 
   // Effect per gestire il disconnect e reindirizzare alla homepage
   useEffect(() => {
-    if (!account) {
+    // Solo reindirizza se l'utente era connesso e poi si è disconnesso
+    if (!account && wasConnected) {
       navigate('/');
       return;
     }
-  }, [account, navigate]);
+  }, [account, navigate, wasConnected]);
 
   return (
     <>

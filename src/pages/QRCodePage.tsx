@@ -142,12 +142,21 @@ export default function App() {
   const navigate = useNavigate();
 
   // Effect per gestire il disconnect e reindirizzare alla homepage
+  const [wasConnected, setWasConnected] = useState(false);
+  
   useEffect(() => {
-    if (!account) {
+    if (account) {
+      setWasConnected(true);
+    }
+  }, [account]);
+
+  useEffect(() => {
+    // Solo reindirizza se l'utente era connesso e poi si è disconnesso
+    if (!account && wasConnected) {
       navigate('/');
       return;
     }
-  }, [account, navigate]);
+  }, [account, navigate, wasConnected]);
 
   const resolutions = [
     { label: 'Bassa', value: 250 },

@@ -54,15 +54,16 @@ export default function HomePage() {
     };
   }, []); // Empty dependency array means this effect runs once on mount and cleans up on unmount
 
-  // Effect to handle user authentication and routing (solo se l'utente ha cliccato sui pulsanti)
+  // Effect to handle user authentication and routing
   useEffect(() => {
-    if (account && account.address && shouldAutoRedirect) {
+    if (account && account.address) {
+      // Sempre controlla lo stato dell'utente quando si connette
       checkUserVerification();
     } else if (!account) {
       // Reset flag quando si disconnette
       setShouldAutoRedirect(false);
     }
-  }, [account, shouldAutoRedirect]);
+  }, [account]);
 
   const checkUserVerification = async () => {
     if (!account?.address) return;
