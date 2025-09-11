@@ -2150,15 +2150,139 @@ const ImageModal: React.FC<{ imageUrl: string; onClose: () => void }> = ({ image
 
   return (
 
-    <div className="image-fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4" onClick={onClose}>
+    <div 
 
-      <div className="image-bg-card p-6 rounded-2xl border border-border max-w-2xl w-full text-foreground" onClick={(e) => e.stopPropagation()}>
+      style={{
 
-        <img src={imageUrl} alt="Immagine iscrizione" />
+        position: 'fixed',
+
+        top: 0,
+
+        left: 0,
+
+        right: 0,
+
+        bottom: 0,
+
+        backgroundColor: 'rgba(0, 0, 0, 0.9)',
+
+        display: 'flex',
+
+        justifyContent: 'center',
+
+        alignItems: 'center',
+
+        zIndex: 9999,
+
+        padding: '2rem'
+
+      }}
+
+      onClick={onClose}
+
+    >
+
+      <div 
+
+        style={{
+
+          position: 'relative',
+
+          maxWidth: '90vw',
+
+          maxHeight: '90vh',
+
+          background: 'transparent'
+
+        }}
+
+        onClick={(e) => e.stopPropagation()}
+
+      >
+
+        <img 
+
+          src={imageUrl} 
+
+          alt="Immagine iscrizione" 
+
+          style={{
+
+            maxWidth: '100%',
+
+            maxHeight: '100%',
+
+            objectFit: 'contain',
+
+            borderRadius: '0.75rem',
+
+            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.4)'
+
+          }}
+
+        />
+
+        <button 
+
+          onClick={onClose}
+
+          style={{
+
+            position: 'absolute',
+
+            top: '1rem',
+
+            right: '1rem',
+
+            background: 'rgba(0, 0, 0, 0.7)',
+
+            color: 'white',
+
+            border: 'none',
+
+            borderRadius: '50%',
+
+            width: '40px',
+
+            height: '40px',
+
+            cursor: 'pointer',
+
+            fontSize: '1.5rem',
+
+            display: 'flex',
+
+            alignItems: 'center',
+
+            justifyContent: 'center',
+
+            transition: 'all 0.3s ease'
+
+          }}
+
+          onMouseOver={(e) => {
+
+            e.target.style.background = 'rgba(0, 0, 0, 0.9)';
+
+            e.target.style.transform = 'scale(1.1)';
+
+          }}
+
+          onMouseOut={(e) => {
+
+            e.target.style.background = 'rgba(0, 0, 0, 0.7)';
+
+            e.target.style.transform = 'scale(1)';
+
+          }}
+
+        >
+
+          ×
+
+        </button>
 
       </div>
-
-      <button className="absolute top-4 right-4 bg-black/60 text-white rounded-full w-10 h-10 flex items-center justify-center" onClick={onClose}>×</button>
 
     </div>
 
