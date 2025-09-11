@@ -2337,7 +2337,6 @@ const FullPageLoading: React.FC<{ message?: string }> = ({ message }) => {
 const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
 
   const account = useActiveAccount();
-  const navigate = useNavigate();
 
   const [batches, setBatches] = useState<Batch[]>([]);
 
@@ -2803,15 +2802,7 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
 
         </div>
 
-        <div className="flex gap-3">
-          <button onClick={() => setIsModalOpen(true)} className="primary-gradient text-white px-4 py-2 rounded-2xl font-semibold hover:scale-105 transition">+ Inizializza Nuova Iscrizione</button>
-          <button 
-            onClick={() => navigate('/csv-import')} 
-            className="bg-gradient-to-r from-emerald-600 to-emerald-700 text-white px-4 py-2 rounded-2xl font-semibold hover:scale-105 transition flex items-center gap-2"
-          >
-            📊 Import CSV
-          </button>
-        </div>
+        <button onClick={() => setIsModalOpen(true)} className="primary-gradient text-white px-4 py-2 rounded-2xl font-semibold hover:scale-105 transition">+ Inizializza Nuova Iscrizione</button>
 
       </div>
 

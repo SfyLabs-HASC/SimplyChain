@@ -11,7 +11,6 @@ import FormPage from "./pages/FormPage";
 import GestisciPage from "./pages/GestisciPage";
 import QRCodePage from "./pages/QRCodePage";
 import RicaricaCreditiPage from "./pages/RicaricaCreditiPage";
-import CSVImportPage from "./pages/CSVImportPage";
 import './App.css';
 
 function App() {
@@ -30,7 +29,6 @@ function App() {
       <Route path="/gestisci/:batchId" element={<GestisciPage />} />
       <Route path="/qrcode" element={<QRCodePage />} />
       <Route path="/ricaricacrediti" element={<RicaricaCreditiPage />} />
-      <Route path="/csv-import" element={<CSVImportPage />} />
       </Routes>
   );
 }
