@@ -546,49 +546,6 @@ const AziendaPageStyles = () => (
 
       
 
-      .card-content {
-
-        flex: 1;
-
-        display: flex;
-
-        flex-direction: column;
-
-      }
-
-      
-
-      .card-buttons {
-
-        margin-top: auto;
-
-        padding-top: 1rem;
-
-        border-top: 1px solid #333;
-
-      }
-
-      
-
-      .grid.gap-6 {
-
-        display: grid;
-
-        gap: 1.5rem;
-
-        align-items: stretch;
-
-      }
-
-      
-
-      .grid.gap-6 .batch-card {
-
-        height: 100%;
-
-        min-height: 400px;
-
-      }
 
 
 
@@ -3059,9 +3016,9 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
 
               currentItems.map((batch) => (
 
-                <div key={batch.batchId} className="batch-card glass-card rounded-2xl p-6 tech-shadow hover:shadow-lg transition">
+                <div key={batch.batchId} className="batch-card glass-card rounded-2xl p-6 tech-shadow hover:shadow-lg transition h-full flex flex-col">
 
-                  <div className="card-content">
+                  <div className="flex-1 flex flex-col">
 
                     <h3 className="batch-title">
 
@@ -3137,7 +3094,7 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
 
 
 
-                    <div className="card-buttons flex justify-between items-center">
+                    <div className="mt-auto pt-4 border-t border-gray-600 flex justify-between items-center">
 
                     <div className="text-sm text-muted-foreground">
 
