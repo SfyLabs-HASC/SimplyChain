@@ -5322,11 +5322,45 @@ const NewInscriptionModal: React.FC<{
 
       <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4" onClick={onClose}>
 
-        <div className="bg-card p-6 rounded-2xl border border-border max-w-2xl w-full text-foreground" onClick={(e) => e.stopPropagation()}>
+        <div className="bg-card p-6 rounded-2xl border border-border max-w-2xl w-full text-foreground" onClick={(e) => e.stopPropagation()} style={{ background: 'linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%)', border: '1px solid rgba(255, 255, 255, 0.1)', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.4)' }}>
 
-          <div className="p-4 border-b border-border">
+          <div className="p-4 border-b border-border" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255, 255, 255, 0.1)' }}>
 
-            <h2>Nuova Iscrizione ({currentStep}/6)</h2>
+            <h2 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+
+              <span style={{ fontSize: '1.5rem' }}>✨</span>
+
+              Nuova Iscrizione ({currentStep}/6)
+
+            </h2>
+
+            <div style={{ display: 'flex', gap: '0.25rem' }}>
+
+              {[1,2,3,4,5,6].map((step) => (
+
+                <div
+
+                  key={step}
+
+                  style={{
+
+                    width: '8px',
+
+                    height: '8px',
+
+                    borderRadius: '50%',
+
+                    background: step <= currentStep ? '#6366f1' : 'rgba(255, 255, 255, 0.3)',
+
+                    transition: 'all 0.3s ease'
+
+                  }}
+
+                />
+
+              ))}
+
+            </div>
 
           </div>
 
@@ -5336,13 +5370,15 @@ const NewInscriptionModal: React.FC<{
 
               <div>
 
-                <div className="mb-4">
+                <div style={{ background: 'rgba(99, 102, 241, 0.1)', padding: '1.5rem', borderRadius: '1rem', border: '1px solid rgba(99, 102, 241, 0.3)', marginBottom: '1.5rem' }}>
 
-                  <label>
+                  <label style={{ display: 'block', marginBottom: '0.75rem', color: '#e5e7eb', fontWeight: '600', fontSize: '1rem' }}>
+
+                    <span style={{ fontSize: '1.1rem', marginRight: '0.5rem' }}>📝</span>
 
                     Nome Iscrizione 
 
-                    <span style={{ color: "red", fontWeight: "bold" }}> * Obbligatorio</span>
+                    <span style={{ color: "#ef4444", fontWeight: "bold", marginLeft: '0.5rem' }}>* Obbligatorio</span>
 
                   </label>
 
@@ -5356,33 +5392,71 @@ const NewInscriptionModal: React.FC<{
 
                     onChange={handleInputChange} 
 
-                    className="w-full p-3 rounded-lg bg-gray-800 border border-gray-700 text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50" 
+                    style={{ 
+
+                      width: '100%', 
+
+                      padding: '0.75rem 1rem', 
+
+                      background: 'rgba(0, 0, 0, 0.3)', 
+
+                      border: '1px solid rgba(255, 255, 255, 0.2)', 
+
+                      borderRadius: '0.75rem', 
+
+                      color: '#ffffff', 
+
+                      fontSize: '1rem',
+
+                      transition: 'all 0.3s ease'
+
+                    }}
+
+                    onFocus={(e) => {
+
+                      e.target.style.borderColor = '#6366f1';
+
+                      e.target.style.boxShadow = '0 0 0 3px rgba(99, 102, 241, 0.1)';
+
+                    }}
+
+                    onBlur={(e) => {
+
+                      e.target.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+
+                      e.target.style.boxShadow = 'none';
+
+                    }}
 
                     maxLength={50} 
 
                   />
 
-                  <small className="char-counter">{formData.name.length} / 50</small>
+                  <small style={{ color: '#9ca3af', fontSize: '0.8rem', marginTop: '0.25rem', display: 'block' }}>{formData.name.length} / 50 caratteri</small>
 
                 </div>
 
-                <div style={helpTextStyle}>
+                <div style={{ background: 'rgba(59, 130, 246, 0.1)', padding: '1.5rem', borderRadius: '1rem', border: '1px solid rgba(59, 130, 246, 0.3)' }}>
 
-                  <p><strong>ℹ️ Come scegliere il Nome Iscrizione</strong></p>
+                  <h4 style={{ color: '#3b82f6', margin: '0 0 1rem 0', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
 
-                  <p>Il Nome Iscrizione è un'etichetta descrittiva che ti aiuta a identificare in modo chiaro ciò che stai registrando on-chain. Ad esempio:</p>
+                    <span>ℹ️</span> Come scegliere il Nome Iscrizione
 
-                  <ul style={{ textAlign: "left", paddingLeft: "20px" }}>
+                  </h4>
 
-                    <li>Il nome di un prodotto o varietà: <em>Pomodori San Marzano 2025, Olio Extravergine Frantoio</em></li>
+                  <p style={{ margin: '0 0 1rem 0', color: '#d1d5db', lineHeight: '1.6' }}>Il Nome Iscrizione è un'etichetta descrittiva che ti aiuta a identificare in modo chiaro ciò che stai registrando on-chain. Ad esempio:</p>
 
-                    <li>Un lotto o una produzione: <em>Lotto Pasta Artigianale LT1025, Produzione Vino Rosso 2024</em></li>
+                  <ul style={{ textAlign: "left", paddingLeft: "20px", margin: '0 0 1rem 0', color: '#d1d5db' }}>
 
-                    <li>Un servizio o processo: <em>Trasporto Merci Roma-Milano, Certificazione Biologico 2025</em></li>
+                    <li style={{ marginBottom: '0.5rem' }}>Il nome di un prodotto o varietà: <em style={{ color: '#c4b5fd' }}>Pomodori San Marzano 2025, Olio Extravergine Frantoio</em></li>
+
+                    <li style={{ marginBottom: '0.5rem' }}>Un lotto o una produzione: <em style={{ color: '#c4b5fd' }}>Lotto Pasta Artigianale LT1025, Produzione Vino Rosso 2024</em></li>
+
+                    <li style={{ marginBottom: '0.5rem' }}>Un servizio o processo: <em style={{ color: '#c4b5fd' }}>Trasporto Merci Roma-Milano, Certificazione Biologico 2025</em></li>
 
                   </ul>
 
-                  <p style={{ marginTop: "1rem" }}><strong>📌 Consiglio:</strong> scegli un nome breve ma significativo, che ti permetta di ritrovare facilmente l'iscrizione anche dopo mesi o anni.</p>
+                  <p style={{ margin: 0, color: '#d1d5db' }}><strong style={{ color: '#ffffff' }}>📌 Consiglio:</strong> scegli un nome breve ma significativo, che ti permetta di ritrovare facilmente l'iscrizione anche dopo mesi o anni.</p>
 
                 </div>
 
