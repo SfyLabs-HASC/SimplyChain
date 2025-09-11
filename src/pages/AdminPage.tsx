@@ -532,47 +532,6 @@ const CompanyList = () => {
             
             {selectedCompany && <EditCompanyModal company={selectedCompany} onClose={() => setSelectedCompany(null)} onUpdate={fetchCompanies} />}
         </div>
-                <thead>
-                    <tr className="desktop-row">
-                        <th>Stato</th><th>Nome Azienda</th><th>Wallet</th><th>Email</th><th>Azione</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {isLoading ? (<tr><td colSpan={5} style={{textAlign: 'center', padding: '2rem'}}>Caricamento...</td></tr>) : 
-                    filteredCompanies.length > 0 ? (
-                        filteredCompanies.map(c => (
-                        <React.Fragment key={c.id}>
-                            {/* Riga per Desktop */}
-                            <tr className="desktop-row">
-                                <td>{getStatusIcon(c.status)}</td>
-                                <td>{c.companyName}</td>
-                                <td>{c.walletAddress}</td>
-                                <td>{c.contactEmail || "/"}</td>
-                                <td><button onClick={() => setSelectedCompany(c)} className="web3-button" style={{padding: '0.5rem 1rem'}}>Gestisci</button></td>
-                            </tr>
-                            {/* Card per Mobile */}
-                            <tr className="mobile-card-row">
-                                <td>
-                                    <div className="mobile-card-header">
-                                        <h4>{c.companyName}</h4>
-                                        <span>{getStatusIcon(c.status)}</span>
-                                    </div>
-                                    <div className="mobile-card-body">
-                                        <p><strong>Email:</strong> <span>{c.contactEmail || "/"}</span></p>
-                                        <p><strong>Wallet:</strong> <span style={{wordBreak: 'break-all'}}>{c.walletAddress}</span></p>
-                                    </div>
-                                    <div className="mobile-card-footer">
-                                        <button onClick={() => setSelectedCompany(c)} className="web3-button">Gestisci</button>
-                                    </div>
-                                </td>
-                            </tr>
-                        </React.Fragment>
-                        ))) : 
-                    (<tr><td colSpan={5} style={{textAlign: 'center', padding: '2rem'}}>Nessuna azienda trovata.</td></tr>)}
-                </tbody>
-            </table>
-            {selectedCompany && <EditCompanyModal company={selectedCompany} onClose={() => setSelectedCompany(null)} onUpdate={fetchCompanies} />}
-        </div>
     );
 };
 
