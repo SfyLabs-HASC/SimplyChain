@@ -3254,8 +3254,6 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
 
           </div>
 
-        </>
-
       )}
 
 
