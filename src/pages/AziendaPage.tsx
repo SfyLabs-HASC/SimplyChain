@@ -2092,6 +2092,44 @@ const contract = getContract({
 
 
 
+// Configurazione wallet con opzioni social multiple
+
+const wallets = [
+
+  inAppWallet({
+
+    auth: {
+
+      options: [
+
+        "google",
+
+        "discord",
+
+        "telegram",
+
+        "email",
+
+        "x",
+
+        "twitch",
+
+        "facebook",
+
+        "apple",
+
+        "tiktok",
+
+      ],
+
+    },
+
+  }),
+
+];
+
+
+
 // Componente modale per visualizzare immagini (fullscreen overlay)
 
 const ImageModal: React.FC<{ imageUrl: string; onClose: () => void }> = ({ imageUrl, onClose }) => {
@@ -5522,7 +5560,7 @@ const AziendaPage: React.FC = () => {
 
             client={client} 
 
-            wallets={[inAppWallet()]}
+            wallets={wallets}
 
             chain={polygon}
 
@@ -5555,6 +5593,8 @@ const AziendaPage: React.FC = () => {
           <ConnectButton 
 
             client={client}
+
+            wallets={wallets}
 
             chain={polygon}
 
