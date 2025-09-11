@@ -3116,11 +3116,9 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
 
                     )}
 
-                  </div>
 
 
-
-                  <div className="flex justify-between items-center mt-4">
+                    <div className="flex justify-between items-center mt-4">
 
                     <div className="text-sm text-muted-foreground">
 
@@ -3225,6 +3223,8 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
                       )}
 
                     </div>
+
+                  </div>
 
                   </div>
 
