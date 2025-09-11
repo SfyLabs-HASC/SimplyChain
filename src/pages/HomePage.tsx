@@ -1,13 +1,41 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Shield, Zap, Globe, Users, ArrowRight, CheckCircle, Sparkles, Cpu, Network, Lock, FileText, X, Play } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import { ConnectButton, useActiveAccount } from "thirdweb/react";
+import { createThirdwebClient } from "thirdweb";
+import { polygon } from "thirdweb/chains";
+import { inAppWallet } from "thirdweb/wallets";
+
+const client = createThirdwebClient({ clientId: "023dd6504a82409b2bc7cb971fd35b16" });
+
+// Configurazione wallet con opzioni social multiple
+const wallets = [
+  inAppWallet({
+    auth: {
+      options: [
+        "google",
+        "discord",
+        "telegram",
+        "email",
+        "x",
+        "twitch",
+        "facebook",
+        "apple",
+        "tiktok",
+      ],
+    },
+  }),
+];
 
 export default function HomePage() {
   const [isVideoOpen, setIsVideoOpen] = useState(false);
   const [textPhase, setTextPhase] = useState(1);
+  const [showConnectButton, setShowConnectButton] = useState(false);
+  const account = useActiveAccount();
+  const navigate = useNavigate();
 
   useEffect(() => {
-    // Seet up an interval to change the text phase every 4 seconds (4000ms)
+    // Set up an interval to change the text phase every 4 seconds (4000ms)
     const interval = setInterval(() => {
       setTextPhase((prevPhase) => {
         // Cycle from 1 to 2, 2 to 3, and 3 back to 1
@@ -24,6 +52,41 @@ export default function HomePage() {
       clearInterval(interval);
     };
   }, []); // Empty dependency array means this effect runs once on mount and cleans up on unmount
+
+  // Effect to handle user authentication and routing
+  useEffect(() => {
+    if (account && account.address) {
+      checkUserVerification();
+    }
+  }, [account]);
+
+  const checkUserVerification = async () => {
+    if (!account?.address) return;
+
+    try {
+      const response = await fetch(`/api/get-company-status?walletAddress=${account.address}`);
+      if (!response.ok) {
+        throw new Error('Errore di rete nella verifica dello stato.');
+      }
+      const data = await response.json();
+      
+      if (data.isActive) {
+        // Utente verificato, vai ad AziendaPage
+        navigate('/azienda');
+      } else {
+        // Utente non verificato, vai a FormPage
+        navigate('/form');
+      }
+    } catch (error) {
+      console.error('Errore durante la verifica:', error);
+      // In caso di errore, vai comunque a FormPage
+      navigate('/form');
+    }
+  };
+
+  const handleAuthButtonClick = () => {
+    setShowConnectButton(true);
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -59,12 +122,22 @@ export default function HomePage() {
             </p>
             
             <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-16">
-              <Link to="/azienda">
-                <button className="group primary-gradient text-xl px-10 py-5 rounded-2xl tech-shadow smooth-transition hover:scale-105 text-primary-foreground font-semibold flex items-center gap-3">
+              {!showConnectButton ? (
+                <button 
+                  onClick={handleAuthButtonClick}
+                  className="group primary-gradient text-xl px-10 py-5 rounded-2xl tech-shadow smooth-transition hover:scale-105 text-primary-foreground font-semibold flex items-center gap-3"
+                >
                   Accedi
                   <ArrowRight className="w-6 h-6 group-hover:translate-x-1 smooth-transition" />
                 </button>
-              </Link>
+              ) : (
+                <ConnectButton 
+                  client={client} 
+                  wallets={wallets}
+                  chain={polygon}
+                  accountAbstraction={{ chain: polygon, sponsorGas: true }}
+                />
+              )}
               <button
                 onClick={() => setIsVideoOpen(true)}
                 className="text-muted-foreground hover:text-accent smooth-transition text-lg underline decoration-accent/50 hover:decoration-accent flex items-center gap-2"
@@ -312,12 +385,24 @@ export default function HomePage() {
               <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5"></div>
               
               <div className="relative z-10">
-                <Link to="/azienda">
-                  <button className="group primary-gradient text-2xl px-16 py-8 rounded-3xl tech-shadow smooth-transition hover:scale-105 text-primary-foreground font-bold flex items-center gap-4 mx-auto">
+                {!showConnectButton ? (
+                  <button 
+                    onClick={handleAuthButtonClick}
+                    className="group primary-gradient text-2xl px-16 py-8 rounded-3xl tech-shadow smooth-transition hover:scale-105 text-primary-foreground font-bold flex items-center gap-4 mx-auto"
+                  >
                     Registra la tua Azienda
                     <ArrowRight className="w-8 h-8 group-hover:translate-x-2 smooth-transition" />
                   </button>
-                </Link>
+                ) : (
+                  <div className="flex justify-center">
+                    <ConnectButton 
+                      client={client} 
+                      wallets={wallets}
+                      chain={polygon}
+                      accountAbstraction={{ chain: polygon, sponsorGas: true }}
+                    />
+                  </div>
+                )}
                 
                 <p className="text-muted-foreground mt-6 text-lg">
                   Registrazione gratuita • Nessun costo nascosto • Attivazione su verifica

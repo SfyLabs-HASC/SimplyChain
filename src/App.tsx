@@ -7,6 +7,7 @@ import { Routes, Route } from 'react-router-dom';
 import HomePage from './pages/HomePage';
 import AdminPage from './pages/AdminPage';
 import AziendaPage from "./pages/AziendaPage";
+import FormPage from "./pages/FormPage";
 import GestisciPage from "./pages/GestisciPage";
 import QRCodePage from "./pages/QRCodePage";
 import RicaricaCreditiPage from "./pages/RicaricaCreditiPage";
@@ -22,6 +23,7 @@ function App() {
       {/* Rotte specifiche per le altre sezioni */}
       <Route path="/admin" element={<AdminPage />} />
       <Route path="/azienda" element={<AziendaPage />} />
+      <Route path="/form" element={<FormPage />} />
 
       {/* Rotta dinamica per la gestione di una singola iscrizione (questa era già giusta) */}
       <Route path="/gestisci/:batchId" element={<GestisciPage />} />

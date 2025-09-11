@@ -3,12 +3,32 @@ import { useParams, Link } from 'react-router-dom';
 import { ConnectButton, useActiveAccount, useReadContract, useSendTransaction } from 'thirdweb/react';
 import { createThirdwebClient, getContract, prepareContractCall, readContract } from 'thirdweb';
 import { polygon } from 'thirdweb/chains';
+import { inAppWallet } from 'thirdweb/wallets';
 import { supplyChainABI as abi } from '../abi/contractABI';
 import '../App.css';
 import TransactionStatusModal from '../components/TransactionStatusModal';
 
 // ✅ MODIFICA: Aggiornato Client ID e Indirizzo Contratto
 const client = createThirdwebClient({ clientId: "023dd6504a82409b2bc7cb971fd35b16" });
+
+// Configurazione wallet con opzioni social multiple
+const wallets = [
+  inAppWallet({
+    auth: {
+      options: [
+        "google",
+        "discord",
+        "telegram",
+        "email",
+        "x",
+        "twitch",
+        "facebook",
+        "apple",
+        "tiktok",
+      ],
+    },
+  }),
+];
 const contract = getContract({ 
   client, 
   chain: polygon,
@@ -299,7 +319,7 @@ export default function GestisciPage() {
         <div className="app-container-full" style={{ padding: '0 2rem' }}>
             <header className="main-header-bar">
                 <Link to="/" style={{ textDecoration: 'none', color: 'inherit' }}><div style={{ fontSize: '1.75rem', fontWeight: 'bold' }}>EasyChain - Area Riservata</div></Link>
-                <div className="wallet-button-container"><ConnectButton client={client} chain={polygon} detailsModal={{ hideSend: true, hideReceive: true, hideBuy: true, hideTransactionHistory: true }}/></div>
+                <div className="wallet-button-container"><ConnectButton client={client} wallets={wallets} chain={polygon} detailsModal={{ hideSend: true, hideReceive: true, hideBuy: true, hideTransactionHistory: true }}/></div>
             </header>
             
             <main className="main-content-full">

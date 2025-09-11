@@ -32,8 +32,6 @@ import "../App.css";
 
 // Importa i componenti esterni
 
-import RegistrationForm from "../components/RegistrationForm";
-
 import TransactionStatusModal from "../components/TransactionStatusModal";
 
 
@@ -5530,7 +5528,7 @@ const AziendaPage: React.FC = () => {
 
     if (account) {
 
-      return <RegistrationForm walletAddress={account.address} />;
+      return <div className="flex flex-col items-center justify-center min-h-[60vh] text-center p-6"><p>Account non attivato. Contatta l'amministratore.</p></div>;
 
     }
 

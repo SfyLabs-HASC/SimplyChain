@@ -5,6 +5,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { ConnectButton, TransactionButton, useActiveAccount } from "thirdweb/react";
 import { createThirdwebClient, getContract, readContract, prepareContractCall } from "thirdweb";
 import { polygon } from "thirdweb/chains";
+import { inAppWallet } from "thirdweb/wallets";
 import { supplyChainABI as abi } from "../abi/contractABI";
 import "../App.css";
 
@@ -110,6 +111,25 @@ type Company = {
 const client = createThirdwebClient({ 
   clientId: "023dd6504a82409b2bc7cb971fd35b16"
 });
+
+// Configurazione wallet con opzioni social multiple
+const wallets = [
+  inAppWallet({
+    auth: {
+      options: [
+        "google",
+        "discord",
+        "telegram",
+        "email",
+        "x",
+        "twitch",
+        "facebook",
+        "apple",
+        "tiktok",
+      ],
+    },
+  }),
+];
 
 const contract = getContract({ 
   client, 
@@ -336,7 +356,7 @@ export default function AdminPage() {
       <main className="main-content" style={{width: '100%'}}>
         <header className="header" style={{ justifyContent: 'space-between', alignItems: 'center' }}>
           <h1 className="page-title">Pannello Amministrazione</h1>
-          <ConnectButton client={client} chain={polygon} />
+          <ConnectButton client={client} wallets={wallets} chain={polygon} />
         </header>
         <AdminContent />
       </main>

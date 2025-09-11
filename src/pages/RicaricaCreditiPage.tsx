@@ -36,6 +36,25 @@ interface CreditPackage {
 
 // --- Setup ---
 const client = createThirdwebClient({ clientId: "023dd6504a82409b2bc7cb971fd35b16" });
+
+// Configurazione wallet con opzioni social multiple
+const wallets = [
+  inAppWallet({
+    auth: {
+      options: [
+        "google",
+        "discord",
+        "telegram",
+        "email",
+        "x",
+        "twitch",
+        "facebook",
+        "apple",
+        "tiktok",
+      ],
+    },
+  }),
+];
 const stripePromise = loadStripe("pk_test_51RrJLQRx6E9RZt5ynBwc2dt3o7RT4YTwwij3O9xj3VdMwNKlI4GA9Yvbzkgwbxi0I5J9XnqPMlgY7bz2xHSgxmz000KCex9EiA");
 
 // --- Stili ---
@@ -455,7 +474,7 @@ const RicaricaCreditiPage: React.FC = () => {
           <h1 className="header-title">EasyChain - Ricarica Crediti</h1>
           <ConnectButton
             client={client}
-            wallets={[inAppWallet()]}
+            wallets={wallets}
             chain={polygon}
             accountAbstraction={{ chain: polygon, sponsorGas: true }}
           />
