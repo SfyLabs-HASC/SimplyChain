@@ -3094,7 +3094,7 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
 
 
 
-                    <div className="mt-auto pt-4 border-t border-gray-600 flex justify-between items-center">
+                    <div className="mt-auto pt-4 border-t border-gray-600 flex justify-between items-center" style={{marginTop: '1rem'}}>
 
                     <div className="text-sm text-muted-foreground">
 
