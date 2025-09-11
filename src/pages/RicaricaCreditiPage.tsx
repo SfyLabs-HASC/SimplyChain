@@ -403,99 +403,238 @@ const RicaricaCreditiPage: React.FC = () => {
     if (!userData) return <div className="centered-container"><p>Nessun dato utente trovato per questo wallet.</p></div>;
 
     return (
-      <div className="recharge-container">
-        <div className="user-info-card">
-          <h2>Riepilogo Account</h2>
-          <div className="user-info-grid">
-            <p><strong>Nome Azienda:</strong> {userData.companyName}</p>
-            <p><strong>Email di Iscrizione:</strong> {userData.email}</p>
-            <p><strong>Crediti Rimanenti:</strong> {userData.credits}</p>
-            <p><strong>Stato:</strong> <strong className={userData.status === 'active' ? 'status-active-text' : 'status-inactive-text'}>
-              {userData.status === 'active' ? 'ATTIVO' : 'NON ATTIVO'}
-            </strong></p>
+      <div className="space-y-6">
+        {/* Account Summary Card */}
+        <div className="glass-card rounded-2xl p-6 tech-shadow">
+          <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
+            👤 Riepilogo Account
+          </h2>
+          <div className="grid md:grid-cols-2 gap-4">
+            <div>
+              <span className="text-gray-400">Nome Azienda:</span>
+              <p className="text-white font-semibold">{userData.companyName}</p>
+            </div>
+            <div>
+              <span className="text-gray-400">Email di Iscrizione:</span>
+              <p className="text-white">{userData.email}</p>
+            </div>
+            <div>
+              <span className="text-gray-400">Crediti Rimanenti:</span>
+              <p className="text-white font-bold text-xl">{userData.credits}</p>
+            </div>
+            <div>
+              <span className="text-gray-400">Stato Account:</span>
+              <p className={userData.status === 'active' ? 'text-green-400 font-semibold' : 'text-red-400 font-semibold'}>
+                {userData.status === 'active' ? 'ATTIVO' : 'NON ATTIVO'}
+              </p>
+            </div>
           </div>
         </div>
 
-        <div className="packages-card">
-          <h2>Seleziona un Pacchetto Crediti</h2>
-          <table className="credit-packages-table">
-            <thead>
-              <tr><th>Pacchetto</th><th>Prezzo per credito</th><th>Prezzo totale (€)</th></tr>
-            </thead>
-            <tbody>
-              {creditPackages.map(pkg => (
-                <tr key={pkg.id} onClick={() => handleSelectPackage(pkg)} className={selectedPackage?.id === pkg.id ? 'selected' : ''}>
-                  <td><strong>{pkg.credits} crediti</strong></td>
-                  <td>{pkg.pricePerCredit.toFixed(2)} €</td>
-                  <td><strong>{pkg.totalPrice.toFixed(2)} €</strong></td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        {/* Credit Packages Card */}
+        <div className="glass-card rounded-2xl p-6 tech-shadow">
+          <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
+            💎 Seleziona un Pacchetto Crediti
+          </h2>
+          
+          <div className="grid gap-4">
+            {creditPackages.map(pkg => (
+              <div
+                key={pkg.id}
+                onClick={() => handleSelectPackage(pkg)}
+                className={`p-4 rounded-lg border-2 cursor-pointer transition-all hover:scale-105 ${
+                  selectedPackage?.id === pkg.id
+                    ? 'border-primary bg-primary/10 shadow-lg shadow-primary/20'
+                    : 'border-gray-600 bg-gray-800/50 hover:border-gray-500'
+                }`}
+              >
+                <div className="flex justify-between items-center">
+                  <div>
+                    <h3 className="text-lg font-bold text-white">
+                      {pkg.credits} Crediti
+                    </h3>
+                    <p className="text-gray-400">
+                      {pkg.pricePerCredit.toFixed(2)} € per credito
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-2xl font-bold text-primary">
+                      {pkg.totalPrice.toFixed(2)} €
+                    </p>
+                    <p className="text-sm text-gray-400">
+                      {pkg.description}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
 
         {selectedPackage && (
-          <div className="billing-card">
+          <div className="glass-card rounded-2xl p-6 tech-shadow">
+            <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
+              🧾 Dati di Fatturazione
+            </h2>
+            
             {billingDetails && !isEditingBilling ? (
               <div>
-                <div className="billing-header">
-                  <h3>Dati di Fatturazione</h3>
-                  <button className="edit-button" onClick={() => setIsEditingBilling(true)}>✏️ Modifica</button>
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-lg font-semibold text-white">Dati Salvati</h3>
+                  <button 
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-lg transition text-sm"
+                    onClick={() => setIsEditingBilling(true)}
+                  >
+                    ✏️ Modifica
+                  </button>
                 </div>
-                {billingDetails.type === 'azienda' ? (
-                  <>
-                    <p><strong>Ragione Sociale:</strong> {billingDetails.ragioneSociale}</p>
-                    <p><strong>Indirizzo:</strong> {billingDetails.indirizzo}</p>
-                    <p><strong>P.IVA/CF:</strong> {billingDetails.pIvaCf}</p>
-                    <p><strong>SDI/PEC:</strong> {billingDetails.sdiPec}</p>
-                  </>
-                ) : (
-                   <>
-                    <p><strong>Nome:</strong> {billingDetails.nome} {billingDetails.cognome}</p>
-                    <p><strong>Indirizzo:</strong> {billingDetails.indirizzo}</p>
-                    <p><strong>Codice Fiscale:</strong> {billingDetails.cf}</p>
-                  </>
-                )}
+                
+                <div className="grid md:grid-cols-2 gap-4">
+                  {billingDetails.type === 'azienda' ? (
+                    <>
+                      <div>
+                        <span className="text-gray-400">Ragione Sociale:</span>
+                        <p className="text-white font-semibold">{billingDetails.ragioneSociale}</p>
+                      </div>
+                      <div>
+                        <span className="text-gray-400">P.IVA/CF:</span>
+                        <p className="text-white">{billingDetails.pIvaCf}</p>
+                      </div>
+                      <div className="md:col-span-2">
+                        <span className="text-gray-400">Indirizzo:</span>
+                        <p className="text-white">{billingDetails.indirizzo}</p>
+                      </div>
+                      <div>
+                        <span className="text-gray-400">SDI/PEC:</span>
+                        <p className="text-white">{billingDetails.sdiPec}</p>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div>
+                        <span className="text-gray-400">Nome:</span>
+                        <p className="text-white font-semibold">{billingDetails.nome} {billingDetails.cognome}</p>
+                      </div>
+                      <div>
+                        <span className="text-gray-400">Codice Fiscale:</span>
+                        <p className="text-white">{billingDetails.cf}</p>
+                      </div>
+                      <div className="md:col-span-2">
+                        <span className="text-gray-400">Indirizzo:</span>
+                        <p className="text-white">{billingDetails.indirizzo}</p>
+                      </div>
+                    </>
+                  )}
+                </div>
               </div>
             ) : (
               <div>
-                <h3>{billingDetails ? 'Modifica Dati di Fatturazione' : 'Inserisci i Dati di Fatturazione'}</h3>
+                <h3 className="text-lg font-semibold text-white mb-4">
+                  {billingDetails ? 'Modifica Dati di Fatturazione' : 'Inserisci i Dati di Fatturazione'}
+                </h3>
                 <BillingForm initialDetails={billingDetails} onSave={handleSaveBilling} isSaving={isSaving} />
               </div>
             )}
             
             {!isEditingBilling && clientSecret && (
-                <div style={{marginTop: '2rem'}}>
-                    <h3 style={{borderTop: '1px solid #444', paddingTop: '2rem'}}>Procedi con il Pagamento</h3>
-                     <Elements options={{ clientSecret }} stripe={stripePromise}>
+              <div className="mt-6 pt-6 border-t border-gray-600">
+                <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                  💳 Procedi con il Pagamento
+                </h3>
+                <Elements options={{ clientSecret }} stripe={stripePromise}>
                         <StripeCheckoutForm />
                     </Elements>
                 </div>
             )}
           </div>
         )}
+        
       </div>
     );
   };
 
+  if (!account) {
+    return (
+      <>
+        <RicaricaCreditiStyles />
+        <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 flex items-center justify-center p-6">
+          <div className="glass-card rounded-3xl p-8 text-center max-w-md">
+            <h1 className="text-3xl font-bold text-white mb-4">🔗 Connetti Wallet</h1>
+            <p className="text-gray-300 mb-6">Per ricaricare i crediti, connetti il tuo wallet.</p>
+            <ConnectButton
+              client={client}
+              wallets={wallets}
+              chain={polygon}
+              accountAbstraction={{ chain: polygon, sponsorGas: true }}
+            />
+          </div>
+        </div>
+      </>
+    );
+  }
+
   return (
     <>
       <RicaricaCreditiStyles />
-      <div className="app-container-full">
-        <header className="main-header-bar">
-          <h1 className="header-title">EasyChain - Ricarica Crediti</h1>
-          <ConnectButton
-            client={client}
-            wallets={wallets}
-            chain={polygon}
-            accountAbstraction={{ chain: polygon, sponsorGas: true }}
-          />
-        </header>
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 p-6">
+        
+        {/* Header Bar - Uguale alle altre pagine */}
+        <div className="glass-card rounded-3xl p-6 tech-shadow flex flex-col md:flex-row justify-between items-center gap-6 mb-6">
+          <div>
+            <div className="flex items-center gap-4 flex-wrap">
+              <h2 className="text-2xl md:text-3xl font-extrabold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                💳 Ricarica Crediti
+              </h2>
+            </div>
+            
+            <div className="flex flex-col md:flex-row gap-4 items-center">
+              <div className="flex flex-col md:flex-row gap-4 items-center-item">
+                <span style={{ color: '#ffffff' }}>
+                  Crediti Attuali: <strong>{userData?.credits || 0}</strong>
+                </span>
+              </div>
+              <div className="flex flex-col md:flex-row gap-4 items-center-item">
+                <span>Stato: <strong className={userData?.status === 'active' ? 'status-active-text' : 'status-inactive-text'}>
+                  {userData?.status === 'active' ? 'ATTIVO' : 'NON ATTIVO'}
+                </strong></span>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-4">
+            <ConnectButton
+              client={client}
+              wallets={wallets}
+              chain={polygon}
+              accountAbstraction={{ chain: polygon, sponsorGas: true }}
+            />
+            <button
+              onClick={() => navigate('/azienda')}
+              className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-2xl font-semibold hover:scale-105 transition"
+            >
+              ← Torna Indietro
+            </button>
+          </div>
+        </div>
+
+        {/* Content */}
         <main>
-          {!account ? (
-            <div className="centered-container">
-              <h1>Connetti il Wallet</h1>
-              <p>Per ricaricare i crediti, connetti il tuo wallet.</p>
+          {loading ? (
+            <div className="glass-card rounded-2xl p-8 text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+              <p className="text-gray-300">Caricamento dati utente...</p>
+            </div>
+          ) : error ? (
+            <div className="glass-card rounded-2xl p-8 text-center">
+              <div className="text-red-400 text-6xl mb-4">⚠️</div>
+              <h3 className="text-xl font-semibold text-red-300 mb-2">Errore</h3>
+              <p className="text-red-200">{error}</p>
+            </div>
+          ) : !userData ? (
+            <div className="glass-card rounded-2xl p-8 text-center">
+              <div className="text-yellow-400 text-6xl mb-4">📭</div>
+              <h3 className="text-xl font-semibold text-yellow-300 mb-2">Nessun Dato</h3>
+              <p className="text-yellow-200">Nessun dato utente trovato per questo wallet.</p>
             </div>
           ) : (
             renderContent()
