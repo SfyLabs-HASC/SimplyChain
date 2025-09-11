@@ -10,7 +10,7 @@
 
 // DESCRIZIONE: Versione aggiornata che utilizza Firebase per i dati azienda,
 
-// implementa il sistema di refresh on-chain e gestisce le iscrizioni con numerazione incrementale.
+// implementa il sistema d refresh on-chain e gestisce le iscrizioni con numerazione incrementale.
 
 
 
