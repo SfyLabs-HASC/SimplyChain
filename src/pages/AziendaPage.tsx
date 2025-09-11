@@ -554,20 +554,6 @@ const AziendaPageStyles = () => (
 
         flex-direction: column;
 
-        justify-content: space-between;
-
-      }
-
-
-
-      .card-buttons {
-
-        margin-top: auto;
-
-        padding-top: 1rem;
-
-        border-top: 1px solid #333;
-
       }
 
 
@@ -1904,11 +1890,9 @@ const AziendaPageStyles = () => (
 
       .credits-link:hover {
 
-        text-decoration: underline !important;
+        text-decoration: underline;
 
-        text-decoration-color: #ffffff !important;
-
-        text-underline-offset: 2px;
+        text-decoration-color: #ffffff;
 
       }
 
@@ -2166,139 +2150,15 @@ const ImageModal: React.FC<{ imageUrl: string; onClose: () => void }> = ({ image
 
   return (
 
-    <div 
+    <div className="image-fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4" onClick={onClose}>
 
-      style={{
+      <div className="image-bg-card p-6 rounded-2xl border border-border max-w-2xl w-full text-foreground" onClick={(e) => e.stopPropagation()}>
 
-        position: 'fixed',
-
-        top: 0,
-
-        left: 0,
-
-        right: 0,
-
-        bottom: 0,
-
-        backgroundColor: 'rgba(0, 0, 0, 0.9)',
-
-        display: 'flex',
-
-        justifyContent: 'center',
-
-        alignItems: 'center',
-
-        zIndex: 9999,
-
-        padding: '2rem'
-
-      }}
-
-      onClick={onClose}
-
-    >
-
-      <div 
-
-        style={{
-
-          position: 'relative',
-
-          maxWidth: '90vw',
-
-          maxHeight: '90vh',
-
-          background: 'transparent'
-
-        }}
-
-        onClick={(e) => e.stopPropagation()}
-
-      >
-
-        <img 
-
-          src={imageUrl} 
-
-          alt="Immagine iscrizione" 
-
-          style={{
-
-            maxWidth: '100%',
-
-            maxHeight: '100%',
-
-            objectFit: 'contain',
-
-            borderRadius: '0.75rem',
-
-            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.4)'
-
-          }}
-
-        />
-
-        <button 
-
-          onClick={onClose}
-
-          style={{
-
-            position: 'absolute',
-
-            top: '1rem',
-
-            right: '1rem',
-
-            background: 'rgba(0, 0, 0, 0.7)',
-
-            color: 'white',
-
-            border: 'none',
-
-            borderRadius: '50%',
-
-            width: '40px',
-
-            height: '40px',
-
-            cursor: 'pointer',
-
-            fontSize: '1.5rem',
-
-            display: 'flex',
-
-            alignItems: 'center',
-
-            justifyContent: 'center',
-
-            transition: 'all 0.3s ease'
-
-          }}
-
-          onMouseOver={(e) => {
-
-            e.target.style.background = 'rgba(0, 0, 0, 0.9)';
-
-            e.target.style.transform = 'scale(1.1)';
-
-          }}
-
-          onMouseOut={(e) => {
-
-            e.target.style.background = 'rgba(0, 0, 0, 0.7)';
-
-            e.target.style.transform = 'scale(1)';
-
-          }}
-
-        >
-
-          ×
-
-        </button>
+        <img src={imageUrl} alt="Immagine iscrizione" />
 
       </div>
+
+      <button className="absolute top-4 right-4 bg-black/60 text-white rounded-full w-10 h-10 flex items-center justify-center" onClick={onClose}>×</button>
 
     </div>
 
@@ -3009,132 +2869,254 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
 
 
       {isLoadingBatches && !showFullPageLoading ? (
-        <div className="bg-card p-6 rounded-xl border border-border text-muted-foreground text-center">
-          <p>Caricamento delle tue iscrizioni...</p>
-        </div>
+
+        <div className="bg-card p-6 rounded-xl border border-border text-muted-foreground text-center"><p>Caricamento delle tue iscrizioni...</p></div>
+
       ) : errorBatches ? (
+
         <div className="bg-card p-6 rounded-xl border border-border text-muted-foreground text-center">
+
           <p style={{ color: 'red' }}>{errorBatches}</p>
+
           <button
+
             onClick={() => window.location.reload()}
+
             className="primary-gradient text-white px-4 py-2 rounded-2xl font-semibold hover:scale-105 transition"
+
             style={{ marginTop: '10px' }}
+
           >
+
             REFRESHA
+
           </button>
+
         </div>
+
       ) : (
-        <div>
+
+        <>
+
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+
             {currentItems.length > 0 ? (
+
               currentItems.map((batch) => (
+
                 <div key={batch.batchId} className="batch-card glass-card rounded-2xl p-6 tech-shadow hover:shadow-lg transition">
+
                   <div className="card-content">
+
                     <h3 className="batch-title">
+
                       <span className="batch-number">#{getBatchDisplayNumber(batch.batchId)}</span> - {batch.name}
+
                     </h3>
+
                     <p><strong className="label-violet">Descrizione:</strong> {batch.description ? truncateText(batch.description, window.innerWidth < 768 ? 80 : 100) : "N/D"}</p>
+
                     <p><strong className="label-violet">Data:</strong> {formatItalianDate(batch.date)}</p>
+
                     <p><strong className="label-violet">Luogo:</strong> {batch.location || "N/D"}</p>
+
                     <p>
+
                       <strong>Stato:</strong> <span className={batch.isClosed ? 'text-red-500 font-semibold' : 'text-green-500 font-semibold'}>
+
                         {batch.isClosed ? ' Chiuso' : ' Aperto'}
+
                       </span>
+
                     </p>
+
                     <p><strong className="label-violet">Tx Hash:</strong>
+
                       <a
+
                         href={`https://polygonscan.com/inputdatadecoder?tx=${batch.transactionHash}`}
+
                         target="_blank"
+
                         rel="noopener noreferrer"
+
                         className="link-underline-hover"
+
                       >
+
                         {truncateText(batch.transactionHash, 15)}
+
                       </a>
+
                     </p>
+
+
+
                     {batch.imageIpfsHash && batch.imageIpfsHash !== "N/A" && (
+
                       <p>
+
                         <a
+
                           href="#"
+
                           onClick={(e) => {
+
                             e.preventDefault();
+
                             setSelectedImage(`https://musical-emerald-partridge.myfilebase.com/ipfs/${batch.imageIpfsHash}`);
+
                           }}
+
                           className="link-underline-hover"
+
                         >
+
                           Apri L'immagine
+
                         </a>
+
                       </p>
+
                     )}
+
                   </div>
-                  <div className="card-buttons">
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <div className="text-sm text-muted-foreground">
-                        {batch.steps && batch.steps.length > 0 ? (
-                          <button
-                            className="accent-gradient text-white px-3 py-2 rounded-md hover:scale-105 transition"
-                            onClick={() => setSelectedBatchForSteps(batch)}
-                          >
-                            {batch.steps.length} steps
-                          </button>
-                        ) : (
-                          <button
-                            className="accent-gradient text-white px-3 py-2 rounded-md hover:scale-105 transition disabled"
-                            disabled={true}
-                          >
-                            0 steps
-                          </button>
-                        )}
-                      </div>
-                      <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                        {batch.isClosed && (
-                          <button
-                            className="primary-gradient text-white px-3 py-2 rounded-md hover:scale-105 transition"
-                            onClick={() => {
-                              setSelectedBatchForExport(batch);
-                              setShowExportModal(true);
-                            }}
-                          >
-                            Esporta
-                          </button>
-                        )}
-                        {!batch.isClosed ? (
-                          <>
-                            <button
-                              className="bg-emerald-500 text-white px-3 py-2 rounded-md hover:scale-105 transition"
-                              onClick={() => setSelectedBatchForStep(batch)}
-                            >
-                              Aggiungi Step
-                            </button>
-                            <button
-                              className="bg-amber-500 text-white px-3 py-2 rounded-md hover:scale-105 transition"
-                              onClick={() => setSelectedBatchForFinalize(batch)}
-                            >
-                              Finalizza
-                            </button>
-                          </>
-                        ) : (
-                          <span className="text-gray-400">🔒</span>
-                        )}
-                      </div>
+
+
+
+                  <div className="flex justify-between items-center mt-4">
+
+                    <div className="text-sm text-muted-foreground">
+
+                      {batch.steps && batch.steps.length > 0 ? (
+
+                        <button
+
+                          className="accent-gradient text-white px-3 py-2 rounded-md hover:scale-105 transition"
+
+                          onClick={() => setSelectedBatchForSteps(batch)}
+
+                        >
+
+                          {batch.steps.length} steps
+
+                        </button>
+
+                      ) : (
+
+                        <button
+
+                          className="accent-gradient text-white px-3 py-2 rounded-md hover:scale-105 transition disabled"
+
+                          disabled={true}
+
+                        >
+
+                          0 steps
+
+                        </button>
+
+                      )}
+
                     </div>
+
+
+
+                    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+
+                      {/* Pulsante Esporta - mostrato solo per batch chiusi */}
+
+                      {batch.isClosed && (
+
+                        <button
+
+                          className="primary-gradient text-white px-3 py-2 rounded-md hover:scale-105 transition"
+
+                          onClick={() => {
+
+                            setSelectedBatchForExport(batch);
+
+                            setShowExportModal(true);
+
+                          }}
+
+                        >
+
+                          Esporta
+
+                        </button>
+
+                      )}
+
+
+
+                      {/* Pulsanti Aggiungi Step e Finalizza per iscrizioni aperte, lucchetto per quelle chiuse */}
+
+                      {!batch.isClosed ? (
+
+                        <>
+
+                          <button
+
+                            className="bg-emerald-500 text-white px-3 py-2 rounded-md hover:scale-105 transition"
+
+                            onClick={() => setSelectedBatchForStep(batch)}
+
+                          >
+
+                            Aggiungi Step
+
+                          </button>
+
+                          <button
+
+                            className="bg-amber-500 text-white px-3 py-2 rounded-md hover:scale-105 transition"
+
+                            onClick={() => setSelectedBatchForFinalize(batch)}
+
+                          >
+
+                            Finalizza
+
+                          </button>
+
+                        </>
+
+                      ) : (
+
+                        <span className="text-gray-400">🔒</span>
+
+                      )}
+
+                    </div>
+
                   </div>
+
                 </div>
+
               ))
+
             ) : (
+
               <div className="bg-card p-8 rounded-xl border border-border text-center text-muted-foreground">
+
                 <p>Non hai ancora inizializzato nessuna iscrizione con questo account.</p>
+
                 <p style={{ fontSize: '0.8rem', marginTop: '0.5rem', opacity: 0.7 }}>
+
                   Clicca su "Inizializza Nuova Iscrizione" per iniziare
+
                 </p>
+
               </div>
+
             )}
+
           </div>
-        </div>
-      )}
 
 
 
-      {/* Paginazione */}
+          {/* Paginazione */}
 
           {filteredBatches.length > itemsPerPage && (
 
@@ -3476,41 +3458,7 @@ const AddStepModal: React.FC<{
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 
-    const file = e.target.files?.[0];
-
-    if (!file) {
-
-      setSelectedFile(null);
-
-      return;
-
-    }
-
-
-
-    // Validazione dimensione file
-
-    const maxSize = file.type.startsWith('image/') ? 5 * 1024 * 1024 : 10 * 1024 * 1024; // 5MB per immagini, 10MB per documenti
-
-    
-
-    if (file.size > maxSize) {
-
-      const maxSizeMB = file.type.startsWith('image/') ? '5MB' : '10MB';
-
-      alert(`Il file selezionato è troppo grande. Dimensione massima consentita: ${maxSizeMB}`);
-
-      e.target.value = ''; // Reset input
-
-      setSelectedFile(null);
-
-      return;
-
-    }
-
-
-
-    setSelectedFile(file);
+    setSelectedFile(e.target.files?.[0] || null);
 
   };
 
@@ -4406,7 +4354,7 @@ const FinalizeModal: React.FC<{
 
 
 
-// Componente modale per visualizzare steps con slide
+// Componente modale per visualizzare steps
 
 const StepsModal: React.FC<{
 
@@ -4418,50 +4366,6 @@ const StepsModal: React.FC<{
 
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
-  const [currentStep, setCurrentStep] = useState(0);
-
-  const [isAnimating, setIsAnimating] = useState(false);
-
-
-
-  const steps = batch.steps || [];
-
-
-
-  const nextStep = () => {
-
-    if (isAnimating || currentStep >= steps.length - 1) return;
-
-    setIsAnimating(true);
-
-    setTimeout(() => {
-
-      setCurrentStep(prev => prev + 1);
-
-      setIsAnimating(false);
-
-    }, 150);
-
-  };
-
-
-
-  const prevStep = () => {
-
-    if (isAnimating || currentStep <= 0) return;
-
-    setIsAnimating(true);
-
-    setTimeout(() => {
-
-      setCurrentStep(prev => prev - 1);
-
-      setIsAnimating(false);
-
-    }, 150);
-
-  };
-
 
 
   return (
@@ -4470,349 +4374,101 @@ const StepsModal: React.FC<{
 
       <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4" onClick={onClose}>
 
-        <div className="bg-card p-6 rounded-2xl border border-border max-w-4xl w-full max-h-[85vh] overflow-hidden text-foreground" onClick={(e) => e.stopPropagation()}>
+        <div className="bg-card p-4 rounded-2xl border border-border max-w-3xl w-full max-h-[80vh] overflow-auto text-foreground" onClick={(e) => e.stopPropagation()}>
 
-          <div className="p-4 border-b border-border" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div className="steps-p-4 border-b border-border">
 
-            <h2 style={{ margin: 0 }}>
-
-              <span style={{ fontSize: '1.5rem', marginRight: '0.5rem' }}>📋</span>
-
-              Steps - {batch.name}
-
-            </h2>
-
-            {steps.length > 1 && (
-
-              <div style={{ display: 'flex', gap: '0.5rem' }}>
-
-                {steps.map((_, index) => (
-
-                  <div
-
-                    key={index}
-
-                    style={{
-
-                      width: '8px',
-
-                      height: '8px',
-
-                      borderRadius: '50%',
-
-                      background: index === currentStep ? '#6366f1' : 'rgba(255, 255, 255, 0.3)',
-
-                      cursor: 'pointer',
-
-                      transition: 'all 0.3s ease'
-
-                    }}
-
-                    onClick={() => setCurrentStep(index)}
-
-                  />
-
-                ))}
-
-              </div>
-
-            )}
+            <h2>Steps - {batch.name}</h2>
 
           </div>
 
+          <div className="steps-p-4">
 
+            {batch.steps && batch.steps.length > 0 ? (
 
-          <div className="p-4" style={{ minHeight: '400px', overflow: 'auto' }}>
+              batch.steps.map((step, index) => (
 
-            {steps.length > 0 ? (
+                <div key={index} className="bg-gray-800 p-4 rounded-xl border border-gray-700 mb-4">
 
-              <div style={{ 
+                  <h4>Step {index + 1}: {step.eventName}</h4>
 
-                opacity: isAnimating ? 0.5 : 1, 
+                  <p><strong>📄 Descrizione:</strong> {step.description || "N/D"}</p>
 
-                transition: 'opacity 0.15s ease',
+                  <p><strong>📅 Data:</strong> {formatItalianDate(step.date)}</p>
 
-                transform: isAnimating ? 'translateY(10px)' : 'translateY(0)',
+                  <p><strong>📍 Luogo:</strong> {step.location || "N/D"}</p>
 
-              }}>
+                  {step.attachmentsIpfsHash && step.attachmentsIpfsHash !== "N/A" && (
 
-                <div style={{ 
+                    <p>
 
-                  background: 'linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%)', 
-
-                  padding: '2rem', 
-
-                  borderRadius: '1rem', 
-
-                  border: '1px solid rgba(255, 255, 255, 0.1)',
-
-                  boxShadow: '0 8px 25px rgba(0, 0, 0, 0.3)'
-
-                }}>
-
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
-
-                    <div style={{ 
-
-                      width: '50px', 
-
-                      height: '50px', 
-
-                      background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)', 
-
-                      borderRadius: '50%', 
-
-                      display: 'flex', 
-
-                      alignItems: 'center', 
-
-                      justifyContent: 'center', 
-
-                      color: 'white', 
-
-                      fontWeight: 'bold', 
-
-                      fontSize: '1.2rem',
-
-                      boxShadow: '0 4px 15px rgba(99, 102, 241, 0.3)'
-
-                    }}>
-
-                      {currentStep + 1}
-
-                    </div>
-
-                    <div>
-
-                      <h3 style={{ margin: 0, color: '#ffffff', fontSize: '1.3rem', fontWeight: '600' }}>
-
-                        {steps[currentStep].eventName}
-
-                      </h3>
-
-                      <p style={{ margin: '0.25rem 0 0 0', color: '#9ca3af', fontSize: '0.9rem' }}>
-
-                        Step {currentStep + 1} di {steps.length}
-
-                      </p>
-
-                    </div>
-
-                  </div>
-
-
-
-                  <div style={{ display: 'grid', gap: '1rem' }}>
-
-                    <div style={{ background: 'rgba(99, 102, 241, 0.1)', padding: '1rem', borderRadius: '0.75rem', border: '1px solid rgba(99, 102, 241, 0.3)' }}>
-
-                      <h5 style={{ color: '#6366f1', margin: '0 0 0.5rem 0', fontWeight: '600' }}>📄 Descrizione</h5>
-
-                      <p style={{ margin: 0, color: '#d1d5db', fontSize: '0.9rem' }}>{steps[currentStep].description || "Nessuna descrizione fornita"}</p>
-
-                    </div>
-
-
-
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
-
-                      <div style={{ background: 'rgba(16, 185, 129, 0.1)', padding: '1rem', borderRadius: '0.75rem', border: '1px solid rgba(16, 185, 129, 0.3)' }}>
-
-                        <h5 style={{ color: '#10b981', margin: '0 0 0.5rem 0', fontWeight: '600' }}>📅 Data</h5>
-
-                        <p style={{ margin: 0, color: '#d1d5db', fontSize: '0.9rem' }}>{formatItalianDate(steps[currentStep].date) || "Non specificata"}</p>
-
-                      </div>
-
-
-
-                      <div style={{ background: 'rgba(245, 158, 11, 0.1)', padding: '1rem', borderRadius: '0.75rem', border: '1px solid rgba(245, 158, 11, 0.3)' }}>
-
-                        <h5 style={{ color: '#f59e0b', margin: '0 0 0.5rem 0', fontWeight: '600' }}>📍 Luogo</h5>
-
-                        <p style={{ margin: 0, color: '#d1d5db', fontSize: '0.9rem' }}>{steps[currentStep].location || "Non specificato"}</p>
-
-                      </div>
-
-                    </div>
-
-
-
-                    {steps[currentStep].attachmentsIpfsHash && steps[currentStep].attachmentsIpfsHash !== "N/A" && (
-
-                      <div style={{ background: 'rgba(139, 92, 246, 0.1)', padding: '1rem', borderRadius: '0.75rem', border: '1px solid rgba(139, 92, 246, 0.3)' }}>
-
-                        <h5 style={{ color: '#8b5cf6', margin: '0 0 0.5rem 0', fontWeight: '600' }}>📎 Allegati</h5>
-
-                        <a
-
-                          href={`https://musical-emerald-partridge.myfilebase.com/ipfs/${steps[currentStep].attachmentsIpfsHash}`}
-
-                          target="_blank"
-
-                          rel="noopener noreferrer"
-
-                          style={{ color: '#8b5cf6', textDecoration: 'none', fontWeight: '600' }}
-
-                          onMouseOver={(e) => e.target.style.textDecoration = 'underline'}
-
-                          onMouseOut={(e) => e.target.style.textDecoration = 'none'}
-
-                        >
-
-                          Visualizza Allegato →
-
-                        </a>
-
-                      </div>
-
-                    )}
-
-
-
-                    <div style={{ background: 'rgba(59, 130, 246, 0.1)', padding: '1rem', borderRadius: '0.75rem', border: '1px solid rgba(59, 130, 246, 0.3)' }}>
-
-                      <h5 style={{ color: '#3b82f6', margin: '0 0 0.5rem 0', fontWeight: '600' }}>🔗 Verifica Blockchain</h5>
+                      <strong>📎 Allegati:</strong>
 
                       <a
 
-                        href={`https://polygonscan.com/inputdatadecoder?tx=${steps[currentStep].transactionHash}`}
+                        href={`https://musical-emerald-partridge.myfilebase.com/ipfs/${step.attachmentsIpfsHash}`}
 
                         target="_blank"
 
                         rel="noopener noreferrer"
 
-                        style={{ color: '#3b82f6', textDecoration: 'none', fontWeight: '600', fontSize: '0.9rem' }}
+                        className="link-underline-hover"
 
-                        onMouseOver={(e) => e.target.style.textDecoration = 'underline'}
-
-                        onMouseOut={(e) => e.target.style.textDecoration = 'none'}
+                        style={{ marginLeft: '0.5rem' }}
 
                       >
 
-                        {truncateText(steps[currentStep].transactionHash, 25)} →
+                        Visualizza
 
                       </a>
 
-                    </div>
+                    </p>
 
-                  </div>
+                  )}
+
+                  <p>
+
+                    <strong>🔗 Verifica su Blockchain:</strong>
+
+                    <a
+
+                      href={`https://polygonscan.com/inputdatadecoder?tx=${step.transactionHash}`}
+
+                      target="_blank"
+
+                      rel="noopener noreferrer"
+
+                      className="link-underline-hover"
+
+                      style={{ marginLeft: '0.5rem' }}
+
+                    >
+
+                      {truncateText(step.transactionHash, 15)}
+
+                    </a>
+
+                  </p>
 
                 </div>
 
-              </div>
+              ))
 
             ) : (
 
-              <div style={{ 
-
-                textAlign: 'center', 
-
-                padding: '3rem', 
-
-                color: '#9ca3af',
-
-                background: 'rgba(26, 26, 26, 0.6)',
-
-                borderRadius: '1rem',
-
-                border: '1px solid rgba(255, 255, 255, 0.1)'
-
-              }}>
-
-                <p style={{ fontSize: '1.1rem', marginBottom: '0.5rem' }}>Nessuno step disponibile</p>
-
-                <p style={{ fontSize: '0.9rem', opacity: 0.7 }}>Questa iscrizione non ha ancora step registrati</p>
-
-              </div>
+              <p>Nessuno step disponibile per questa iscrizione.</p>
 
             )}
 
-          </div>
+            <div style={{ textAlign: 'center', marginTop: '2rem' }}>
 
+              <button onClick={onClose} className="primary-gradient text-white px-4 py-2 rounded-2xl font-semibold hover:scale-105 transition">
 
+                Indietro
 
-          <div className="p-4 border-t border-border" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              </button>
 
-            {steps.length > 1 && (
-
-              <div style={{ display: 'flex', gap: '0.5rem' }}>
-
-                <button 
-
-                  onClick={prevStep} 
-
-                  disabled={isAnimating || currentStep === 0}
-
-                  style={{ 
-
-                    background: currentStep === 0 ? 'rgba(107, 114, 128, 0.5)' : 'rgba(255, 255, 255, 0.1)', 
-
-                    border: '1px solid rgba(255, 255, 255, 0.2)', 
-
-                    color: '#ffffff', 
-
-                    padding: '0.5rem 1rem', 
-
-                    borderRadius: '0.5rem', 
-
-                    cursor: currentStep === 0 ? 'not-allowed' : 'pointer',
-
-                    transition: 'all 0.3s ease',
-
-                    opacity: isAnimating ? 0.5 : 1
-
-                  }}
-
-                >
-
-                  ← Step Precedente
-
-                </button>
-
-                <button 
-
-                  onClick={nextStep} 
-
-                  disabled={isAnimating || currentStep === steps.length - 1}
-
-                  style={{ 
-
-                    background: currentStep === steps.length - 1 ? 'rgba(107, 114, 128, 0.5)' : 'rgba(255, 255, 255, 0.1)', 
-
-                    border: '1px solid rgba(255, 255, 255, 0.2)', 
-
-                    color: '#ffffff', 
-
-                    padding: '0.5rem 1rem', 
-
-                    borderRadius: '0.5rem', 
-
-                    cursor: currentStep === steps.length - 1 ? 'not-allowed' : 'pointer',
-
-                    transition: 'all 0.3s ease',
-
-                    opacity: isAnimating ? 0.5 : 1
-
-                  }}
-
-                >
-
-                  Step Successivo →
-
-                </button>
-
-              </div>
-
-            )}
-
-            
-
-            <button onClick={onClose} className="primary-gradient text-white px-4 py-2 rounded-2xl font-semibold hover:scale-105 transition" style={{ marginLeft: 'auto' }}>
-
-              Chiudi
-
-            </button>
+            </div>
 
           </div>
 
@@ -4892,41 +4548,7 @@ const NewInscriptionModal: React.FC<{
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 
-    const file = e.target.files?.[0];
-
-    if (!file) {
-
-      setSelectedFile(null);
-
-      return;
-
-    }
-
-
-
-    // Validazione dimensione file
-
-    const maxSize = file.type.startsWith('image/') ? 5 * 1024 * 1024 : 10 * 1024 * 1024; // 5MB per immagini, 10MB per documenti
-
-    
-
-    if (file.size > maxSize) {
-
-      const maxSizeMB = file.type.startsWith('image/') ? '5MB' : '10MB';
-
-      alert(`Il file selezionato è troppo grande. Dimensione massima consentita: ${maxSizeMB}`);
-
-      e.target.value = ''; // Reset input
-
-      setSelectedFile(null);
-
-      return;
-
-    }
-
-
-
-    setSelectedFile(file);
+    setSelectedFile(e.target.files?.[0] || null);
 
   };
 
@@ -5194,45 +4816,11 @@ const NewInscriptionModal: React.FC<{
 
       <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4" onClick={onClose}>
 
-        <div className="bg-card p-6 rounded-2xl border border-border max-w-2xl w-full text-foreground" onClick={(e) => e.stopPropagation()} style={{ background: 'linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%)', border: '1px solid rgba(255, 255, 255, 0.1)', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.4)' }}>
+        <div className="bg-card p-6 rounded-2xl border border-border max-w-2xl w-full text-foreground" onClick={(e) => e.stopPropagation()}>
 
-          <div className="p-4 border-b border-border" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255, 255, 255, 0.1)' }}>
+          <div className="p-4 border-b border-border">
 
-            <h2 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-
-              <span style={{ fontSize: '1.5rem' }}>✨</span>
-
-              Nuova Iscrizione ({currentStep}/6)
-
-            </h2>
-
-            <div style={{ display: 'flex', gap: '0.25rem' }}>
-
-              {[1,2,3,4,5,6].map((step) => (
-
-                <div
-
-                  key={step}
-
-                  style={{
-
-                    width: '8px',
-
-                    height: '8px',
-
-                    borderRadius: '50%',
-
-                    background: step <= currentStep ? '#6366f1' : 'rgba(255, 255, 255, 0.3)',
-
-                    transition: 'all 0.3s ease'
-
-                  }}
-
-                />
-
-              ))}
-
-            </div>
+            <h2>Nuova Iscrizione ({currentStep}/6)</h2>
 
           </div>
 
@@ -5242,15 +4830,13 @@ const NewInscriptionModal: React.FC<{
 
               <div>
 
-                <div style={{ background: 'rgba(99, 102, 241, 0.1)', padding: '1.5rem', borderRadius: '1rem', border: '1px solid rgba(99, 102, 241, 0.3)', marginBottom: '1.5rem' }}>
+                <div className="mb-4">
 
-                  <label style={{ display: 'block', marginBottom: '0.75rem', color: '#e5e7eb', fontWeight: '600', fontSize: '1rem' }}>
-
-                    <span style={{ fontSize: '1.1rem', marginRight: '0.5rem' }}>📝</span>
+                  <label>
 
                     Nome Iscrizione 
 
-                    <span style={{ color: "#ef4444", fontWeight: "bold", marginLeft: '0.5rem' }}>* Obbligatorio</span>
+                    <span style={{ color: "red", fontWeight: "bold" }}> * Obbligatorio</span>
 
                   </label>
 
@@ -5264,71 +4850,33 @@ const NewInscriptionModal: React.FC<{
 
                     onChange={handleInputChange} 
 
-                    style={{ 
-
-                      width: '100%', 
-
-                      padding: '0.75rem 1rem', 
-
-                      background: 'rgba(0, 0, 0, 0.3)', 
-
-                      border: '1px solid rgba(255, 255, 255, 0.2)', 
-
-                      borderRadius: '0.75rem', 
-
-                      color: '#ffffff', 
-
-                      fontSize: '1rem',
-
-                      transition: 'all 0.3s ease'
-
-                    }}
-
-                    onFocus={(e) => {
-
-                      e.target.style.borderColor = '#6366f1';
-
-                      e.target.style.boxShadow = '0 0 0 3px rgba(99, 102, 241, 0.1)';
-
-                    }}
-
-                    onBlur={(e) => {
-
-                      e.target.style.borderColor = 'rgba(255, 255, 255, 0.2)';
-
-                      e.target.style.boxShadow = 'none';
-
-                    }}
+                    className="w-full p-3 rounded-lg bg-gray-800 border border-gray-700 text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50" 
 
                     maxLength={50} 
 
                   />
 
-                  <small style={{ color: '#9ca3af', fontSize: '0.8rem', marginTop: '0.25rem', display: 'block' }}>{formData.name.length} / 50 caratteri</small>
+                  <small className="char-counter">{formData.name.length} / 50</small>
 
                 </div>
 
-                <div style={{ background: 'rgba(59, 130, 246, 0.1)', padding: '1.5rem', borderRadius: '1rem', border: '1px solid rgba(59, 130, 246, 0.3)' }}>
+                <div style={helpTextStyle}>
 
-                  <h4 style={{ color: '#3b82f6', margin: '0 0 1rem 0', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <p><strong>ℹ️ Come scegliere il Nome Iscrizione</strong></p>
 
-                    <span>ℹ️</span> Come scegliere il Nome Iscrizione
+                  <p>Il Nome Iscrizione è un'etichetta descrittiva che ti aiuta a identificare in modo chiaro ciò che stai registrando on-chain. Ad esempio:</p>
 
-                  </h4>
+                  <ul style={{ textAlign: "left", paddingLeft: "20px" }}>
 
-                  <p style={{ margin: '0 0 1rem 0', color: '#d1d5db', lineHeight: '1.6' }}>Il Nome Iscrizione è un'etichetta descrittiva che ti aiuta a identificare in modo chiaro ciò che stai registrando on-chain. Ad esempio:</p>
+                    <li>Il nome di un prodotto o varietà: <em>Pomodori San Marzano 2025, Olio Extravergine Frantoio</em></li>
 
-                  <ul style={{ textAlign: "left", paddingLeft: "20px", margin: '0 0 1rem 0', color: '#d1d5db' }}>
+                    <li>Un lotto o una produzione: <em>Lotto Pasta Artigianale LT1025, Produzione Vino Rosso 2024</em></li>
 
-                    <li style={{ marginBottom: '0.5rem' }}>Il nome di un prodotto o varietà: <em style={{ color: '#c4b5fd' }}>Pomodori San Marzano 2025, Olio Extravergine Frantoio</em></li>
-
-                    <li style={{ marginBottom: '0.5rem' }}>Un lotto o una produzione: <em style={{ color: '#c4b5fd' }}>Lotto Pasta Artigianale LT1025, Produzione Vino Rosso 2024</em></li>
-
-                    <li style={{ marginBottom: '0.5rem' }}>Un servizio o processo: <em style={{ color: '#c4b5fd' }}>Trasporto Merci Roma-Milano, Certificazione Biologico 2025</em></li>
+                    <li>Un servizio o processo: <em>Trasporto Merci Roma-Milano, Certificazione Biologico 2025</em></li>
 
                   </ul>
 
-                  <p style={{ margin: 0, color: '#d1d5db' }}><strong style={{ color: '#ffffff' }}>📌 Consiglio:</strong> scegli un nome breve ma significativo, che ti permetta di ritrovare facilmente l'iscrizione anche dopo mesi o anni.</p>
+                  <p style={{ marginTop: "1rem" }}><strong>📌 Consiglio:</strong> scegli un nome breve ma significativo, che ti permetta di ritrovare facilmente l'iscrizione anche dopo mesi o anni.</p>
 
                 </div>
 
@@ -6221,11 +5769,7 @@ const AziendaPage: React.FC = () => {
 
   useEffect(() => {
 
-    // Solo reindirizza se l'account diventa null DOPO essere stato presente
-
-    // Evita redirect al primo caricamento della pagina
-
-    if (!account && companyStatus.data !== null) {
+    if (!account) {
 
       navigate('/');
 
@@ -6233,7 +5777,7 @@ const AziendaPage: React.FC = () => {
 
     }
 
-  }, [account, navigate, companyStatus.data]);
+  }, [account, navigate]);
 
 
 
