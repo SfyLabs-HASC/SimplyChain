@@ -690,10 +690,10 @@ function generateCertificateHTML(batch, companyName) {
   `;
 }
 
-// Funzione per deployare HTML su Firebase Storage (URL pubblici esterni)
+// Funzione per deployare HTML su Firebase Hosting (gratuito)
 async function deployToFirebaseHosting(htmlContent, fileName) {
   try {
-    console.log('🔥 Caricando certificato HTML su Firebase Storage:', fileName);
+    console.log('🔥 Deployando certificato su Firebase Hosting:', fileName);
     
     const admin = await import('firebase-admin');
     
@@ -704,40 +704,37 @@ async function deployToFirebaseHosting(htmlContent, fileName) {
           projectId: process.env.FIREBASE_PROJECT_ID,
           clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
           privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-        }),
-        storageBucket: `${process.env.FIREBASE_PROJECT_ID}.appspot.com`
+        })
       });
     }
     
-    const bucket = admin.default.storage().bucket();
-    const file = bucket.file(`certificates/${fileName}`);
+    // APPROCCIO: Usa Firestore per salvare HTML + endpoint Firebase Hosting
+    // Firebase Hosting può servire file da Cloud Functions
+    const db = admin.default.firestore();
+    const certificateId = fileName.replace('.html', '');
     
-    // Upload HTML con metadati corretti per browser
-    await file.save(htmlContent, {
-      metadata: {
-        contentType: 'text/html; charset=utf-8',
-        cacheControl: 'public, max-age=31536000',
-        contentDisposition: 'inline', // Mostra nel browser invece di scaricare
-      }
+    // Salva HTML in Firestore
+    await db.collection('certificates').doc(certificateId).set({
+      html: htmlContent,
+      fileName: fileName,
+      createdAt: admin.default.firestore.FieldValue.serverTimestamp(),
+      isPublic: true
     });
     
-    console.log('📤 File caricato su Firebase Storage');
+    console.log('💾 HTML salvato in Firestore:', certificateId);
     
-    // Rendi il file pubblico
-    await file.makePublic();
-    console.log('🔓 File reso pubblico');
+    // URL che punta a Firebase Hosting (devi configurare il progetto)
+    // Formato: https://tuo-progetto.web.app/certificate/certificateId
+    const hostingUrl = `https://${process.env.FIREBASE_PROJECT_ID}.web.app/certificate/${certificateId}`;
     
-    // URL pubblico Firebase Storage (completamente esterno al nostro sito)
-    const certificateUrl = `https://storage.googleapis.com/${process.env.FIREBASE_PROJECT_ID}.appspot.com/certificates/${fileName}`;
-    
-    console.log('✅ Certificato disponibile pubblicamente:', certificateUrl);
-    return certificateUrl;
+    console.log('🌐 URL Firebase Hosting:', hostingUrl);
+    return hostingUrl;
     
   } catch (error) {
-    console.error('❌ Errore Firebase Storage:', error);
+    console.error('❌ Errore Firebase Hosting:', error);
     
-    // Se Firebase Storage non funziona, usa Firestore come fallback
-    console.log('⚠️ Tentativo fallback con Firestore...');
+    // Fallback: usa endpoint Vercel
+    console.log('⚠️ Fallback a endpoint Vercel...');
     
     try {
       const admin = await import('firebase-admin');
