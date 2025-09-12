@@ -2666,19 +2666,22 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
 
   };
 
-  // Funzione per generare QR Code
+  // Funzione per generare QR Code con Firebase Realtime Database
   const handleGenerateQRCode = async (batch: Batch) => {
     try {
-      console.log('Generando QR Code per batch:', batch.batchId);
+      console.log('🔥 Generando QR Code con Realtime Database per batch:', batch.batchId);
       
-      // Step 1: Genera HTML e caricalo sul server
-      const response = await fetch('/api/export-batch', {
+      // Mostra loading
+      setLoadingMessages(prev => [...prev, `Generando QR Code per ${batch.name}...`]);
+      
+      // Usa la nuova API con Realtime Database
+      const response = await fetch('/api/create-qr-realtime', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           batch: batch,
-          exportType: 'qrcode',
-          companyName: currentCompanyData.companyName
+          companyName: currentCompanyData.companyName,
+          walletAddress: account?.address
         }),
       });
 
@@ -2688,14 +2691,14 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `${batch.name}_qrcode.png`;
+        const cleanName = batch.name.replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, '_');
+        a.download = `${cleanName}_qrcode.png`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
         window.URL.revokeObjectURL(url);
         
-        console.log('QR Code scaricato con successo');
-        alert('QR Code generato e scaricato con successo!');
+        console.log('✅ QR Code scaricato con successo (Realtime Database)');
         
         // Aggiorna il batch per mostrare "Scarica QR Code" la prossima volta
         const updatedBatch = { ...batch, qrCodeGenerated: true };
@@ -2707,29 +2710,66 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
           )
         );
         
-        // Salva lo stato su Firebase tramite API
-        try {
-          await fetch('/api/update-batch-qr-status', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              walletAddress: account.address,
-              batchId: batch.batchId,
-              qrCodeGenerated: true
-            })
-          });
-          console.log('Flag QR Code salvato su Firebase');
-        } catch (saveError) {
-          console.error('Errore nel salvare flag QR Code:', saveError);
-        }
+        // Rimuovi loading message
+        setLoadingMessages(prev => prev.filter(msg => !msg.includes(batch.name)));
+        
+        // Mostra messaggio di successo
+        alert('🎉 QR Code generato con successo!\n\n✨ Novità: Il tuo certificato è ora salvato nel Firebase Realtime Database per prestazioni migliori e accesso in tempo reale!');
         
       } else {
         const errorText = await response.text();
         throw new Error(`Errore nella generazione del QR Code: ${errorText}`);
       }
     } catch (error) {
-      console.error('Errore durante la generazione QR Code:', error);
-      alert('Errore durante la generazione del QR Code. Riprova.');
+      console.error('❌ Errore durante la generazione QR Code:', error);
+      
+      // Rimuovi loading message
+      setLoadingMessages(prev => prev.filter(msg => !msg.includes(batch.name)));
+      
+      // Fallback: prova con il sistema precedente
+      console.log('🔄 Tentativo fallback con sistema precedente...');
+      
+      try {
+        const fallbackResponse = await fetch('/api/export-batch', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            batch: batch,
+            exportType: 'qrcode',
+            companyName: currentCompanyData.companyName
+          }),
+        });
+
+        if (fallbackResponse.ok) {
+          const blob = await fallbackResponse.blob();
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `${batch.name}_qrcode.png`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          window.URL.revokeObjectURL(url);
+          
+          console.log('✅ QR Code generato con sistema fallback');
+          alert('QR Code generato con successo (sistema di backup)!');
+          
+          // Aggiorna stato batch
+          const updatedBatch = { ...batch, qrCodeGenerated: true };
+          setBatches(prevBatches => 
+            prevBatches.map(b => 
+              b.batchId === batch.batchId ? updatedBatch : b
+            )
+          );
+          
+        } else {
+          throw new Error('Anche il sistema di backup ha fallito');
+        }
+        
+      } catch (fallbackError) {
+        console.error('❌ Errore anche nel sistema di backup:', fallbackError);
+        alert('❌ Errore durante la generazione del QR Code. Riprova più tardi.\n\nDettagli: ' + error.message);
+      }
     }
   };
 
@@ -6261,9 +6301,25 @@ const QRInfoModal: React.FC<{
         </div>
 
         <div className="space-y-4 text-gray-300 leading-relaxed">
+          <div className="bg-green-900/20 border border-green-600/30 rounded-lg p-4 mb-4">
+            <p className="text-green-300 text-sm">
+              ✨ <strong>Novità!</strong> Ora utilizziamo Firebase Realtime Database per prestazioni migliori e accesso in tempo reale ai certificati!
+            </p>
+          </div>
+          
           <p>
             Puoi creare un QR Code delle tue iscrizioni finalizzate, così potrai stamparlo sulle etichette del tuo prodotto.
           </p>
+          
+          <p>
+            <strong>🔥 Vantaggi del nuovo sistema:</strong>
+          </p>
+          <ul className="list-disc list-inside space-y-2 ml-4">
+            <li>⚡ Caricamento istantaneo dei certificati</li>
+            <li>📊 Contatore delle visualizzazioni in tempo reale</li>
+            <li>🎨 Design migliorato e responsive</li>
+            <li>🔒 Maggiore affidabilità e sicurezza</li>
+          </ul>
           
           <p>
             Il link sarà valido come da{' '}
@@ -6276,13 +6332,16 @@ const QRInfoModal: React.FC<{
             </a>.
           </p>
           
-          <p>
-            SimplyChain ti permette di generare QR Code e di ospitare i dati collegati.
-          </p>
+          <div className="bg-blue-900/20 border border-blue-600/30 rounded-lg p-4 my-4">
+            <p className="text-blue-300 text-sm">
+              🔗 <strong>Firebase Realtime Database:</strong> I tuoi certificati sono salvati nel database in tempo reale di Google Firebase, 
+              garantendo prestazioni ottimali e disponibilità 24/7.
+            </p>
+          </div>
           
           <div className="bg-amber-900/20 border border-amber-600/30 rounded-lg p-4 my-4">
             <p className="text-amber-300 text-sm">
-              ⚠️ <strong>Importante:</strong> Tieni presente però che, se il sito dovesse essere dismesso o i dati venissero cancellati, 
+              ⚠️ <strong>Importante:</strong> Tieni presente però che, se il servizio dovesse essere dismesso o i dati venissero cancellati, 
               i QR Code creati potrebbero non funzionare più. In questi casi SimplyChain non potrà essere ritenuta responsabile.
             </p>
           </div>
