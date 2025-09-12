@@ -723,12 +723,12 @@ async function deployToFirebaseHosting(htmlContent, fileName) {
     
     console.log('💾 HTML salvato in Firestore:', certificateId);
     
-    // URL che punta a Firebase Hosting
-    // Formato: https://tuo-progetto.web.app/certificate/certificateId
-    const hostingUrl = `https://${process.env.FIREBASE_PROJECT_ID}.web.app/certificate/${certificateId}`;
+    // Usa l'endpoint Vercel esistente (già funzionante e gratuito)
+    const baseUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000';
+    const certificateUrl = `${baseUrl}/api/certificate/${certificateId}`;
     
-    console.log('🌐 URL Firebase Hosting:', hostingUrl);
-    return hostingUrl;
+    console.log('🌐 URL certificato (Vercel endpoint):', certificateUrl);
+    return certificateUrl;
     
   } catch (error) {
     console.error('❌ Errore Firebase Hosting:', error);
