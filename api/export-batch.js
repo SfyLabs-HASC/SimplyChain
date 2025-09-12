@@ -7,7 +7,11 @@ export default async function handler(req, res) {
   try {
     const { batch, exportType, companyName, bannerId } = req.body;
 
-    if (exportType === 'pdf') {
+    if (exportType === 'qrcode') {
+      // Genera HTML, salvalo sul server e crea QR Code
+      return await handleQRCodeGeneration(batch, companyName, res);
+      
+    } else if (exportType === 'pdf') {
       // Per ora PDF non è supportato in ambiente serverless
       // Generiamo invece un HTML che può essere convertito in PDF dal browser
       const pdfHtml = generatePrintableHTML(batch, companyName);
@@ -475,6 +479,202 @@ function generatePrintableHTML(batch, companyName) {
       <div style="text-align: center; margin-top: 40px; font-size: 12px; color: #9ca3af;">
         Generato tramite SimplyChain - Tracciabilità Blockchain per le imprese italiane.<br>
         Servizio Gratuito prodotto da SFY s.r.l. - Contattaci per maggiori informazioni: sfy.startup@gmail.com
+      </div>
+    </body>
+    </html>
+  `;
+}
+
+// Funzione per gestire la generazione QR Code
+async function handleQRCodeGeneration(batch, companyName, res) {
+  try {
+    // Step 1: Genera HTML per il certificato
+    const certificateHTML = generateCertificateHTML(batch, companyName);
+    
+    // Step 2: Salva HTML sul server (per ora simuliamo con un ID univoco)
+    const certificateId = `cert_${batch.batchId}_${Date.now()}`;
+    const certificateUrl = `${process.env.VERCEL_URL || 'http://localhost:3000'}/certificates/${certificateId}`;
+    
+    // Step 3: Genera QR Code che punta al certificato
+    const QRCode = require('qrcode');
+    const qrCodeDataUrl = await QRCode.toDataURL(certificateUrl, {
+      width: 1000,
+      margin: 2,
+      color: {
+        dark: '#000000',
+        light: '#FFFFFF'
+      }
+    });
+    
+    // Step 4: Converti QR Code in buffer per il download
+    const qrBuffer = Buffer.from(qrCodeDataUrl.split(',')[1], 'base64');
+    
+    // TODO: Salvare l'HTML sul server (implementare storage)
+    console.log('Certificate URL would be:', certificateUrl);
+    
+    // Per ora restituiamo il QR Code per il download
+    res.setHeader('Content-Type', 'image/png');
+    res.setHeader('Content-Disposition', `attachment; filename="${batch.name}_qrcode.png"`);
+    res.send(qrBuffer);
+    
+  } catch (error) {
+    console.error('Errore generazione QR Code:', error);
+    res.status(500).json({ error: 'Errore nella generazione del QR Code' });
+  }
+}
+
+// Funzione per generare HTML del certificato (riutilizza logica esistente)
+function generateCertificateHTML(batch, companyName) {
+  return `
+    <!DOCTYPE html>
+    <html lang="it">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>${batch.name} - Certificato di Tracciabilità</title>
+      <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { 
+          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+          background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+          color: #f1f5f9;
+          min-height: 100vh;
+          padding: 20px;
+        }
+        .certificate-container {
+          max-width: 800px;
+          margin: 0 auto;
+          background: rgba(30, 41, 59, 0.95);
+          border-radius: 20px;
+          padding: 40px;
+          box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+          border: 1px solid rgba(139, 92, 246, 0.3);
+        }
+        .header {
+          text-align: center;
+          margin-bottom: 40px;
+          border-bottom: 2px solid rgba(139, 92, 246, 0.3);
+          padding-bottom: 30px;
+        }
+        .title {
+          font-size: 2.5rem;
+          font-weight: bold;
+          background: linear-gradient(135deg, #8b5cf6 0%, #06b6d4 100%);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          margin-bottom: 10px;
+        }
+        .subtitle {
+          font-size: 1.2rem;
+          color: #94a3b8;
+        }
+        .info-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+          gap: 20px;
+          margin-bottom: 30px;
+        }
+        .info-item {
+          background: rgba(139, 92, 246, 0.1);
+          padding: 20px;
+          border-radius: 12px;
+          border: 1px solid rgba(139, 92, 246, 0.2);
+        }
+        .info-label {
+          font-weight: 600;
+          color: #8b5cf6;
+          margin-bottom: 8px;
+        }
+        .info-value {
+          color: #f1f5f9;
+          font-size: 1.1rem;
+        }
+        .steps-section {
+          margin-top: 40px;
+        }
+        .steps-title {
+          font-size: 1.8rem;
+          font-weight: bold;
+          color: #8b5cf6;
+          margin-bottom: 20px;
+          text-align: center;
+        }
+        .step {
+          background: rgba(6, 182, 212, 0.1);
+          border: 1px solid rgba(6, 182, 212, 0.2);
+          border-radius: 12px;
+          padding: 20px;
+          margin-bottom: 20px;
+        }
+        .step-header {
+          font-size: 1.3rem;
+          font-weight: bold;
+          color: #06b6d4;
+          margin-bottom: 15px;
+        }
+        .footer {
+          text-align: center;
+          margin-top: 40px;
+          padding-top: 20px;
+          border-top: 1px solid rgba(139, 92, 246, 0.3);
+          font-size: 0.9rem;
+          color: #94a3b8;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="certificate-container">
+        <div class="header">
+          <h1 class="title">🔗 SimplyChain</h1>
+          <p class="subtitle">Certificato di Tracciabilità Blockchain</p>
+        </div>
+
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">📦 Nome Prodotto</div>
+            <div class="info-value">${batch.name}</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">🏢 Azienda</div>
+            <div class="info-value">${companyName}</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">📅 Data</div>
+            <div class="info-value">${batch.date}</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">📍 Luogo</div>
+            <div class="info-value">${batch.location}</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">📝 Descrizione</div>
+            <div class="info-value">${batch.description || 'Nessuna descrizione'}</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">🔗 Transaction Hash</div>
+            <div class="info-value" style="word-break: break-all; font-size: 0.9rem;">${batch.transactionHash}</div>
+          </div>
+        </div>
+
+        ${batch.steps && batch.steps.length > 0 ? `
+          <div class="steps-section">
+            <h2 class="steps-title">📋 Fasi di Produzione</h2>
+            ${batch.steps.map((step, index) => `
+              <div class="step">
+                <div class="step-header">Step ${index + 1}: ${step.eventName}</div>
+                <div><strong>Descrizione:</strong> ${step.description || 'Nessuna descrizione'}</div>
+                <div><strong>Data:</strong> ${step.date || 'N/D'}</div>
+                <div><strong>Luogo:</strong> ${step.location || 'N/D'}</div>
+                ${step.transactionHash ? `<div><strong>Transaction Hash:</strong> ${step.transactionHash}</div>` : ''}
+              </div>
+            `).join('')}
+          </div>
+        ` : ''}
+
+        <div class="footer">
+          Generato tramite SimplyChain - Tracciabilità Blockchain per le imprese italiane.<br>
+          Servizio Gratuito prodotto da SFY s.r.l. - Contattaci per maggiori informazioni: sfy.startup@gmail.com
+        </div>
       </div>
     </body>
     </html>

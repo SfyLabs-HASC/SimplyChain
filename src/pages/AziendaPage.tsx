@@ -2366,7 +2366,7 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
 
   const [selectedBatchForExport, setSelectedBatchForExport] = useState<Batch | null>(null);
 
-  const [showExportModal, setShowExportModal] = useState(false);
+  const [showQRModal, setShowQRModal] = useState(false);
 
   const [showBannerModal, setShowBannerModal] = useState(false);
 
@@ -2666,7 +2666,48 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
 
   };
 
+  // Funzione per generare QR Code
+  const handleGenerateQRCode = async (batch: Batch) => {
+    try {
+      console.log('Generando QR Code per batch:', batch.batchId);
+      
+      // Step 1: Genera HTML e caricalo sul server
+      const response = await fetch('/api/export-batch', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          batch: batch,
+          exportType: 'qrcode',
+          companyName: currentCompanyData.companyName
+        }),
+      });
 
+      if (response.ok) {
+        // Il QR Code viene scaricato automaticamente come PNG
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${batch.name}_qrcode.png`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+        
+        console.log('QR Code scaricato con successo');
+        alert('QR Code generato e scaricato con successo!');
+        
+        // TODO: Aggiornare stato batch per mostrare "Scarica QR Code" la prossima volta
+        
+      } else {
+        const errorText = await response.text();
+        throw new Error(`Errore nella generazione del QR Code: ${errorText}`);
+      }
+    } catch (error) {
+      console.error('Errore durante la generazione QR Code:', error);
+      alert('Errore durante la generazione del QR Code. Riprova.');
+    }
+  };
 
   const handleExport = async (batch: Batch, exportType: 'pdf' | 'html', bannerId: string) => {
 
@@ -3211,15 +3252,39 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
 
                         onClick={() => {
 
-                          setSelectedBatchForExport(batch);
+                          // Esporta direttamente PDF
 
-                          setShowExportModal(true);
+                          handleExport(batch, 'pdf', 'banner1');
 
                         }}
 
                       >
 
                         Esporta
+
+                      </button>
+
+                    )}
+
+                    {/* Pulsante QR Code - mostrato solo per batch chiusi */}
+
+                    {batch.isClosed && (
+
+                      <button
+
+                        className="bg-gradient-to-r from-purple-600 to-purple-700 text-white px-3 py-2 rounded-md hover:scale-105 transition"
+
+                        onClick={() => {
+
+                          setSelectedBatchForExport(batch);
+
+                          setShowQRModal(true);
+
+                        }}
+
+                      >
+
+                        📱 Crea QR Code
 
                       </button>
 
@@ -3487,29 +3552,39 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
 
 
 
-      {/* Modale per scelta tipo esportazione */}
+      {/* Modale informativo per QR Code */}
 
-      {showExportModal && selectedBatchForExport && (
+      {showQRModal && selectedBatchForExport && (
 
-        <ExportTypeModal
+        <QRInfoModal
 
           batch={selectedBatchForExport}
 
           onClose={() => {
 
-            setShowExportModal(false);
+            setShowQRModal(false);
 
             setSelectedBatchForExport(null);
 
           }}
 
-          onSelectType={(type) => {
+          onGenerateQR={() => {
 
-            setSelectedExportType(type);
+            // Logica per generare QR Code
 
-            setShowExportModal(false);
+            handleGenerateQRCode(selectedBatchForExport);
 
-            setShowBannerModal(true);
+            setShowQRModal(false);
+
+          }}
+
+          onExportHTML={() => {
+
+            // Esporta HTML direttamente dal modale
+
+            handleExport(selectedBatchForExport, 'html', 'banner1');
+
+            setShowQRModal(false);
 
           }}
 
@@ -6136,6 +6211,81 @@ const AziendaPage: React.FC = () => {
 
   );
 
+};
+
+// Componente Modale Informativo per QR Code
+const QRInfoModal: React.FC<{
+  batch: Batch;
+  onClose: () => void;
+  onGenerateQR: () => void;
+  onExportHTML: () => void;
+}> = ({ batch, onClose, onGenerateQR, onExportHTML }) => {
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '600px', padding: '2rem' }}>
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-2xl font-bold text-white flex items-center gap-2">
+            📱 Generazione QR Code
+          </h2>
+          <button onClick={onClose} className="text-gray-400 hover:text-white text-2xl">×</button>
+        </div>
+
+        <div className="space-y-4 text-gray-300 leading-relaxed">
+          <p>
+            Puoi creare un QR Code delle tue iscrizioni finalizzate, così potrai stamparlo sulle etichette del tuo prodotto.
+          </p>
+          
+          <p>
+            Il link sarà valido come da{' '}
+            <a 
+              href="/termini-condizioni" 
+              target="_blank" 
+              className="text-primary hover:text-primary/80 underline"
+            >
+              Termini e condizioni
+            </a>.
+          </p>
+          
+          <p>
+            SimplyChain ti permette di generare QR Code e di ospitare i dati collegati.
+          </p>
+          
+          <div className="bg-amber-900/20 border border-amber-600/30 rounded-lg p-4 my-4">
+            <p className="text-amber-300 text-sm">
+              ⚠️ <strong>Importante:</strong> Tieni presente però che, se il sito dovesse essere dismesso o i dati venissero cancellati, 
+              i QR Code creati potrebbero non funzionare più. In questi casi SimplyChain non potrà essere ritenuta responsabile.
+            </p>
+          </div>
+          
+          <p>
+            In alternativa, puoi{' '}
+            <button 
+              onClick={onExportHTML}
+              className="text-primary hover:text-primary/80 underline bg-transparent border-none cursor-pointer"
+            >
+              scaricare il file HTML tramite il tasto Esporta
+            </button>
+            {' '}e ospitarlo su uno spazio personale. In questo modo potrai creare il tuo QR Code anche esternamente a SimplyChain.
+          </p>
+        </div>
+
+        <div className="flex gap-3 mt-8">
+          <button
+            onClick={onClose}
+            className="flex-1 bg-gray-600 hover:bg-gray-700 text-white px-4 py-3 rounded-lg transition"
+          >
+            Chiudi
+          </button>
+          <button
+            onClick={onGenerateQR}
+            className="flex-1 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white px-4 py-3 rounded-lg transition"
+          >
+            📱 Genera QR Code
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 };
 
 
