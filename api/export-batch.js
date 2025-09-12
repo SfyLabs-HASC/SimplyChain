@@ -726,20 +726,43 @@ async function deployToFirebaseHosting(htmlContent, fileName) {
     
     console.log('💾 HTML salvato in Firestore:', certificateId);
     
-    // URL che punta direttamente a Firebase Hosting con nome azienda
-    // Formato: https://easychain-db.web.app/certificate/[nome-azienda]/[id].html
+    // Deploy immediato su Firebase Hosting
     const cleanCompanyName = companyName.replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, '_');
-    const certificateUrl = `https://${process.env.FIREBASE_PROJECT_ID}.web.app/certificate/${cleanCompanyName}/${certificateId}.html`;
     
-    console.log('🔥 URL Firebase Hosting:', certificateUrl);
-    console.log('🏢 Nome azienda (clean):', cleanCompanyName);
-    console.log('📋 Certificate ID:', certificateId);
-    console.log('💾 HTML salvato in Firestore per successivo deploy');
-    
-    // Triggera un webhook per rigenerare i file statici (opzionale)
-    // Per ora il file sarà disponibile tramite processo manuale o automatico
-    
-    return certificateUrl;
+    try {
+      // Deploy immediato tramite GitHub API
+      const deployResponse = await fetch(`${process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000'}/api/deploy-certificate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          certificateId,
+          companyName,
+          htmlContent
+        })
+      });
+
+      if (!deployResponse.ok) {
+        throw new Error('Deploy API failed');
+      }
+
+      const deployResult = await deployResponse.json();
+      
+      console.log('🚀 Deploy immediato attivato');
+      console.log('🔥 URL Firebase Hosting:', deployResult.url);
+      console.log('🏢 Nome azienda:', cleanCompanyName);
+      console.log('📋 Certificate ID:', certificateId);
+      
+      return deployResult.url;
+      
+    } catch (deployError) {
+      console.error('❌ Errore deploy immediato:', deployError);
+      
+      // Fallback: usa endpoint Vercel
+      const baseUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000';
+      const fallbackUrl = `${baseUrl}/api/certificate/${certificateId}`;
+      console.log('🔄 Usando fallback Vercel:', fallbackUrl);
+      return fallbackUrl;
+    }
     
   } catch (error) {
     console.error('❌ Errore Firebase Hosting:', error);
