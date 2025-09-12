@@ -27,13 +27,14 @@ export default async function handler(req, res) {
 
     const db = admin.default.firestore();
     
-    // Aggiorna il documento del batch
+    // Aggiorna o crea il documento del batch
     const batchRef = db.collection('companies').doc(walletAddress).collection('batches').doc(batchId.toString());
     
-    await batchRef.update({
+    // Usa set con merge per creare il documento se non esiste
+    await batchRef.set({
       qrCodeGenerated: qrCodeGenerated,
       qrCodeGeneratedAt: admin.default.firestore.FieldValue.serverTimestamp()
-    });
+    }, { merge: true });
 
     console.log(`✅ QR Code status aggiornato per batch ${batchId}: ${qrCodeGenerated}`);
     
