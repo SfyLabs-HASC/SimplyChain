@@ -723,7 +723,7 @@ async function deployToFirebaseHosting(htmlContent, fileName) {
     
     console.log('💾 HTML salvato in Firestore:', certificateId);
     
-    // URL che punta a Firebase Hosting (devi configurare il progetto)
+    // URL che punta a Firebase Hosting
     // Formato: https://tuo-progetto.web.app/certificate/certificateId
     const hostingUrl = `https://${process.env.FIREBASE_PROJECT_ID}.web.app/certificate/${certificateId}`;
     
