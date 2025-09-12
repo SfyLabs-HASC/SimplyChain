@@ -57,13 +57,17 @@ export default function HomePage() {
   // Effect to handle user authentication and routing
   useEffect(() => {
     if (account && account.address) {
-      // Sempre controlla lo stato dell'utente quando si connette
-      checkUserVerification();
+      // Solo auto-redirect se l'utente ha cliccato il pulsante di connessione
+      // Non fare redirect automatico su page load/refresh
+      if (shouldAutoRedirect) {
+        checkUserVerification();
+        setShouldAutoRedirect(false); // Reset flag
+      }
     } else if (!account) {
       // Reset flag quando si disconnette
       setShouldAutoRedirect(false);
     }
-  }, [account]);
+  }, [account, shouldAutoRedirect]);
 
   const checkUserVerification = async () => {
     if (!account?.address) return;
@@ -90,7 +94,9 @@ export default function HomePage() {
   };
 
   const handleAuthButtonClick = () => {
+    // Attiva il flag solo quando l'utente clicca intenzionalmente
     setShouldAutoRedirect(true);
+    
     // Trova il ConnectButton nascosto e simula un click
     setTimeout(() => {
       const connectButtons = document.querySelectorAll('button');

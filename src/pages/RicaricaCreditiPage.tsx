@@ -583,6 +583,7 @@ const RicaricaCreditiPage: React.FC = () => {
     <>
       <RicaricaCreditiStyles />
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 p-6">
+        <div className="container mx-auto max-w-6xl">
         
         {/* Header Bar - Uguale alle altre pagine */}
         <div className="glass-card rounded-3xl p-6 tech-shadow flex flex-col md:flex-row justify-between items-center gap-6 mb-6">
