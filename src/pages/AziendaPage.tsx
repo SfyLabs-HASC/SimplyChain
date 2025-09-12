@@ -2697,7 +2697,31 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
         console.log('QR Code scaricato con successo');
         alert('QR Code generato e scaricato con successo!');
         
-        // TODO: Aggiornare stato batch per mostrare "Scarica QR Code" la prossima volta
+        // Aggiorna il batch per mostrare "Scarica QR Code" la prossima volta
+        const updatedBatch = { ...batch, qrCodeGenerated: true };
+        
+        // Aggiorna lo stato locale dei batch
+        setBatches(prevBatches => 
+          prevBatches.map(b => 
+            b.batchId === batch.batchId ? updatedBatch : b
+          )
+        );
+        
+        // Salva lo stato su Firebase tramite API
+        try {
+          await fetch('/api/update-batch-qr-status', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              walletAddress: account.address,
+              batchId: batch.batchId,
+              qrCodeGenerated: true
+            })
+          });
+          console.log('Flag QR Code salvato su Firebase');
+        } catch (saveError) {
+          console.error('Errore nel salvare flag QR Code:', saveError);
+        }
         
       } else {
         const errorText = await response.text();
@@ -3284,7 +3308,7 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
 
                       >
 
-                        📱 Crea QR Code
+                        {batch.qrCodeGenerated ? 'Scarica QR Code' : 'Crea QR Code'}
 
                       </button>
 

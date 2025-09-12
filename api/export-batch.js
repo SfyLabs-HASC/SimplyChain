@@ -514,14 +514,14 @@ async function handleQRCodeGeneration(batch, companyName, res) {
     
     // Step 4: Converti QR Code in buffer per il download
     const qrBuffer = Buffer.from(qrCodeDataUrl.split(',')[1], 'base64');
-    console.log('📱 QR Code generato (1000x1000px)');
+    console.log('📱 QR Code generato per URL:', certificateUrl);
     
     // Step 5: Restituisci il QR Code per il download
     res.setHeader('Content-Type', 'image/png');
     res.setHeader('Content-Disposition', `attachment; filename="${cleanBatchName}_qrcode.png"`);
     res.send(qrBuffer);
     
-    console.log('✅ QR Code inviato per download');
+    console.log('✅ QR Code scaricato - punta a Firebase:', certificateUrl);
     
   } catch (error) {
     console.error('❌ Errore generazione QR Code:', error);
