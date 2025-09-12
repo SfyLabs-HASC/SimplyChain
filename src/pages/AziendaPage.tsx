@@ -3194,7 +3194,7 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
 
 
 
-                    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                    <div className="mt-auto pt-4 border-t border-gray-600" style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
 
                       {/* Pulsante Esporta - mostrato solo per batch chiusi */}
 
