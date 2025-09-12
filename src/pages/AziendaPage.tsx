@@ -2666,100 +2666,144 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
 
   };
 
-  // Funzione per generare QR Code (con fallback per ambiente locale)
+  // Funzione per generare QR Code con Firebase Realtime Database
   const handleGenerateQRCode = async (batch: Batch) => {
     try {
-      console.log('Generando QR Code per batch:', batch.batchId);
+      console.log('🔥 Generando QR Code con Firebase Realtime Database per batch:', batch.batchId);
       
-      // Per l'ambiente locale, genera QR Code direttamente nel frontend
-      if (window.location.hostname === 'localhost') {
-        console.log('🏠 Ambiente locale: generando QR Code nel frontend');
-        
-        // Genera URL di test per il certificato
-        const certificateId = `${batch.batchId}_${Date.now()}`;
-        const testUrl = `${window.location.origin}/certificate-test.html?id=${certificateId}&name=${encodeURIComponent(batch.name)}&company=${encodeURIComponent(currentCompanyData.companyName)}`;
-        
-        // Importa QRCode dinamicamente
-        const QRCode = await import('qrcode');
-        
-        // Genera QR Code
-        const qrCodeDataUrl = await QRCode.default.toDataURL(testUrl, {
-          width: 1000,
-          margin: 2,
-          color: {
-            dark: '#000000',
-            light: '#FFFFFF'
-          },
-          errorCorrectionLevel: 'M'
-        });
-        
-        // Scarica il QR Code
-        const a = document.createElement('a');
-        a.href = qrCodeDataUrl;
-        const cleanName = batch.name.replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, '_');
-        a.download = `${cleanName}_qrcode.png`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        
-        console.log('✅ QR Code generato localmente:', testUrl);
-        
-        // Aggiorna il batch
-        const updatedBatch = { ...batch, qrCodeGenerated: true };
-        setBatches(prevBatches => 
-          prevBatches.map(b => 
-            b.batchId === batch.batchId ? updatedBatch : b
-          )
-        );
-        
-        alert('🎉 QR Code generato con successo!\n\n🏠 Modalità test locale attiva.\n📱 Il QR code punta a una pagina di test.');
-        
-        return;
-      }
+      // Importa Firebase Realtime Database
+      const { realtimeDb } = await import('../firebaseConfig');
+      const { ref, set, push } = await import('firebase/database');
+      const QRCode = await import('qrcode');
       
-      // Per l'ambiente di produzione, usa l'API serverless
-      const response = await fetch('/api/export-batch', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          batch: batch,
-          exportType: 'qrcode',
-          companyName: currentCompanyData.companyName
-        }),
+      // Step 1: Prepara i dati del certificato
+      const certificateId = `${batch.batchId}_${Date.now()}`;
+      const certificateData = {
+        batchId: batch.batchId,
+        name: batch.name,
+        companyName: currentCompanyData.companyName,
+        walletAddress: account?.address,
+        date: batch.date,
+        location: batch.location,
+        description: batch.description,
+        transactionHash: batch.transactionHash,
+        imageIpfsHash: batch.imageIpfsHash,
+        steps: batch.steps || [],
+        createdAt: new Date().toISOString(),
+        isActive: true,
+        viewCount: 0
+      };
+      
+      console.log('💾 Salvando certificato nel Realtime Database...');
+      
+      // Step 2: Salva nel Realtime Database
+      const certificateRef = ref(realtimeDb, `certificates/${certificateId}`);
+      await set(certificateRef, certificateData);
+      
+      console.log('✅ Certificato salvato nel Realtime Database:', certificateId);
+      
+      // Step 3: Genera URL per il certificato
+      const baseUrl = window.location.hostname === 'localhost' 
+        ? window.location.origin 
+        : 'https://simplychain-app.vercel.app'; // URL di produzione
+        
+      const certificateUrl = `${baseUrl}/api/qr-system?action=view&id=${certificateId}`;
+      
+      console.log('🌐 URL certificato:', certificateUrl);
+      
+      // Step 4: Genera QR Code
+      const qrCodeDataUrl = await QRCode.default.toDataURL(certificateUrl, {
+        width: 1000,
+        margin: 2,
+        color: {
+          dark: '#000000',
+          light: '#FFFFFF'
+        },
+        errorCorrectionLevel: 'M'
       });
-
-      if (response.ok) {
-        // Il QR Code viene scaricato automaticamente come PNG
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        const cleanName = batch.name.replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, '_');
-        a.download = `${cleanName}_qrcode.png`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        window.URL.revokeObjectURL(url);
-        
-        console.log('✅ QR Code scaricato con successo');
-        
-        // Aggiorna il batch
-        const updatedBatch = { ...batch, qrCodeGenerated: true };
-        setBatches(prevBatches => 
-          prevBatches.map(b => 
-            b.batchId === batch.batchId ? updatedBatch : b
-          )
-        );
-        
-        alert('🎉 QR Code generato e scaricato con successo!');
-        
-      } else {
-        const errorText = await response.text();
-        throw new Error(`Errore nella generazione del QR Code: ${errorText}`);
+      
+      console.log('📱 QR Code generato per URL:', certificateUrl);
+      
+      // Step 5: Scarica il QR Code
+      const a = document.createElement('a');
+      a.href = qrCodeDataUrl;
+      const cleanName = batch.name.replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, '_');
+      a.download = `${cleanName}_qrcode.png`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      
+      console.log('✅ QR Code scaricato con successo');
+      
+      // Step 6: Aggiorna lo stato del batch
+      const updatedBatch = { ...batch, qrCodeGenerated: true };
+      setBatches(prevBatches => 
+        prevBatches.map(b => 
+          b.batchId === batch.batchId ? updatedBatch : b
+        )
+      );
+      
+      // Step 7: Salva stato in Firestore (per compatibilità)
+      try {
+        await fetch('/api/qr-system?action=update-status', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            walletAddress: account?.address,
+            batchId: batch.batchId,
+            qrCodeGenerated: true
+          })
+        });
+        console.log('✅ Stato QR salvato in Firestore');
+      } catch (saveError) {
+        console.warn('⚠️ Errore salvando stato QR (non critico):', saveError);
       }
+      
+      alert('🎉 QR Code generato con successo!\n\n🔥 Certificato salvato nel Firebase Realtime Database!\n📱 Il QR code è pronto per l\'uso.');
+      
     } catch (error) {
       console.error('❌ Errore durante la generazione QR Code:', error);
-      alert('❌ Errore durante la generazione del QR Code. Riprova più tardi.\n\nDettagli: ' + error.message);
+      
+      // Fallback al sistema precedente se Realtime DB fallisce
+      console.log('🔄 Fallback al sistema precedente...');
+      try {
+        const response = await fetch('/api/export-batch', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            batch: batch,
+            exportType: 'qrcode',
+            companyName: currentCompanyData.companyName
+          }),
+        });
+
+        if (response.ok) {
+          const blob = await response.blob();
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          const cleanName = batch.name.replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, '_');
+          a.download = `${cleanName}_qrcode.png`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          window.URL.revokeObjectURL(url);
+          
+          const updatedBatch = { ...batch, qrCodeGenerated: true };
+          setBatches(prevBatches => 
+            prevBatches.map(b => 
+              b.batchId === batch.batchId ? updatedBatch : b
+            )
+          );
+          
+          alert('🎉 QR Code generato con sistema di backup!');
+        } else {
+          throw new Error('Anche il sistema di backup ha fallito');
+        }
+      } catch (fallbackError) {
+        console.error('❌ Errore anche nel fallback:', fallbackError);
+        alert('❌ Errore durante la generazione del QR Code. Riprova più tardi.\n\nDettagli: ' + error.message);
+      }
     }
   };
 
