@@ -494,43 +494,10 @@ async function handleQRCodeGeneration(batch, companyName, res) {
     const certificateHTML = generateCertificateHTML(batch, companyName);
     console.log('📄 HTML certificato generato');
     
-    // Step 2: Upload HTML su Firebase Storage
-    const admin = await import('firebase-admin');
-    
-    // Inizializza Firebase se non già fatto
-    if (!admin.default.apps.length) {
-      admin.default.initializeApp({
-        credential: admin.default.credential.cert({
-          projectId: process.env.FIREBASE_PROJECT_ID,
-          clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-          privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-        }),
-        storageBucket: `${process.env.FIREBASE_PROJECT_ID}.appspot.com`
-      });
-    }
-    
-    const bucket = admin.default.storage().bucket();
-    const fileName = `certificates/cert_${batch.batchId}_${Date.now()}.html`;
-    const file = bucket.file(fileName);
-    
-    // Upload HTML
-    await file.save(certificateHTML, {
-      metadata: {
-        contentType: 'text/html',
-        metadata: {
-          batchId: batch.batchId.toString(),
-          companyName: companyName,
-          generatedAt: new Date().toISOString()
-        }
-      }
-    });
-    
-    // Rendi il file pubblico
-    await file.makePublic();
-    
-    // Ottieni URL pubblico
-    const certificateUrl = `https://storage.googleapis.com/${process.env.FIREBASE_PROJECT_ID}.appspot.com/${fileName}`;
-    console.log('🌐 Certificato caricato su:', certificateUrl);
+    // Step 2: Deploy HTML su Firebase Hosting
+    const fileName = `cert_${batch.batchId}_${Date.now()}.html`;
+    const certificateUrl = await deployToFirebaseHosting(certificateHTML, fileName);
+    console.log('🌐 Certificato deployato su:', certificateUrl);
     
     // Step 3: Genera QR Code che punta al certificato
     const QRCode = await import('qrcode');
@@ -719,4 +686,50 @@ function generateCertificateHTML(batch, companyName) {
     </body>
     </html>
   `;
+}
+
+// Funzione per deployare HTML usando Firestore (gratuito) + endpoint dinamico
+async function deployToFirebaseHosting(htmlContent, fileName) {
+  try {
+    console.log('🔥 Salvando certificato per hosting:', fileName);
+    
+    const certificateId = fileName.replace('.html', '');
+    
+    // Salva l'HTML in Firebase Firestore (gratuito nel piano Spark)
+    const admin = await import('firebase-admin');
+    
+    // Inizializza Firebase se non già fatto
+    if (!admin.default.apps.length) {
+      admin.default.initializeApp({
+        credential: admin.default.credential.cert({
+          projectId: process.env.FIREBASE_PROJECT_ID,
+          clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+          privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+        })
+      });
+    }
+    
+    const db = admin.default.firestore();
+    
+    // Salva l'HTML in Firestore (completamente gratuito)
+    await db.collection('certificates').doc(certificateId).set({
+      html: htmlContent,
+      fileName: fileName,
+      createdAt: admin.default.firestore.FieldValue.serverTimestamp(),
+      isPublic: true
+    });
+    
+    console.log('💾 HTML salvato in Firestore con ID:', certificateId);
+    
+    // URL che punta al nostro endpoint per servire il certificato
+    const baseUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000';
+    const certificateUrl = `${baseUrl}/certificate/${certificateId}`;
+    
+    console.log('🌐 URL certificato:', certificateUrl);
+    return certificateUrl;
+    
+  } catch (error) {
+    console.error('❌ Errore deploy:', error);
+    throw new Error(`Errore nel deploy: ${error.message}`);
+  }
 }
