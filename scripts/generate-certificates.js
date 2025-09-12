@@ -5,9 +5,13 @@
  * Questi file vengono poi deployati su Firebase Hosting come file statici
  */
 
-const admin = require('firebase-admin');
-const fs = require('fs');
-const path = require('path');
+import admin from 'firebase-admin';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Inizializza Firebase Admin
 if (!admin.apps.length) {
@@ -27,7 +31,7 @@ async function generateCertificateFiles() {
     const db = admin.firestore();
     const certificatesSnapshot = await db.collection('certificates').get();
     
-    const publicCertDir = path.join(process.cwd(), 'public', 'certificate');
+    const publicCertDir = path.join(path.dirname(__dirname), 'public', 'certificate');
     
     // Crea la directory se non esiste
     if (!fs.existsSync(publicCertDir)) {
@@ -70,8 +74,8 @@ async function generateCertificateFiles() {
 }
 
 // Esegui solo se chiamato direttamente
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
   generateCertificateFiles();
 }
 
-module.exports = { generateCertificateFiles };
+export { generateCertificateFiles };
