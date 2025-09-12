@@ -495,12 +495,12 @@ async function handleQRCodeGeneration(batch, companyName, res) {
     console.log('📄 HTML certificato generato');
     
     // Step 2: Upload HTML su Firebase Storage
-    const admin = require('firebase-admin');
+    const admin = await import('firebase-admin');
     
     // Inizializza Firebase se non già fatto
-    if (!admin.apps.length) {
-      admin.initializeApp({
-        credential: admin.credential.cert({
+    if (!admin.default.apps.length) {
+      admin.default.initializeApp({
+        credential: admin.default.credential.cert({
           projectId: process.env.FIREBASE_PROJECT_ID,
           clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
           privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
@@ -509,7 +509,7 @@ async function handleQRCodeGeneration(batch, companyName, res) {
       });
     }
     
-    const bucket = admin.storage().bucket();
+    const bucket = admin.default.storage().bucket();
     const fileName = `certificates/cert_${batch.batchId}_${Date.now()}.html`;
     const file = bucket.file(fileName);
     
@@ -533,8 +533,8 @@ async function handleQRCodeGeneration(batch, companyName, res) {
     console.log('🌐 Certificato caricato su:', certificateUrl);
     
     // Step 3: Genera QR Code che punta al certificato
-    const QRCode = require('qrcode');
-    const qrCodeDataUrl = await QRCode.toDataURL(certificateUrl, {
+    const QRCode = await import('qrcode');
+    const qrCodeDataUrl = await QRCode.default.toDataURL(certificateUrl, {
       width: 1000,
       margin: 2,
       color: {
