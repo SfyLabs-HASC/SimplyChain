@@ -31,7 +31,6 @@ export default function HomePage() {
   const [isVideoOpen, setIsVideoOpen] = useState(false);
   const [textPhase, setTextPhase] = useState(1);
   const [connectButtonRef, setConnectButtonRef] = useState<HTMLButtonElement | null>(null);
-  const [shouldAutoRedirect, setShouldAutoRedirect] = useState(false);
   const account = useActiveAccount();
   const navigate = useNavigate();
 
@@ -57,17 +56,10 @@ export default function HomePage() {
   // Effect to handle user authentication and routing
   useEffect(() => {
     if (account && account.address) {
-      // Solo auto-redirect se l'utente ha cliccato il pulsante di connessione
-      // Non fare redirect automatico su page load/refresh
-      if (shouldAutoRedirect) {
-        checkUserVerification();
-        setShouldAutoRedirect(false); // Reset flag
-      }
-    } else if (!account) {
-      // Reset flag quando si disconnette
-      setShouldAutoRedirect(false);
+      // Sempre auto-redirect quando l'utente si connette
+      checkUserVerification();
     }
-  }, [account, shouldAutoRedirect]);
+  }, [account]);
 
   const checkUserVerification = async () => {
     if (!account?.address) return;
@@ -94,9 +86,6 @@ export default function HomePage() {
   };
 
   const handleAuthButtonClick = () => {
-    // Attiva il flag solo quando l'utente clicca intenzionalmente
-    setShouldAutoRedirect(true);
-    
     // Trova il ConnectButton nascosto e simula un click
     setTimeout(() => {
       const connectButtons = document.querySelectorAll('button');
