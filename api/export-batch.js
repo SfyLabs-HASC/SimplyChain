@@ -495,7 +495,9 @@ async function handleQRCodeGeneration(batch, companyName, res) {
     console.log('📄 HTML certificato generato');
     
     // Step 2: Deploy HTML su Firebase Hosting
-    const fileName = `cert_${batch.batchId}_${Date.now()}.html`;
+    // Usa il nome dell'iscrizione per il file, pulito per URL
+    const cleanBatchName = batch.name.replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, '_');
+    const fileName = `${cleanBatchName}_${batch.batchId}.html`;
     const certificateUrl = await deployToFirebaseHosting(certificateHTML, fileName);
     console.log('🌐 Certificato deployato su:', certificateUrl);
     
@@ -516,7 +518,7 @@ async function handleQRCodeGeneration(batch, companyName, res) {
     
     // Step 5: Restituisci il QR Code per il download
     res.setHeader('Content-Type', 'image/png');
-    res.setHeader('Content-Disposition', `attachment; filename="${batch.name.replace(/[^a-zA-Z0-9]/g, '_')}_qrcode.png"`);
+    res.setHeader('Content-Disposition', `attachment; filename="${cleanBatchName}_qrcode.png"`);
     res.send(qrBuffer);
     
     console.log('✅ QR Code inviato per download');
@@ -688,14 +690,11 @@ function generateCertificateHTML(batch, companyName) {
   `;
 }
 
-// Funzione per deployare HTML usando Firestore (gratuito) + endpoint dinamico
+// Funzione per deployare HTML su Firebase Storage (URL pubblici esterni)
 async function deployToFirebaseHosting(htmlContent, fileName) {
   try {
-    console.log('🔥 Salvando certificato per hosting:', fileName);
+    console.log('🔥 Caricando certificato su Firebase Storage:', fileName);
     
-    const certificateId = fileName.replace('.html', '');
-    
-    // Salva l'HTML in Firebase Firestore (gratuito nel piano Spark)
     const admin = await import('firebase-admin');
     
     // Inizializza Firebase se non già fatto
@@ -705,28 +704,53 @@ async function deployToFirebaseHosting(htmlContent, fileName) {
           projectId: process.env.FIREBASE_PROJECT_ID,
           clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
           privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-        })
+        }),
+        storageBucket: `${process.env.FIREBASE_PROJECT_ID}.appspot.com`
       });
     }
     
-    const db = admin.default.firestore();
-    
-    // Salva l'HTML in Firestore (completamente gratuito)
-    await db.collection('certificates').doc(certificateId).set({
-      html: htmlContent,
-      fileName: fileName,
-      createdAt: admin.default.firestore.FieldValue.serverTimestamp(),
-      isPublic: true
-    });
-    
-    console.log('💾 HTML salvato in Firestore con ID:', certificateId);
-    
-    // URL che punta al nostro endpoint per servire il certificato
-    const baseUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000';
-    const certificateUrl = `${baseUrl}/certificate/${certificateId}`;
-    
-    console.log('🌐 URL certificato:', certificateUrl);
-    return certificateUrl;
+    // Prova prima con Firebase Storage (potrebbe funzionare per file HTML)
+    try {
+      const bucket = admin.default.storage().bucket();
+      const file = bucket.file(`certificates/${fileName}`);
+      
+      // Upload HTML
+      await file.save(htmlContent, {
+        metadata: {
+          contentType: 'text/html; charset=utf-8',
+          cacheControl: 'public, max-age=31536000',
+        }
+      });
+      
+      // Rendi il file pubblico
+      await file.makePublic();
+      
+      // URL pubblico Firebase Storage (esterno al nostro sito)
+      const certificateUrl = `https://storage.googleapis.com/${process.env.FIREBASE_PROJECT_ID}.appspot.com/certificates/${fileName}`;
+      
+      console.log('🌐 Certificato caricato su Firebase Storage:', certificateUrl);
+      return certificateUrl;
+      
+    } catch (storageError) {
+      console.log('⚠️ Firebase Storage non disponibile, uso Firestore fallback');
+      
+      // Fallback: Usa Firestore + endpoint del nostro sito
+      const certificateId = fileName.replace('.html', '');
+      const db = admin.default.firestore();
+      
+      await db.collection('certificates').doc(certificateId).set({
+        html: htmlContent,
+        fileName: fileName,
+        createdAt: admin.default.firestore.FieldValue.serverTimestamp(),
+        isPublic: true
+      });
+      
+      const baseUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000';
+      const certificateUrl = `${baseUrl}/certificate/${certificateId}`;
+      
+      console.log('🔄 Certificato salvato con fallback:', certificateUrl);
+      return certificateUrl;
+    }
     
   } catch (error) {
     console.error('❌ Errore deploy:', error);
