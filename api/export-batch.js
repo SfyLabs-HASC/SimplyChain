@@ -731,6 +731,7 @@ async function deployToFirebaseHosting(htmlContent, fileName) {
     
     try {
       // Deploy immediato tramite GitHub API
+      console.log('🚀 Tentativo deploy Firebase...');
       const deployResponse = await fetch(`${process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000'}/api/deploy-certificate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -741,13 +742,17 @@ async function deployToFirebaseHosting(htmlContent, fileName) {
         })
       });
 
+      console.log('📡 Deploy API response status:', deployResponse.status);
+
       if (!deployResponse.ok) {
-        throw new Error('Deploy API failed');
+        const errorText = await deployResponse.text();
+        console.error('❌ Deploy API error:', errorText);
+        throw new Error(`Deploy API failed: ${deployResponse.status} - ${errorText}`);
       }
 
       const deployResult = await deployResponse.json();
       
-      console.log('🚀 Deploy immediato attivato');
+      console.log('✅ Deploy Firebase riuscito!');
       console.log('🔥 URL Firebase Hosting:', deployResult.url);
       console.log('🏢 Nome azienda:', cleanCompanyName);
       console.log('📋 Certificate ID:', certificateId);
@@ -755,12 +760,14 @@ async function deployToFirebaseHosting(htmlContent, fileName) {
       return deployResult.url;
       
     } catch (deployError) {
-      console.error('❌ Errore deploy immediato:', deployError);
+      console.error('❌ Errore deploy Firebase:', deployError.message);
+      console.error('📋 Stack trace:', deployError.stack);
       
       // Fallback: usa endpoint Vercel
+      console.log('🔄 Fallback: usando endpoint Vercel...');
       const baseUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000';
       const fallbackUrl = `${baseUrl}/api/certificate/${certificateId}`;
-      console.log('🔄 Usando fallback Vercel:', fallbackUrl);
+      console.log('🔗 Fallback URL:', fallbackUrl);
       return fallbackUrl;
     }
     

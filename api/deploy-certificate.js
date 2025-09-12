@@ -7,8 +7,21 @@ export default async function handler(req, res) {
   try {
     const { certificateId, companyName, htmlContent } = req.body;
     
+    console.log('🔍 Deploy certificate API chiamata');
+    console.log('📋 Certificate ID:', certificateId);
+    console.log('🏢 Company Name:', companyName);
+    console.log('📄 HTML Content length:', htmlContent?.length);
+    console.log('🔑 GITHUB_TOKEN presente:', !!process.env.GITHUB_TOKEN);
+    console.log('📁 GITHUB_REPO:', process.env.GITHUB_REPO);
+    
     if (!certificateId || !companyName || !htmlContent) {
+      console.error('❌ Campi mancanti:', { certificateId: !!certificateId, companyName: !!companyName, htmlContent: !!htmlContent });
       return res.status(400).json({ error: 'Missing required fields' });
+    }
+
+    if (!process.env.GITHUB_TOKEN || !process.env.GITHUB_REPO) {
+      console.error('❌ Variabili ambiente mancanti');
+      return res.status(500).json({ error: 'GitHub configuration missing' });
     }
 
     console.log('🚀 Deploy immediato certificato:', certificateId);
