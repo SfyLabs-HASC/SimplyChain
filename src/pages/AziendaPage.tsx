@@ -5568,9 +5568,8 @@ const QRCodeOfferModal: React.FC<{
 }> = ({ onClose }) => {
 
   const handleGenerateQRCode = () => {
-
-    window.location.href = '/qrcode';
-
+    // Questa funzione non dovrebbe essere qui - usa quella principale
+    console.log('QR Code generation triggered from modal');
   };
 
 

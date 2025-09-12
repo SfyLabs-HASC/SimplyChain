@@ -728,7 +728,9 @@ async function deployToFirebaseHosting(htmlContent, fileName) {
     const baseUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000';
     const certificateUrl = `${baseUrl}/api/certificate/${certificateId}`;
     
-    console.log('🌐 URL certificato (Vercel endpoint):', certificateUrl);
+    console.log('🌐 URL certificato generato:', certificateUrl);
+    console.log('📋 Certificate ID:', certificateId);
+    console.log('🔗 Base URL:', baseUrl);
     return certificateUrl;
     
   } catch (error) {
