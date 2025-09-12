@@ -730,38 +730,52 @@ async function deployToFirebaseHosting(htmlContent, fileName, companyName, batch
     const cleanCompanyName = companyName.replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, '_');
     
     try {
-      // Deploy immediato tramite GitHub API
-      console.log('🚀 Tentativo deploy Firebase...');
-      const deployResponse = await fetch(`${process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000'}/api/deploy-certificate`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      // Deploy immediato tramite GitHub API direttamente
+      console.log('🚀 Tentativo deploy Firebase via GitHub API...');
+      console.log('🔑 GITHUB_TOKEN presente:', !!process.env.GITHUB_TOKEN);
+      console.log('📁 GITHUB_REPO:', process.env.GITHUB_REPO);
+      
+      if (!process.env.GITHUB_TOKEN || !process.env.GITHUB_REPO) {
+        throw new Error('GITHUB_TOKEN o GITHUB_REPO mancanti');
+      }
+      
+      const filePath = `public/certificate/${cleanCompanyName}/${certificateId}.html`;
+      console.log('📁 File path:', filePath);
+      
+      const githubResponse = await fetch(`https://api.github.com/repos/${process.env.GITHUB_REPO}/contents/${filePath}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `token ${process.env.GITHUB_TOKEN}`,
+          'Content-Type': 'application/json',
+          'User-Agent': 'SimplyChain-Deploy'
+        },
         body: JSON.stringify({
-          certificateId,
-          companyName,
-          htmlContent
+          message: `Add certificate: ${certificateId} for ${companyName}`,
+          content: Buffer.from(htmlContent).toString('base64'),
+          branch: 'main'
         })
       });
 
-      console.log('📡 Deploy API response status:', deployResponse.status);
+      console.log('📡 GitHub API response status:', githubResponse.status);
 
-      if (!deployResponse.ok) {
-        const errorText = await deployResponse.text();
-        console.error('❌ Deploy API error:', errorText);
-        throw new Error(`Deploy API failed: ${deployResponse.status} - ${errorText}`);
+      if (!githubResponse.ok) {
+        const errorText = await githubResponse.text();
+        console.error('❌ GitHub API error:', errorText);
+        throw new Error(`GitHub API failed: ${githubResponse.status}`);
       }
 
-      const deployResult = await deployResponse.json();
+      const githubResult = await githubResponse.json();
+      console.log('✅ File aggiunto al repository:', githubResult.commit?.sha);
       
-      console.log('✅ Deploy Firebase riuscito!');
-      console.log('🔥 URL Firebase Hosting:', deployResult.url);
-      console.log('🏢 Nome azienda:', cleanCompanyName);
-      console.log('📋 Certificate ID:', certificateId);
+      const certificateUrl = `https://${process.env.FIREBASE_PROJECT_ID}.web.app/certificate/${cleanCompanyName}/${certificateId}.html`;
       
-      return deployResult.url;
+      console.log('🔥 URL Firebase Hosting:', certificateUrl);
+      console.log('⏱️ Certificato disponibile tra 1-2 minuti dopo deploy GitHub Actions');
+      
+      return certificateUrl;
       
     } catch (deployError) {
       console.error('❌ Errore deploy Firebase:', deployError.message);
-      console.error('📋 Stack trace:', deployError.stack);
       
       // Fallback: usa endpoint Vercel
       console.log('🔄 Fallback: usando endpoint Vercel...');
