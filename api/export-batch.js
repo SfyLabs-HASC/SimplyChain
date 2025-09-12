@@ -717,17 +717,22 @@ async function deployToFirebaseHosting(htmlContent, fileName) {
     await db.collection('certificates').doc(certificateId).set({
       html: htmlContent,
       fileName: fileName,
+      companyName: companyName,
+      cleanCompanyName: companyName.replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, '_'),
+      batchName: batch.name,
       createdAt: admin.default.firestore.FieldValue.serverTimestamp(),
       isPublic: true
     });
     
     console.log('💾 HTML salvato in Firestore:', certificateId);
     
-    // URL che punta direttamente a Firebase Hosting
-    // Il file HTML sarà disponibile come file statico
-    const certificateUrl = `https://${process.env.FIREBASE_PROJECT_ID}.web.app/certificate/${certificateId}.html`;
+    // URL che punta direttamente a Firebase Hosting con nome azienda
+    // Formato: https://easychain-db.web.app/certificate/[nome-azienda]/[id].html
+    const cleanCompanyName = companyName.replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, '_');
+    const certificateUrl = `https://${process.env.FIREBASE_PROJECT_ID}.web.app/certificate/${cleanCompanyName}/${certificateId}.html`;
     
     console.log('🔥 URL Firebase Hosting:', certificateUrl);
+    console.log('🏢 Nome azienda (clean):', cleanCompanyName);
     console.log('📋 Certificate ID:', certificateId);
     console.log('💾 HTML salvato in Firestore per successivo deploy');
     

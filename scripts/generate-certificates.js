@@ -40,13 +40,22 @@ async function generateCertificateFiles() {
       const data = doc.data();
       
       if (data.isPublic && data.html) {
+        // Crea cartella per l'azienda se esiste il nome
+        const companyFolder = data.cleanCompanyName || 'unknown';
+        const companyDir = path.join(publicCertDir, companyFolder);
+        
+        // Crea la directory dell'azienda se non esiste
+        if (!fs.existsSync(companyDir)) {
+          fs.mkdirSync(companyDir, { recursive: true });
+        }
+        
         const fileName = `${doc.id}.html`;
-        const filePath = path.join(publicCertDir, fileName);
+        const filePath = path.join(companyDir, fileName);
         
         // Scrivi il file HTML
         fs.writeFileSync(filePath, data.html, 'utf8');
         
-        console.log(`✅ Generato: ${fileName}`);
+        console.log(`✅ Generato: ${companyFolder}/${fileName}`);
         generatedCount++;
       }
     }
