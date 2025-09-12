@@ -488,12 +488,49 @@ function generatePrintableHTML(batch, companyName) {
 // Funzione per gestire la generazione QR Code
 async function handleQRCodeGeneration(batch, companyName, res) {
   try {
+    console.log('🔥 Iniziando generazione QR Code per batch:', batch.batchId);
+    
     // Step 1: Genera HTML per il certificato
     const certificateHTML = generateCertificateHTML(batch, companyName);
+    console.log('📄 HTML certificato generato');
     
-    // Step 2: Salva HTML sul server (per ora simuliamo con un ID univoco)
-    const certificateId = `cert_${batch.batchId}_${Date.now()}`;
-    const certificateUrl = `${process.env.VERCEL_URL || 'http://localhost:3000'}/certificates/${certificateId}`;
+    // Step 2: Upload HTML su Firebase Storage
+    const admin = require('firebase-admin');
+    
+    // Inizializza Firebase se non già fatto
+    if (!admin.apps.length) {
+      admin.initializeApp({
+        credential: admin.credential.cert({
+          projectId: process.env.FIREBASE_PROJECT_ID,
+          clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+          privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+        }),
+        storageBucket: `${process.env.FIREBASE_PROJECT_ID}.appspot.com`
+      });
+    }
+    
+    const bucket = admin.storage().bucket();
+    const fileName = `certificates/cert_${batch.batchId}_${Date.now()}.html`;
+    const file = bucket.file(fileName);
+    
+    // Upload HTML
+    await file.save(certificateHTML, {
+      metadata: {
+        contentType: 'text/html',
+        metadata: {
+          batchId: batch.batchId.toString(),
+          companyName: companyName,
+          generatedAt: new Date().toISOString()
+        }
+      }
+    });
+    
+    // Rendi il file pubblico
+    await file.makePublic();
+    
+    // Ottieni URL pubblico
+    const certificateUrl = `https://storage.googleapis.com/${process.env.FIREBASE_PROJECT_ID}.appspot.com/${fileName}`;
+    console.log('🌐 Certificato caricato su:', certificateUrl);
     
     // Step 3: Genera QR Code che punta al certificato
     const QRCode = require('qrcode');
@@ -508,18 +545,21 @@ async function handleQRCodeGeneration(batch, companyName, res) {
     
     // Step 4: Converti QR Code in buffer per il download
     const qrBuffer = Buffer.from(qrCodeDataUrl.split(',')[1], 'base64');
+    console.log('📱 QR Code generato (1000x1000px)');
     
-    // TODO: Salvare l'HTML sul server (implementare storage)
-    console.log('Certificate URL would be:', certificateUrl);
-    
-    // Per ora restituiamo il QR Code per il download
+    // Step 5: Restituisci il QR Code per il download
     res.setHeader('Content-Type', 'image/png');
-    res.setHeader('Content-Disposition', `attachment; filename="${batch.name}_qrcode.png"`);
+    res.setHeader('Content-Disposition', `attachment; filename="${batch.name.replace(/[^a-zA-Z0-9]/g, '_')}_qrcode.png"`);
     res.send(qrBuffer);
     
+    console.log('✅ QR Code inviato per download');
+    
   } catch (error) {
-    console.error('Errore generazione QR Code:', error);
-    res.status(500).json({ error: 'Errore nella generazione del QR Code' });
+    console.error('❌ Errore generazione QR Code:', error);
+    res.status(500).json({ 
+      error: 'Errore nella generazione del QR Code',
+      details: error.message 
+    });
   }
 }
 
