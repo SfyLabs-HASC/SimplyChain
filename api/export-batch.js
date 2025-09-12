@@ -723,14 +723,17 @@ async function deployToFirebaseHosting(htmlContent, fileName) {
     
     console.log('💾 HTML salvato in Firestore:', certificateId);
     
-    // Per ora usa l'endpoint Vercel esistente che già funziona
-    // In futuro potremmo implementare un sistema di deploy automatico dei file HTML
-    const baseUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000';
-    const certificateUrl = `${baseUrl}/api/certificate/${certificateId}`;
+    // URL che punta direttamente a Firebase Hosting
+    // Il file HTML sarà disponibile come file statico
+    const certificateUrl = `https://${process.env.FIREBASE_PROJECT_ID}.web.app/certificate/${certificateId}.html`;
     
-    console.log('🌐 URL certificato generato:', certificateUrl);
+    console.log('🔥 URL Firebase Hosting:', certificateUrl);
     console.log('📋 Certificate ID:', certificateId);
-    console.log('🔗 Base URL:', baseUrl);
+    console.log('💾 HTML salvato in Firestore per successivo deploy');
+    
+    // Triggera un webhook per rigenerare i file statici (opzionale)
+    // Per ora il file sarà disponibile tramite processo manuale o automatico
+    
     return certificateUrl;
     
   } catch (error) {
