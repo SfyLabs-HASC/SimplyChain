@@ -426,10 +426,16 @@ const RicaricaCreditiPage: React.FC = () => {
             email: data.contactEmail, // Corretto per leggere 'contactEmail' da Firebase
           });
 
+          console.log('Checking billingDetails from Firebase:', data.billingDetails);
+          console.log('billingDetails exists:', !!data.billingDetails);
+          console.log('billingDetails keys:', data.billingDetails ? Object.keys(data.billingDetails) : 'none');
+          
           if (data.billingDetails && Object.keys(data.billingDetails).length > 0) {
+            console.log('Loading existing billing details:', data.billingDetails);
             setBillingDetails(data.billingDetails);
             setIsEditingBilling(false);
           } else {
+            console.log('No billing details found, setting to edit mode');
             setBillingDetails(null);
             setIsEditingBilling(true);
           }
@@ -447,6 +453,17 @@ const RicaricaCreditiPage: React.FC = () => {
 
     fetchUserData();
   }, [account]);
+
+  // Effect per gestire lo step iniziale basato sui dati esistenti
+  useEffect(() => {
+    if (userData && billingDetails) {
+      console.log('Dati di fatturazione esistenti trovati, utente può andare direttamente al pagamento');
+      // Se ci sono dati salvati e l'utente non ha ancora selezionato un pacchetto, resta allo step 1
+      if (!selectedPackage) {
+        setCurrentStep(1);
+      }
+    }
+  }, [userData, billingDetails, selectedPackage]);
   
   const handleSelectPackage = async (pkg: CreditPackage) => {
     setSelectedPackage(pkg);
@@ -508,9 +525,27 @@ const RicaricaCreditiPage: React.FC = () => {
             throw new Error(`Errore dal server: ${response.status} - ${errorText}`);
         }
 
-        console.log('Dati salvati con successo');
+        const responseData = await response.json();
+        console.log('Dati salvati con successo, response:', responseData);
         setBillingDetails(details);
         setIsEditingBilling(false);
+
+        // Forza il ricaricamento dei dati per verificare che siano stati salvati
+        setTimeout(async () => {
+          try {
+            const verifyResponse = await fetch(`/api/get-company-status?walletAddress=${account.address}`);
+            if (verifyResponse.ok) {
+              const verifyData = await verifyResponse.json();
+              console.log('Verifica dati dopo salvataggio:', verifyData.billingDetails);
+              
+              if (verifyData.billingDetails) {
+                setBillingDetails(verifyData.billingDetails);
+              }
+            }
+          } catch (verifyError) {
+            console.error('Errore durante la verifica:', verifyError);
+          }
+        }, 1000);
 
         // Vai al passo 3 (pagamento) se c'è un pacchetto selezionato
         if (selectedPackage) {
