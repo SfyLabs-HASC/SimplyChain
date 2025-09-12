@@ -39,7 +39,7 @@ async function handleSendEmail(req, res) {
     });
     
     const { data, error } = await resend.emails.send({
-      from: 'Easy Chain <onboarding@resend.dev>',
+      from: 'Simply Chain <onboarding@resend.dev>',
       to: ['sfy.startup@gmail.com'],
       subject: `${companyName} - Richiesta Attivazione`,
       html: `<div style="font-family: sans-serif; padding: 20px; border: 1px solid #eee; border-radius: 8px;"><h2>Nuova Richiesta di Attivazione</h2><p>L'azienda "${companyName}" ha richiesto l'attivazione.</p><hr /><h3>Dettagli:</h3><ul><li><strong>Nome Azienda:</strong> ${companyName}</li><li><strong>Email:</strong> ${contactEmail}</li><li><strong>Settore:</strong> ${sector}</li><li><strong>Wallet:</strong> ${walletAddress}</li></ul><h3>Social:</h3><ul><li><strong>Sito Web:</strong> ${socials.website || 'N/D'}</li><li><strong>Facebook:</strong> ${socials.facebook || 'N/D'}</li><li><strong>Instagram:</strong> ${socials.instagram || 'N/D'}</li></ul></div>`,

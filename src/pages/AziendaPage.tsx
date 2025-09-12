@@ -5396,9 +5396,9 @@ const ExportTypeModal: React.FC<{
 
             <ul style={{ textAlign: 'left', paddingLeft: '20px', margin: '1rem 0' }}>
 
-              <li>Un certificato EasyChain in formato PDF, utile all'azienda per uso interno o documentale. Questo file può essere archiviato, stampato o condiviso con terzi per attestare l'iscrizione e l'autenticità del prodotto, senza necessariamente passare per il QR Code.</li>
+              <li>Un certificato SimplyChain in formato PDF, utile all'azienda per uso interno o documentale. Questo file può essere archiviato, stampato o condiviso con terzi per attestare l'iscrizione e l'autenticità del prodotto, senza necessariamente passare per il QR Code.</li>
 
-              <li>Un certificato EasyChain in formato HTML, pensato per la pubblicazione online. Caricalo su uno spazio web (privato o pubblico), copia il link e usalo per generare un QR Code da applicare all'etichetta del tuo prodotto. Inquadrando il QR Code, chiunque potrà visualizzare il certificato direttamente online.</li>
+              <li>Un certificato SimplyChain in formato HTML, pensato per la pubblicazione online. Caricalo su uno spazio web (privato o pubblico), copia il link e usalo per generare un QR Code da applicare all'etichetta del tuo prodotto. Inquadrando il QR Code, chiunque potrà visualizzare il certificato direttamente online.</li>
 
             </ul>
 
@@ -5566,7 +5566,7 @@ const InfoModal: React.FC<{
 
     {
 
-      title: "Come Funziona EasyChain",
+      title: "Come Funziona SimplyChain",
 
       icon: "🚀",
 
@@ -6108,7 +6108,7 @@ const AziendaPage: React.FC = () => {
 
         <header className="flex flex-col md:flex-row items-center justify-between gap-4 bg-card/60 p-6 rounded-2xl border border-border">
 
-          <h1 className="text-2xl md:text-3xl font-bold text-foreground">EasyChain - Area Privata</h1>
+          <h1 className="text-2xl md:text-3xl font-bold text-foreground">SimplyChain - Area Privata</h1>
 
           <ConnectButton 
 

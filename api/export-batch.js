@@ -327,7 +327,7 @@ export default async function handler(req, res) {
             </div>
 
             <div class="footer">
-              Generato tramite EasyChain - Tracciabilità Blockchain per le imprese italiane.<br>
+              Generato tramite SimplyChain - Tracciabilità Blockchain per le imprese italiane.<br>
               Servizio Gratuito prodotto da SFY s.r.l. - Contattaci per maggiori informazioni: sfy.startup@gmail.com
             </div>
           </div>
@@ -473,7 +473,7 @@ function generatePrintableHTML(batch, companyName) {
       ` : ''}
 
       <div style="text-align: center; margin-top: 40px; font-size: 12px; color: #9ca3af;">
-        Generato tramite EasyChain - Tracciabilità Blockchain per le imprese italiane.<br>
+        Generato tramite SimplyChain - Tracciabilità Blockchain per le imprese italiane.<br>
         Servizio Gratuito prodotto da SFY s.r.l. - Contattaci per maggiori informazioni: sfy.startup@gmail.com
       </div>
     </body>

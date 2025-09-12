@@ -286,7 +286,7 @@ export default function App() {
               backgroundClip: 'text', 
               WebkitTextFillColor: 'transparent' 
             }}>
-              EasyChain
+              SimplyChain
             </span>
           </Link>
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>

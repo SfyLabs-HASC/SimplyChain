@@ -141,7 +141,7 @@ export default function HomePage() {
             </div>
             
             <h1 className="text-6xl md:text-8xl font-bold mb-8 bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent leading-none pb-4">
-              EasyChain
+              SimplyChain
             </h1>
             
             <p className="text-2xl md:text-3xl font-light text-muted-foreground mb-6 max-w-4xl mx-auto leading-relaxed">
@@ -210,7 +210,7 @@ export default function HomePage() {
               <span className="text-sm font-medium">Processo Semplificato</span>
             </div>
             <h2 className="text-5xl md:text-6xl font-bold mb-8 bg-gradient-to-r from-foreground to-muted-foreground bg-clip-text text-transparent">
-              Come Funziona EasyChain
+              Come Funziona SimplyChain
             </h2>
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
               Tre semplici passaggi per rivoluzionare la tua filiera produttiva
@@ -229,7 +229,7 @@ export default function HomePage() {
                 </div>
                 <h3 className="text-2xl font-bold mb-6 text-center">Registra i Tuoi Prodotti</h3>
                 <p className="text-muted-foreground leading-relaxed text-center mb-6">
-                  Carica le informazioni dei tuoi prodotti nella piattaforma EasyChain con un processo intuitivo
+                  Carica le informazioni dei tuoi prodotti nella piattaforma SimplyChain con un processo intuitivo
                 </p>
                 <div className="flex justify-center">
                   <div className="w-16 h-1 accent-gradient rounded-full"></div>
@@ -397,7 +397,7 @@ export default function HomePage() {
               La Tua Rivoluzione Digitale
             </h2>
             <p className="text-xl text-muted-foreground mb-16 leading-relaxed max-w-3xl mx-auto">
-              Unisciti alle aziende che hanno già scelto EasyChain per trasformare la loro 
+              Unisciti alle aziende che hanno già scelto SimplyChain per trasformare la loro 
               filiera produttiva. <span className="text-accent font-semibold">Inizia oggi stesso!</span>
             </p>
             
@@ -439,7 +439,7 @@ export default function HomePage() {
                   <Network className="w-6 h-6 text-primary-foreground" />
                 </div>
                 <h3 className="text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-                  EasyChain
+                  SimplyChain
                 </h3>
               </div>
               <p className="text-muted-foreground mb-8 max-w-md text-lg leading-relaxed">
@@ -535,7 +535,7 @@ export default function HomePage() {
             <div className="aspect-video">
               <iframe
                 src="https://www.youtube.com/embed/LMA4RyMwn7s?autoplay=1&rel=0"
-                title="EasyChain Video"
+                title="SimplyChain Video"
                 className="w-full h-full"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen

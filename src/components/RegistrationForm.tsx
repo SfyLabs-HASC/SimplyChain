@@ -70,7 +70,7 @@ const RegistrationForm: React.FC<RegistrationFormProps> = ({ walletAddress }) =>
 
   return (
     <div className="card" style={{ marginTop: '2rem', maxWidth: '700px', margin: '2rem auto', textAlign: 'left' }}>
-      <h3>Benvenuto su Easy Chain!</h3>
+      <h3>Benvenuto su Simply Chain!</h3>
       <p>Il tuo account non è ancora attivo. Compila il form di registrazione per inviare una richiesta di attivazione all'amministratore.</p>
       
       <form onSubmit={handleSubmit} style={{ marginTop: '1.5rem' }}>

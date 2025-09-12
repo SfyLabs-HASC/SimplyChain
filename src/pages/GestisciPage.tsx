@@ -336,7 +336,7 @@ export default function GestisciPage() {
     return (
         <div className="app-container-full" style={{ padding: '0 2rem' }}>
             <header className="main-header-bar">
-                <Link to="/" style={{ textDecoration: 'none', color: 'inherit' }}><div style={{ fontSize: '1.75rem', fontWeight: 'bold' }}>EasyChain - Area Riservata</div></Link>
+                <Link to="/" style={{ textDecoration: 'none', color: 'inherit' }}><div style={{ fontSize: '1.75rem', fontWeight: 'bold' }}>SimplyChain - Area Riservata</div></Link>
                 <div className="wallet-button-container"><ConnectButton client={client} wallets={wallets} chain={polygon} detailsModal={{ hideSend: true, hideReceive: true, hideBuy: true, hideTransactionHistory: true }}/></div>
             </header>
             

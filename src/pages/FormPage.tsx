@@ -421,7 +421,7 @@ const FormPage: React.FC = () => {
         <header className="form-header">
           <div className="form-header-content">
             <Link to="/" className="form-brand">
-              <span className="form-brand-text">EasyChain</span>
+              <span className="form-brand-text">SimplyChain</span>
             </Link>
             <ConnectButton 
               client={client} 
@@ -447,7 +447,7 @@ const FormPage: React.FC = () => {
               
               <p className="form-subtitle">
                 Compila il form per richiedere l'attivazione del tuo account aziendale 
-                e inizia a utilizzare EasyChain per la certificazione blockchain.
+                e inizia a utilizzare SimplyChain per la certificazione blockchain.
               </p>
             </div>
 
