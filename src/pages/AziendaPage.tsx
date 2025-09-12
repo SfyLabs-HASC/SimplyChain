@@ -2674,8 +2674,8 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
       // Mostra loading
       setLoadingMessages(prev => [...prev, `Generando QR Code per ${batch.name}...`]);
       
-      // Usa la nuova API con Realtime Database
-      const response = await fetch('/api/create-qr-realtime', {
+      // Usa la nuova API consolidata con Realtime Database
+      const response = await fetch('/api/qr-system?action=create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

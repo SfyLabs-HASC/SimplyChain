@@ -221,7 +221,7 @@
             
             try {
                 const batch = createBatchObject();
-                const response = await fetch('/api/create-qr-realtime', {
+                const response = await fetch('/api/qr-system?action=create', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -347,7 +347,7 @@
             showResult('viewResult', `🔄 Caricando certificato ${certificateId}...`, 'loading');
             
             try {
-                const url = `/api/view-certificate/${certificateId}`;
+                const url = `/api/qr-system?action=view&id=${certificateId}`;
                 
                 // Apri in una nuova finestra
                 const newWindow = window.open(url, '_blank');

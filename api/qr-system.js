@@ -1,181 +1,259 @@
-// API per visualizzare certificati dal Realtime Database
+// API consolidata per gestire tutto il sistema QR Code con Firebase Realtime Database
 export default async function handler(req, res) {
+  const { action } = req.query;
+
+  try {
+    switch (action) {
+      case 'create':
+        return await handleCreateQR(req, res);
+      case 'view':
+        return await handleViewCertificate(req, res);
+      case 'update-status':
+        return await handleUpdateQRStatus(req, res);
+      default:
+        return res.status(400).json({ error: 'Invalid action. Use: create, view, or update-status' });
+    }
+  } catch (error) {
+    console.error('❌ Errore QR System API:', error);
+    res.status(500).json({ 
+      error: 'Errore interno del server',
+      details: error.message 
+    });
+  }
+}
+
+// Gestisce la creazione di QR Code con Realtime Database
+async function handleCreateQR(req, res) {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  const { batch, companyName, walletAddress } = req.body;
+
+  if (!batch || !companyName || !walletAddress) {
+    return res.status(400).json({ error: 'Missing required fields: batch, companyName, walletAddress' });
+  }
+
+  console.log('🔥 Creando QR Code con Realtime Database per batch:', batch.batchId);
+  
+  // Step 1: Genera dati certificato
+  const certificateData = {
+    batchId: batch.batchId,
+    name: batch.name,
+    companyName: companyName,
+    walletAddress: walletAddress,
+    date: batch.date,
+    location: batch.location,
+    description: batch.description,
+    transactionHash: batch.transactionHash,
+    imageIpfsHash: batch.imageIpfsHash,
+    steps: batch.steps || [],
+    createdAt: new Date().toISOString(),
+    isActive: true,
+    viewCount: 0
+  };
+
+  // Step 2: Salva dati nel Realtime Database
+  const admin = await import('firebase-admin');
+  
+  if (!admin.default.apps.length) {
+    admin.default.initializeApp({
+      credential: admin.default.credential.cert({
+        projectId: process.env.FIREBASE_PROJECT_ID,
+        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+        privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+      }),
+      databaseURL: process.env.FIREBASE_DATABASE_URL
+    });
+  }
+
+  const realtimeDb = admin.default.database();
+  const certificateId = `${batch.batchId}_${Date.now()}`;
+  const certificateRef = realtimeDb.ref(`certificates/${certificateId}`);
+  
+  await certificateRef.set(certificateData);
+  console.log('💾 Dati certificato salvati in Realtime Database:', certificateId);
+
+  // Step 3: Genera URL per visualizzare il certificato
+  const baseUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000';
+  const certificateUrl = `${baseUrl}/api/qr-system?action=view&id=${certificateId}`;
+  
+  console.log('🌐 URL certificato generato:', certificateUrl);
+
+  // Step 4: Genera QR Code
+  const QRCode = await import('qrcode');
+  const qrCodeDataUrl = await QRCode.default.toDataURL(certificateUrl, {
+    width: 1000,
+    margin: 2,
+    color: {
+      dark: '#000000',
+      light: '#FFFFFF'
+    },
+    errorCorrectionLevel: 'M'
+  });
+  
+  const qrBuffer = Buffer.from(qrCodeDataUrl.split(',')[1], 'base64');
+  console.log('📱 QR Code generato per URL:', certificateUrl);
+
+  // Step 5: Aggiorna stato batch in Firestore
+  try {
+    const firestore = admin.default.firestore();
+    const batchRef = firestore.collection('companies').doc(walletAddress).collection('batches').doc(batch.batchId.toString());
+    
+    await batchRef.set({
+      qrCodeGenerated: true,
+      qrCodeGeneratedAt: admin.default.firestore.FieldValue.serverTimestamp(),
+      qrCodeCertificateId: certificateId,
+      qrCodeUrl: certificateUrl
+    }, { merge: true });
+    
+    console.log('✅ Stato QR Code aggiornato in Firestore');
+  } catch (firestoreError) {
+    console.warn('⚠️ Errore aggiornamento Firestore (non critico):', firestoreError.message);
+  }
+
+  // Step 6: Restituisci il QR Code
+  res.setHeader('Content-Type', 'image/png');
+  const cleanBatchName = batch.name.replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, '_');
+  res.setHeader('Content-Disposition', `attachment; filename="${cleanBatchName}_qrcode.png"`);
+  res.send(qrBuffer);
+  
+  console.log('✅ QR Code creato con successo usando Realtime Database');
+}
+
+// Gestisce la visualizzazione dei certificati
+async function handleViewCertificate(req, res) {
   const { id } = req.query;
 
   if (!id) {
     return res.status(400).json({ error: 'Certificate ID is required' });
   }
 
-  try {
-    console.log('🔍 Recuperando certificato dal Realtime Database:', id);
+  console.log('🔍 Recuperando certificato dal Realtime Database:', id);
 
-    // Inizializza Firebase Admin
-    const admin = await import('firebase-admin');
-    
-    if (!admin.default.apps.length) {
-      admin.default.initializeApp({
-        credential: admin.default.credential.cert({
-          projectId: process.env.FIREBASE_PROJECT_ID,
-          clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-          privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-        }),
-        databaseURL: process.env.FIREBASE_DATABASE_URL
-      });
-    }
-
-    const realtimeDb = admin.default.database();
-    const certificateRef = realtimeDb.ref(`certificates/${id}`);
-    
-    // Recupera i dati del certificato
-    const snapshot = await certificateRef.once('value');
-    const certificateData = snapshot.val();
-
-    if (!certificateData) {
-      return res.status(404).send(`
-        <!DOCTYPE html>
-        <html lang="it">
-        <head>
-          <meta charset="UTF-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>Certificato non trovato - SimplyChain</title>
-          <style>
-            body {
-              font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-              background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
-              color: #f1f5f9;
-              min-height: 100vh;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              margin: 0;
-            }
-            .error-container {
-              text-align: center;
-              padding: 40px;
-              background: rgba(30, 41, 59, 0.95);
-              border-radius: 20px;
-              box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
-              border: 1px solid rgba(239, 68, 68, 0.3);
-            }
-            .error-icon { font-size: 4rem; margin-bottom: 20px; }
-            .error-title { font-size: 2rem; font-weight: bold; margin-bottom: 10px; color: #ef4444; }
-            .error-message { font-size: 1.1rem; color: #94a3b8; }
-          </style>
-        </head>
-        <body>
-          <div class="error-container">
-            <div class="error-icon">🔍</div>
-            <h1 class="error-title">Certificato non trovato</h1>
-            <p class="error-message">Il certificato richiesto non esiste o è stato rimosso.</p>
-          </div>
-        </body>
-        </html>
-      `);
-    }
-
-    if (!certificateData.isActive) {
-      return res.status(410).send(`
-        <!DOCTYPE html>
-        <html lang="it">
-        <head>
-          <meta charset="UTF-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>Certificato non disponibile - SimplyChain</title>
-          <style>
-            body {
-              font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-              background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
-              color: #f1f5f9;
-              min-height: 100vh;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              margin: 0;
-            }
-            .error-container {
-              text-align: center;
-              padding: 40px;
-              background: rgba(30, 41, 59, 0.95);
-              border-radius: 20px;
-              box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
-              border: 1px solid rgba(245, 158, 11, 0.3);
-            }
-            .error-icon { font-size: 4rem; margin-bottom: 20px; }
-            .error-title { font-size: 2rem; font-weight: bold; margin-bottom: 10px; color: #f59e0b; }
-            .error-message { font-size: 1.1rem; color: #94a3b8; }
-          </style>
-        </head>
-        <body>
-          <div class="error-container">
-            <div class="error-icon">⚠️</div>
-            <h1 class="error-title">Certificato non disponibile</h1>
-            <p class="error-message">Questo certificato è stato disattivato.</p>
-          </div>
-        </body>
-        </html>
-      `);
-    }
-
-    // Incrementa il contatore delle visualizzazioni
-    try {
-      await certificateRef.child('viewCount').transaction((current) => (current || 0) + 1);
-      await certificateRef.child('lastViewed').set(new Date().toISOString());
-    } catch (viewError) {
-      console.warn('⚠️ Errore aggiornamento contatore visualizzazioni:', viewError.message);
-    }
-
-    console.log('✅ Certificato trovato e visualizzato:', id);
-
-    // Genera HTML del certificato
-    const certificateHTML = generateCertificateHTML(certificateData);
-    
-    res.setHeader('Content-Type', 'text/html; charset=utf-8');
-    res.send(certificateHTML);
-
-  } catch (error) {
-    console.error('❌ Errore visualizzazione certificato:', error);
-    
-    res.status(500).send(`
-      <!DOCTYPE html>
-      <html lang="it">
-      <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Errore - SimplyChain</title>
-        <style>
-          body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
-            color: #f1f5f9;
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0;
-          }
-          .error-container {
-            text-align: center;
-            padding: 40px;
-            background: rgba(30, 41, 59, 0.95);
-            border-radius: 20px;
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(239, 68, 68, 0.3);
-          }
-          .error-icon { font-size: 4rem; margin-bottom: 20px; }
-          .error-title { font-size: 2rem; font-weight: bold; margin-bottom: 10px; color: #ef4444; }
-          .error-message { font-size: 1.1rem; color: #94a3b8; }
-        </style>
-      </head>
-      <body>
-        <div class="error-container">
-          <div class="error-icon">💥</div>
-          <h1 class="error-title">Errore del server</h1>
-          <p class="error-message">Si è verificato un errore durante il caricamento del certificato.</p>
-        </div>
-      </body>
-      </html>
-    `);
+  const admin = await import('firebase-admin');
+  
+  if (!admin.default.apps.length) {
+    admin.default.initializeApp({
+      credential: admin.default.credential.cert({
+        projectId: process.env.FIREBASE_PROJECT_ID,
+        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+        privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+      }),
+      databaseURL: process.env.FIREBASE_DATABASE_URL
+    });
   }
+
+  const realtimeDb = admin.default.database();
+  const certificateRef = realtimeDb.ref(`certificates/${id}`);
+  
+  const snapshot = await certificateRef.once('value');
+  const certificateData = snapshot.val();
+
+  if (!certificateData) {
+    return res.status(404).send(generateErrorPage('Certificato non trovato', 'Il certificato richiesto non esiste o è stato rimosso.', '🔍'));
+  }
+
+  if (!certificateData.isActive) {
+    return res.status(410).send(generateErrorPage('Certificato non disponibile', 'Questo certificato è stato disattivato.', '⚠️'));
+  }
+
+  // Incrementa contatore visualizzazioni
+  try {
+    await certificateRef.child('viewCount').transaction((current) => (current || 0) + 1);
+    await certificateRef.child('lastViewed').set(new Date().toISOString());
+  } catch (viewError) {
+    console.warn('⚠️ Errore aggiornamento contatore:', viewError.message);
+  }
+
+  console.log('✅ Certificato trovato e visualizzato:', id);
+
+  const certificateHTML = generateCertificateHTML(certificateData);
+  res.setHeader('Content-Type', 'text/html; charset=utf-8');
+  res.send(certificateHTML);
+}
+
+// Gestisce l'aggiornamento dello stato QR
+async function handleUpdateQRStatus(req, res) {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  const { walletAddress, batchId, qrCodeGenerated } = req.body;
+
+  if (!walletAddress || !batchId || qrCodeGenerated === undefined) {
+    return res.status(400).json({ error: 'Missing required fields' });
+  }
+
+  const admin = await import('firebase-admin');
+  
+  if (!admin.default.apps.length) {
+    admin.default.initializeApp({
+      credential: admin.default.credential.cert({
+        projectId: process.env.FIREBASE_PROJECT_ID,
+        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+        privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+      })
+    });
+  }
+
+  const db = admin.default.firestore();
+  const batchRef = db.collection('companies').doc(walletAddress).collection('batches').doc(batchId.toString());
+  
+  await batchRef.set({
+    qrCodeGenerated: qrCodeGenerated,
+    qrCodeGeneratedAt: admin.default.firestore.FieldValue.serverTimestamp()
+  }, { merge: true });
+
+  console.log(`✅ QR Code status aggiornato per batch ${batchId}: ${qrCodeGenerated}`);
+  
+  res.json({ 
+    success: true, 
+    message: 'QR Code status updated successfully' 
+  });
+}
+
+function generateErrorPage(title, message, icon) {
+  return `
+    <!DOCTYPE html>
+    <html lang="it">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>${title} - SimplyChain</title>
+      <style>
+        body {
+          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+          background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+          color: #f1f5f9;
+          min-height: 100vh;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin: 0;
+        }
+        .error-container {
+          text-align: center;
+          padding: 40px;
+          background: rgba(30, 41, 59, 0.95);
+          border-radius: 20px;
+          box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+          border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+        .error-icon { font-size: 4rem; margin-bottom: 20px; }
+        .error-title { font-size: 2rem; font-weight: bold; margin-bottom: 10px; color: #ef4444; }
+        .error-message { font-size: 1.1rem; color: #94a3b8; }
+      </style>
+    </head>
+    <body>
+      <div class="error-container">
+        <div class="error-icon">${icon}</div>
+        <h1 class="error-title">${title}</h1>
+        <p class="error-message">${message}</p>
+      </div>
+    </body>
+    </html>
+  `;
 }
 
 function generateCertificateHTML(certificateData) {
@@ -187,7 +265,6 @@ function generateCertificateHTML(certificateData) {
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <title>${certificateData.name} - Certificato di Tracciabilità</title>
       
-      <!-- Meta tags per social sharing -->
       <meta property="og:title" content="${certificateData.name} - Certificato SimplyChain">
       <meta property="og:description" content="Certificato di tracciabilità blockchain prodotto da ${certificateData.companyName}">
       <meta property="og:type" content="website">
@@ -410,7 +487,6 @@ function generateCertificateHTML(certificateData) {
           transform: scale(1.05);
         }
         
-        /* Responsive design */
         @media (max-width: 768px) {
           .certificate-container {
             padding: 20px;
@@ -429,46 +505,23 @@ function generateCertificateHTML(certificateData) {
             grid-template-columns: 1fr;
           }
         }
-        
-        /* Modal per immagini */
-        .modal {
-          display: none;
-          position: fixed;
-          z-index: 1000;
-          left: 0;
-          top: 0;
-          width: 100%;
-          height: 100%;
-          background-color: rgba(0,0,0,0.9);
-          cursor: pointer;
-        }
-        
-        .modal-content {
-          display: block;
-          margin: auto;
-          max-width: 90%;
-          max-height: 90%;
-          border-radius: 8px;
-          position: absolute;
-          top: 50%;
-          left: 50%;
-          transform: translate(-50%, -50%);
-        }
       </style>
       
       <script>
         function openImageModal(imageUrl) {
           const modal = document.createElement('div');
-          modal.className = 'modal';
-          modal.style.display = 'block';
+          modal.style.cssText = \`
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.9); display: flex; align-items: center;
+            justify-content: center; z-index: 1000; cursor: pointer;
+          \`;
           
           const img = document.createElement('img');
-          img.className = 'modal-content';
           img.src = imageUrl;
+          img.style.cssText = 'max-width: 90%; max-height: 90%; border-radius: 8px;';
           
           modal.appendChild(img);
           document.body.appendChild(modal);
-          
           modal.onclick = () => document.body.removeChild(modal);
         }
       </script>
