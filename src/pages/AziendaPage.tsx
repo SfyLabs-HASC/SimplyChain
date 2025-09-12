@@ -2671,9 +2671,6 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
     try {
       console.log('Generando QR Code per batch:', batch.batchId);
       
-      // Mostra loading
-      setLoadingMessages(prev => [...prev, `Generando QR Code per ${batch.name}...`]);
-      
       // Per l'ambiente locale, genera QR Code direttamente nel frontend
       if (window.location.hostname === 'localhost') {
         console.log('🏠 Ambiente locale: generando QR Code nel frontend');
@@ -2715,9 +2712,6 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
           )
         );
         
-        // Rimuovi loading message
-        setLoadingMessages(prev => prev.filter(msg => !msg.includes(batch.name)));
-        
         alert('🎉 QR Code generato con successo!\n\n🏠 Modalità test locale attiva.\n📱 Il QR code punta a una pagina di test.');
         
         return;
@@ -2757,9 +2751,6 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
           )
         );
         
-        // Rimuovi loading message
-        setLoadingMessages(prev => prev.filter(msg => !msg.includes(batch.name)));
-        
         alert('🎉 QR Code generato e scaricato con successo!');
         
       } else {
@@ -2768,10 +2759,6 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
       }
     } catch (error) {
       console.error('❌ Errore durante la generazione QR Code:', error);
-      
-      // Rimuovi loading message
-      setLoadingMessages(prev => prev.filter(msg => !msg.includes(batch.name)));
-      
       alert('❌ Errore durante la generazione del QR Code. Riprova più tardi.\n\nDettagli: ' + error.message);
     }
   };
