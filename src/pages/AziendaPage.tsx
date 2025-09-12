@@ -3199,7 +3199,7 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
                   <div style={{ flex: '1' }}></div>
 
                   {/* Pulsanti spostati fuori dal contenuto per allineamento corretto */}
-                  <div className="pt-4" style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                  <div className="pt-4" style={{ display: 'flex', flexDirection: 'row', gap: '0.5rem', alignItems: 'center', justifyContent: 'space-between' }}>
 
                     {/* Pulsante Esporta - mostrato solo per batch chiusi */}
 
