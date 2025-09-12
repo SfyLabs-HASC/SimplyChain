@@ -3192,76 +3192,78 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
 
                     </div>
 
-                    {/* Spacer element che riempie tutto lo spazio disponibile */}
-                    <div style={{ flex: '1' }}></div>
 
-                    <div className="pt-4" style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                  </div>
 
-                      {/* Pulsante Esporta - mostrato solo per batch chiusi */}
+                  {/* Spacer element che riempie tutto lo spazio disponibile */}
+                  <div style={{ flex: '1' }}></div>
 
-                      {batch.isClosed && (
+                  {/* Pulsanti spostati fuori dal contenuto per allineamento corretto */}
+                  <div className="pt-4" style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+
+                    {/* Pulsante Esporta - mostrato solo per batch chiusi */}
+
+                    {batch.isClosed && (
+
+                      <button
+
+                        className="primary-gradient text-white px-3 py-2 rounded-md hover:scale-105 transition"
+
+                        onClick={() => {
+
+                          setSelectedBatchForExport(batch);
+
+                          setShowExportModal(true);
+
+                        }}
+
+                      >
+
+                        Esporta
+
+                      </button>
+
+                    )}
+
+
+
+                    {/* Pulsanti Aggiungi Step e Finalizza per iscrizioni aperte, lucchetto per quelle chiuse */}
+
+                    {!batch.isClosed ? (
+
+                      <>
 
                         <button
 
-                          className="primary-gradient text-white px-3 py-2 rounded-md hover:scale-105 transition"
+                          className="bg-emerald-500 text-white px-3 py-2 rounded-md hover:scale-105 transition"
 
-                          onClick={() => {
-
-                            setSelectedBatchForExport(batch);
-
-                            setShowExportModal(true);
-
-                          }}
+                          onClick={() => setSelectedBatchForStep(batch)}
 
                         >
 
-                          Esporta
+                          Aggiungi Step
 
                         </button>
 
-                      )}
+                        <button
 
+                          className="bg-amber-500 text-white px-3 py-2 rounded-md hover:scale-105 transition"
 
+                          onClick={() => setSelectedBatchForFinalize(batch)}
 
-                      {/* Pulsanti Aggiungi Step e Finalizza per iscrizioni aperte, lucchetto per quelle chiuse */}
+                        >
 
-                      {!batch.isClosed ? (
+                          Finalizza
 
-                        <>
+                        </button>
 
-                          <button
+                      </>
 
-                            className="bg-emerald-500 text-white px-3 py-2 rounded-md hover:scale-105 transition"
+                    ) : (
 
-                            onClick={() => setSelectedBatchForStep(batch)}
+                      <span className="text-gray-400">🔒</span>
 
-                          >
-
-                            Aggiungi Step
-
-                          </button>
-
-                          <button
-
-                            className="bg-amber-500 text-white px-3 py-2 rounded-md hover:scale-105 transition"
-
-                            onClick={() => setSelectedBatchForFinalize(batch)}
-
-                          >
-
-                            Finalizza
-
-                          </button>
-
-                        </>
-
-                      ) : (
-
-                        <span className="text-gray-400">🔒</span>
-
-                      )}
-
-                    </div>
+                    )}
 
                   </div>
 
