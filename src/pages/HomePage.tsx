@@ -53,13 +53,17 @@ export default function HomePage() {
     };
   }, []); // Empty dependency array means this effect runs once on mount and cleans up on unmount
 
+  // Flag per tracciare se l'utente ha cliccato intenzionalmente un pulsante
+  const [userClickedButton, setUserClickedButton] = useState(false);
+
   // Effect to handle user authentication and routing
   useEffect(() => {
-    if (account && account.address) {
-      // Sempre auto-redirect quando l'utente si connette
+    if (account && account.address && userClickedButton) {
+      // Solo auto-redirect se l'utente ha cliccato un pulsante
       checkUserVerification();
+      setUserClickedButton(false); // Reset flag dopo il redirect
     }
-  }, [account]);
+  }, [account, userClickedButton]);
 
   const checkUserVerification = async () => {
     if (!account?.address) return;
@@ -86,6 +90,9 @@ export default function HomePage() {
   };
 
   const handleAuthButtonClick = () => {
+    // Attiva il flag per indicare che l'utente ha cliccato intenzionalmente
+    setUserClickedButton(true);
+    
     // Trova il ConnectButton nascosto e simula un click
     setTimeout(() => {
       const connectButtons = document.querySelectorAll('button');
