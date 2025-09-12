@@ -6258,12 +6258,12 @@ const QRInfoModal: React.FC<{
           </div>
           
           <p>
-            In alternativa, puoi{' '}
+            In alternativa, puoi scaricare il file HTML tramite il tasto{' '}
             <button 
               onClick={onExportHTML}
               className="text-primary hover:text-primary/80 underline bg-transparent border-none cursor-pointer"
             >
-              scaricare il file HTML tramite il tasto Esporta
+              Esporta
             </button>
             {' '}e ospitarlo su uno spazio personale. In questo modo potrai creare il tuo QR Code anche esternamente a SimplyChain.
           </p>
