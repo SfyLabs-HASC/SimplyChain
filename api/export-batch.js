@@ -498,7 +498,7 @@ async function handleQRCodeGeneration(batch, companyName, res) {
     // Usa il nome dell'iscrizione per il file, pulito per URL
     const cleanBatchName = batch.name.replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, '_');
     const fileName = `${cleanBatchName}_${batch.batchId}.html`;
-    const certificateUrl = await deployToFirebaseHosting(certificateHTML, fileName);
+    const certificateUrl = await deployToFirebaseHosting(certificateHTML, fileName, companyName);
     console.log('🌐 Certificato deployato su:', certificateUrl);
     
     // Step 3: Genera QR Code che punta al certificato
@@ -691,7 +691,7 @@ function generateCertificateHTML(batch, companyName) {
 }
 
 // Funzione per deployare HTML su Firebase Hosting (gratuito)
-async function deployToFirebaseHosting(htmlContent, fileName) {
+async function deployToFirebaseHosting(htmlContent, fileName, companyName) {
   try {
     console.log('🔥 Deployando certificato su Firebase Hosting:', fileName);
     
