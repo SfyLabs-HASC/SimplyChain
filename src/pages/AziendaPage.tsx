@@ -3192,9 +3192,10 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
 
                     </div>
 
+                    {/* Spacer element che riempie tutto lo spazio disponibile */}
+                    <div style={{ flex: '1' }}></div>
 
-
-                    <div className="mt-auto pt-4" style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                    <div className="pt-4" style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
 
                       {/* Pulsante Esporta - mostrato solo per batch chiusi */}
 
