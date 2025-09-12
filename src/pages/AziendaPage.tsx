@@ -6018,18 +6018,25 @@ const AziendaPage: React.FC = () => {
 
 
   // Effect per gestire il disconnect e reindirizzare alla homepage
+  // Solo dopo che il sistema ha avuto tempo di caricare l'account
+  const [accountCheckDelay, setAccountCheckDelay] = useState(true);
 
   useEffect(() => {
+    // Dai tempo al sistema di caricare l'account dopo F5
+    const timer = setTimeout(() => {
+      setAccountCheckDelay(false);
+    }, 1000); // 1 secondo di delay
 
-    if (!account) {
+    return () => clearTimeout(timer);
+  }, []);
 
+  useEffect(() => {
+    // Solo reindirizza se non c'è account E abbiamo aspettato il caricamento
+    if (!account && !accountCheckDelay) {
       navigate('/');
-
       return;
-
     }
-
-  }, [account, navigate]);
+  }, [account, navigate, accountCheckDelay]);
 
 
 
