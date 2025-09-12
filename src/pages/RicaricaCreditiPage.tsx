@@ -265,6 +265,111 @@ const StripeCheckoutForm: React.FC = () => {
 };
 
 // --- Componente Principale Pagina ---
+// Componente per il form di pagamento Stripe
+const PaymentForm: React.FC = () => {
+  const stripe = useStripe();
+  const elements = useElements();
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [paymentStatus, setPaymentStatus] = useState<'idle' | 'processing' | 'success' | 'error'>('idle');
+  const [errorMessage, setErrorMessage] = useState<string>('');
+  const navigate = useNavigate();
+
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+
+    if (!stripe || !elements || isProcessing) return;
+
+    setIsProcessing(true);
+    setPaymentStatus('processing');
+    setErrorMessage('');
+
+    try {
+      const { error, paymentIntent } = await stripe.confirmPayment({
+        elements,
+        confirmParams: {
+          return_url: `${window.location.origin}/ricaricacrediti?payment=success`,
+        },
+        redirect: 'if_required'
+      });
+
+      if (error) {
+        console.error('Payment error:', error);
+        setPaymentStatus('error');
+        setErrorMessage(error.message || 'Errore durante il pagamento');
+      } else if (paymentIntent && paymentIntent.status === 'succeeded') {
+        console.log('Payment successful:', paymentIntent);
+        setPaymentStatus('success');
+        
+        // Redirect dopo successo
+        setTimeout(() => {
+          navigate('/azienda?payment=success');
+        }, 2000);
+      }
+    } catch (err) {
+      console.error('Payment processing error:', err);
+      setPaymentStatus('error');
+      setErrorMessage('Errore imprevisto durante il pagamento');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  if (paymentStatus === 'success') {
+    return (
+      <div className="text-center py-8">
+        <div className="text-green-400 text-6xl mb-4">✅</div>
+        <h3 className="text-xl font-bold text-green-400 mb-2">Pagamento Completato!</h3>
+        <p className="text-gray-300 mb-4">I tuoi crediti sono stati aggiunti al tuo account.</p>
+        <p className="text-sm text-gray-400">Reindirizzamento alla dashboard...</p>
+      </div>
+    );
+  }
+
+  if (paymentStatus === 'error') {
+    return (
+      <div className="text-center py-8">
+        <div className="text-red-400 text-6xl mb-4">❌</div>
+        <h3 className="text-xl font-bold text-red-400 mb-2">Errore Pagamento</h3>
+        <p className="text-red-300 mb-4">{errorMessage}</p>
+        <button
+          onClick={() => {
+            setPaymentStatus('idle');
+            setErrorMessage('');
+          }}
+          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition"
+        >
+          Riprova
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <PaymentElement />
+      
+      <div className="flex justify-center">
+        <button
+          type="submit"
+          disabled={!stripe || !elements || isProcessing}
+          className="bg-green-600 hover:bg-green-700 disabled:bg-gray-600 text-white px-8 py-3 rounded-lg transition font-semibold flex items-center gap-2"
+        >
+          {isProcessing ? (
+            <>
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+              Elaborazione...
+            </>
+          ) : (
+            <>
+              💳 Paga Ora
+            </>
+          )}
+        </button>
+      </div>
+    </form>
+  );
+};
+
 const RicaricaCreditiPage: React.FC = () => {
   const account = useActiveAccount();
   const navigate = useNavigate();
@@ -277,6 +382,7 @@ const RicaricaCreditiPage: React.FC = () => {
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [isEditingBilling, setIsEditingBilling] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [currentStep, setCurrentStep] = useState(1); // 1: Pacchetti, 2: Dati, 3: Pagamento
 
   // Effect per gestire il disconnect e reindirizzare alla homepage
   useEffect(() => {
@@ -346,11 +452,20 @@ const RicaricaCreditiPage: React.FC = () => {
     setSelectedPackage(pkg);
     setClientSecret(null);
 
+    // Vai al passo 2 (dati di fatturazione)
+    setCurrentStep(2);
+
+    // Se non ci sono dati di fatturazione, attiva editing
     if (!billingDetails) {
         setIsEditingBilling(true);
         return;
     }
 
+    // Se ci sono già dati salvati, vai direttamente al pagamento
+    await createPaymentIntent(pkg);
+  };
+
+  const createPaymentIntent = async (pkg: CreditPackage) => {
     try {
         const response = await fetch(`/api/send-email?action=create-payment-intent`, {
             method: 'POST',
@@ -364,6 +479,7 @@ const RicaricaCreditiPage: React.FC = () => {
         if (!response.ok) throw new Error(`Errore dal server: ${response.statusText}`);
         const data = await response.json();
         setClientSecret(data.clientSecret);
+        setCurrentStep(3); // Vai al passo 3 (pagamento)
     } catch (error) {
         console.error("Errore nella creazione del Payment Intent:", error);
         setError("Non è stato possibile avviare il pagamento. Riprova.");
@@ -371,11 +487,12 @@ const RicaricaCreditiPage: React.FC = () => {
   };
 
   const handleSaveBilling = async (details: BillingDetails) => {
-    if (!account) return;
+    if (!account || isSaving) return; // Evita doppio click
     setIsSaving(true);
     setError(null);
 
     try {
+        console.log('Salvando dati di fatturazione...', details);
         const response = await fetch('/api/send-email?action=save-billing-details', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -386,18 +503,23 @@ const RicaricaCreditiPage: React.FC = () => {
         });
 
         if (!response.ok) {
-            throw new Error('Salvataggio dei dati di fatturazione fallito.');
+            const errorText = await response.text();
+            console.error('Errore response:', response.status, errorText);
+            throw new Error(`Errore dal server: ${response.status} - ${errorText}`);
         }
 
+        console.log('Dati salvati con successo');
         setBillingDetails(details);
         setIsEditingBilling(false);
 
+        // Vai al passo 3 (pagamento) se c'è un pacchetto selezionato
         if (selectedPackage) {
-            await handleSelectPackage(selectedPackage);
+            await createPaymentIntent(selectedPackage);
         }
 
     } catch(err: any) {
-        setError(err.message);
+        console.error('Errore nel salvataggio:', err);
+        setError(`Errore nel salvataggio: ${err.message || 'Errore sconosciuto'}`);
     } finally {
         setIsSaving(false);
     }
@@ -410,78 +532,86 @@ const RicaricaCreditiPage: React.FC = () => {
 
     return (
       <div className="space-y-6">
-        {/* Account Summary Card */}
+        {/* Progress Steps */}
         <div className="glass-card rounded-2xl p-6 tech-shadow">
-          <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
-            👤 Riepilogo Account
-          </h2>
-          <div className="grid md:grid-cols-2 gap-4">
-            <div>
-              <span className="text-gray-400">Nome Azienda:</span>
-              <p className="text-white font-semibold">{userData.companyName}</p>
+          <div className="flex items-center justify-center space-x-8">
+            <div className={`flex items-center gap-2 ${currentStep >= 1 ? 'text-primary' : 'text-gray-500'}`}>
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${currentStep >= 1 ? 'bg-primary text-white' : 'bg-gray-600'}`}>
+                1
+              </div>
+              <span className="font-medium">Seleziona Pacchetto</span>
             </div>
-            <div>
-              <span className="text-gray-400">Email di Iscrizione:</span>
-              <p className="text-white">{userData.email}</p>
+            
+            <div className={`w-12 h-0.5 ${currentStep >= 2 ? 'bg-primary' : 'bg-gray-600'}`}></div>
+            
+            <div className={`flex items-center gap-2 ${currentStep >= 2 ? 'text-primary' : 'text-gray-500'}`}>
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${currentStep >= 2 ? 'bg-primary text-white' : 'bg-gray-600'}`}>
+                2
+              </div>
+              <span className="font-medium">Dati Fatturazione</span>
             </div>
-            <div>
-              <span className="text-gray-400">Crediti Rimanenti:</span>
-              <p className="text-white font-bold text-xl">{userData.credits}</p>
-            </div>
-            <div>
-              <span className="text-gray-400">Stato Account:</span>
-              <p className={userData.status === 'active' ? 'text-green-400 font-semibold' : 'text-red-400 font-semibold'}>
-                {userData.status === 'active' ? 'ATTIVO' : 'NON ATTIVO'}
-              </p>
+            
+            <div className={`w-12 h-0.5 ${currentStep >= 3 ? 'bg-primary' : 'bg-gray-600'}`}></div>
+            
+            <div className={`flex items-center gap-2 ${currentStep >= 3 ? 'text-primary' : 'text-gray-500'}`}>
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${currentStep >= 3 ? 'bg-primary text-white' : 'bg-gray-600'}`}>
+                3
+              </div>
+              <span className="font-medium">Pagamento</span>
             </div>
           </div>
         </div>
 
-        {/* Credit Packages Card */}
-        <div className="glass-card rounded-2xl p-6 tech-shadow">
-          <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
-            💎 Seleziona un Pacchetto Crediti
-          </h2>
-          
-          <div className="grid gap-4">
-            {creditPackages.map(pkg => (
-              <div
-                key={pkg.id}
-                onClick={() => handleSelectPackage(pkg)}
-                className={`p-4 rounded-lg border-2 cursor-pointer transition-all hover:scale-105 ${
-                  selectedPackage?.id === pkg.id
-                    ? 'border-primary bg-primary/10 shadow-lg shadow-primary/20'
-                    : 'border-gray-600 bg-gray-800/50 hover:border-gray-500'
-                }`}
-              >
-                <div className="flex justify-between items-center">
-                  <div>
-                    <h3 className="text-lg font-bold text-white">
-                      {pkg.credits} Crediti
-                    </h3>
-                    <p className="text-gray-400">
-                      {pkg.pricePerCredit.toFixed(2)} € per credito
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-2xl font-bold text-primary">
-                      {pkg.totalPrice.toFixed(2)} €
-                    </p>
-                    <p className="text-sm text-gray-400">
-                      {pkg.description}
-                    </p>
+        {/* Step 1: Pacchetti Crediti */}
+        {currentStep === 1 && (
+          <div className="glass-card rounded-2xl p-6 tech-shadow transform transition-all duration-500 ease-in-out">
+            <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
+              💎 Seleziona un Pacchetto Crediti
+            </h2>
+            
+            <div className="grid gap-4">
+              {creditPackages.map(pkg => (
+                <div
+                  key={pkg.id}
+                  onClick={() => handleSelectPackage(pkg)}
+                  className="p-4 rounded-lg border-2 cursor-pointer transition-all hover:scale-105 border-gray-600 bg-gray-800/50 hover:border-gray-500"
+                >
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <h3 className="text-lg font-bold text-white">
+                        {pkg.credits} Crediti
+                      </h3>
+                      <p className="text-gray-400">
+                        {pkg.pricePerCredit.toFixed(2)} € per credito
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-2xl font-bold text-primary">
+                        {pkg.totalPrice.toFixed(2)} €
+                      </p>
+                      <p className="text-sm text-gray-400">
+                        {pkg.description}
+                      </p>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
+        )}
 
-        {selectedPackage && (
-          <div className="glass-card rounded-2xl p-6 tech-shadow">
-            <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
-              🧾 Dati di Fatturazione
-            </h2>
+        {/* Step 2: Dati di Fatturazione */}
+        {currentStep === 2 && selectedPackage && (
+          <div className="glass-card rounded-2xl p-6 tech-shadow transform transition-all duration-500 ease-in-out">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                🧾 Dati di Fatturazione
+              </h2>
+              <div className="text-right">
+                <p className="text-gray-400">Pacchetto selezionato:</p>
+                <p className="text-primary font-bold">{selectedPackage.credits} crediti - {selectedPackage.totalPrice.toFixed(2)} €</p>
+              </div>
+            </div>
             
             {billingDetails && !isEditingBilling ? (
               <div>
@@ -495,7 +625,7 @@ const RicaricaCreditiPage: React.FC = () => {
                   </button>
                 </div>
                 
-                <div className="grid md:grid-cols-2 gap-4">
+                <div className="grid md:grid-cols-2 gap-4 mb-6">
                   {billingDetails.type === 'azienda' ? (
                     <>
                       <div>
@@ -532,6 +662,21 @@ const RicaricaCreditiPage: React.FC = () => {
                     </>
                   )}
                 </div>
+                
+                <div className="flex gap-4">
+                  <button
+                    onClick={() => setCurrentStep(1)}
+                    className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition"
+                  >
+                    ← Cambia Pacchetto
+                  </button>
+                  <button
+                    onClick={() => createPaymentIntent(selectedPackage)}
+                    className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg transition font-semibold"
+                  >
+                    Procedi al Pagamento →
+                  </button>
+                </div>
               </div>
             ) : (
               <div>
@@ -539,21 +684,68 @@ const RicaricaCreditiPage: React.FC = () => {
                   {billingDetails ? 'Modifica Dati di Fatturazione' : 'Inserisci i Dati di Fatturazione'}
                 </h3>
                 <BillingForm initialDetails={billingDetails} onSave={handleSaveBilling} isSaving={isSaving} />
-              </div>
-            )}
-            
-            {!isEditingBilling && clientSecret && (
-              <div className="mt-6 pt-6 border-t border-gray-600">
-                <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-                  💳 Procedi con il Pagamento
-                </h3>
-                <Elements options={{ clientSecret }} stripe={stripePromise}>
-                        <StripeCheckoutForm />
-                    </Elements>
+                
+                <div className="flex gap-4 mt-6">
+                  <button
+                    onClick={() => setCurrentStep(1)}
+                    className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition"
+                  >
+                    ← Cambia Pacchetto
+                  </button>
                 </div>
+              </div>
             )}
           </div>
         )}
+
+        {/* Step 3: Pagamento */}
+        {currentStep === 3 && selectedPackage && clientSecret && (
+          <div className="glass-card rounded-2xl p-6 tech-shadow transform transition-all duration-500 ease-in-out">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                💳 Completa il Pagamento
+              </h2>
+              <div className="text-right">
+                <p className="text-gray-400">Importo totale:</p>
+                <p className="text-2xl font-bold text-green-400">{selectedPackage.totalPrice.toFixed(2)} €</p>
+              </div>
+            </div>
+            
+            <div className="mb-6 p-4 bg-gray-800/50 rounded-lg">
+              <h4 className="font-semibold text-white mb-2">Riepilogo Ordine:</h4>
+              <p className="text-gray-300">{selectedPackage.credits} crediti × {selectedPackage.pricePerCredit.toFixed(2)} € = {selectedPackage.totalPrice.toFixed(2)} €</p>
+            </div>
+            
+            <Elements options={{ clientSecret }} stripe={stripePromise}>
+              <PaymentForm />
+            </Elements>
+            
+            <div className="flex gap-4 mt-6">
+              <button
+                onClick={() => setCurrentStep(2)}
+                className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition"
+              >
+                ← Modifica Dati
+              </button>
+              <button
+                onClick={() => setCurrentStep(1)}
+                className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition"
+              >
+                ← Cambia Pacchetto
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Tasto Torna Indietro in fondo */}
+        <div className="flex justify-center pt-8">
+          <button
+            onClick={() => navigate('/azienda')}
+            className="bg-gray-600 hover:bg-gray-700 text-white px-8 py-3 rounded-2xl font-semibold hover:scale-105 transition flex items-center gap-2"
+          >
+            ← Torna alla Dashboard
+          </button>
+        </div>
         
       </div>
     );
@@ -647,6 +839,8 @@ const RicaricaCreditiPage: React.FC = () => {
             renderContent()
           )}
         </main>
+        
+        </div>
       </div>
     </>
   );
