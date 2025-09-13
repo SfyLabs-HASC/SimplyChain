@@ -2867,6 +2867,16 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
       box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
       border: 1px solid rgba(139, 92, 246, 0.3);
       backdrop-filter: blur(10px);
+      position: relative;
+    }
+    
+    .lock-icon {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      font-size: 1.5rem;
+      color: #8b5cf6;
+      opacity: 0.7;
     }
     
     .header {
@@ -2877,7 +2887,7 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
     }
     
     .company-name-box {
-      background: linear-gradient(135deg, #8b5cf6 0%, #06b6d4 100%);
+      background: linear-gradient(135deg, #06b6d4 0%, #8b5cf6 100%);
       padding: 20px 30px;
       border-radius: 15px;
       margin-bottom: 20px;
@@ -3011,7 +3021,7 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
       box-shadow: 0 8px 25px rgba(6, 182, 212, 0.15);
     }
     
-    .step-number {
+    .step-number-circle {
       position: absolute;
       top: -10px;
       left: 20px;
@@ -3105,6 +3115,7 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
 </head>
 <body>
   <div class="certificate-container">
+    <div class="lock-icon">🔒</div>
     <div class="header">
       <div class="company-name-box">
         <h1 class="company-name">${certificateData.companyName}</h1>
@@ -3171,10 +3182,11 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
         <h2 class="section-title">🔄 Fasi di Lavorazione</h2>
         ${certificateData.steps.map((step, index) => `
           <div class="step">
-            <div class="step-number">Step ${index + 1}</div>
+            <div class="step-number-circle">${index + 1}</div>
+            <h3 class="step-header">Step ${index + 1}</h3>
             <div class="step-details">
               <div class="step-detail">
-                <strong>Nome:</strong><br>
+                <strong>📦 Nome:</strong><br>
                 ${step.eventName}
               </div>
               <div class="step-detail">
@@ -3220,8 +3232,7 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
     ` : ''}
 
     <div class="footer">
-      <p>🔗 <strong>SimplyChain</strong> - Tracciabilità Blockchain per le imprese italiane</p>
-      <p>Certificato generato il ${new Date(certificateData.createdAt).toLocaleDateString('it-IT')}</p>
+      <p>Certificato generato con 🔗 <strong>SimplyChain</strong> il ${new Date(certificateData.createdAt).toLocaleDateString('it-IT')}</p>
       <p>Servizio prodotto da <strong>SFY s.r.l.</strong></p>
       <p>📧 Contattaci: sfy.startup@gmail.com</p>
     </div>
@@ -3804,70 +3815,51 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
                   <div style={{ flex: '1' }}></div>
 
                   {/* Pulsanti spostati fuori dal contenuto per allineamento corretto */}
-                  <div className="pt-4" style={{ display: 'flex', flexDirection: 'row', gap: '0.5rem', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div className="pt-4" style={{ display: 'flex', flexDirection: 'row', gap: '0.5rem', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap' }}>
 
                     {/* Pulsante Steps - sempre visibile */}
                     <div>
                       {batch.steps && batch.steps.length > 0 ? (
                         <button
-                          className="accent-gradient text-white px-3 py-2 rounded-md hover:scale-105 transition"
+                          className="accent-gradient text-white px-4 py-2 rounded-md hover:scale-105 transition text-sm font-medium whitespace-nowrap"
                           onClick={() => setSelectedBatchForSteps(batch)}
                         >
-                          {batch.steps.length} steps
+                          {batch.steps.length} Steps
                         </button>
                       ) : (
                         <button
-                          className="accent-gradient text-white px-3 py-2 rounded-md hover:scale-105 transition disabled"
+                          className="accent-gradient text-white px-4 py-2 rounded-md hover:scale-105 transition disabled text-sm font-medium whitespace-nowrap"
                           disabled={true}
                         >
-                          0 steps
+                          0 Steps
                         </button>
                       )}
                     </div>
 
                     {/* Pulsante Esporta - mostrato solo per batch chiusi */}
-
                     {batch.isClosed && (
-
                       <button
-
-                        className="primary-gradient text-white px-3 py-2 rounded-md hover:scale-105 transition"
-
+                        className="primary-gradient text-white px-4 py-2 rounded-md hover:scale-105 transition text-sm font-medium whitespace-nowrap"
                         onClick={() => {
-
                           setSelectedBatchForExport(batch);
-
                           setShowExportModal(true);
-
                         }}
-
                       >
-
                         Esporta
-
                       </button>
-
                     )}
 
                     {/* Pulsante Genera QR Code - mostrato solo per batch chiusi */}
-
                     {batch.isClosed && (
-
                       <button
-
-                        className="bg-gradient-to-r from-purple-600 to-purple-700 text-white px-3 py-2 rounded-md hover:scale-105 transition"
-
+                        className="bg-gradient-to-r from-purple-600 to-purple-700 text-white px-4 py-2 rounded-md hover:scale-105 transition text-sm font-medium whitespace-nowrap"
                         onClick={() => {
                           setSelectedBatchForExport(batch);
                           setShowQRModal(true);
                         }}
-
                       >
-
-                        Genera QR Code
-
+                        QR Code
                       </button>
-
                     )}
 
 
