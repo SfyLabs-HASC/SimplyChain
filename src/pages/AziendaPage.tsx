@@ -2768,7 +2768,13 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
       
     } catch (error) {
       console.error('❌ Errore durante la generazione QR Code:', error);
-      alert('❌ Errore durante la generazione del QR Code. Riprova più tardi.\n\nDettagli: ' + error.message);
+      
+      // Gestione specifica per errori di permessi
+      if (error.message.includes('PERMISSION_DENIED')) {
+        alert('❌ Errore permessi Firebase!\n\n🔐 Le regole del Realtime Database non permettono la scrittura.\n\n📋 Soluzione:\n1. Vai su Firebase Console\n2. Realtime Database → Rules\n3. Configura le regole per /certificates/\n\nDettagli: ' + error.message);
+      } else {
+        alert('❌ Errore durante la generazione del QR Code. Riprova più tardi.\n\nDettagli: ' + error.message);
+      }
     }
   };
 
@@ -4545,6 +4551,15 @@ const FinalizeModal: React.FC<{
       
     } catch (error) {
       console.error('❌ Errore durante la generazione automatica QR Code:', error);
+      
+      // Gestione specifica per errori di permessi
+      if (error.message.includes('PERMISSION_DENIED')) {
+        return { 
+          success: false, 
+          error: 'Permessi Firebase insufficienti. Controlla le regole del Realtime Database.' 
+        };
+      }
+      
       return { success: false, error: error.message };
     }
   };
