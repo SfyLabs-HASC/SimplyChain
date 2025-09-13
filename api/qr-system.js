@@ -443,17 +443,12 @@ function generateCertificateHTML(certificateData) {
         .subtitle {
           font-size: 1.2rem;
           color: #94a3b8;
-          margin-bottom: 10px;
+          margin-bottom: 5px;
         }
         
-        .company-badge {
-          display: inline-block;
-          background: rgba(139, 92, 246, 0.2);
-          color: #a78bfa;
-          padding: 8px 16px;
-          border-radius: 20px;
-          font-weight: 600;
-          border: 1px solid rgba(139, 92, 246, 0.3);
+        .creator-badge {
+          font-size: 1rem;
+          color: #94a3b8;
         }
         
         .info-grid {
@@ -512,11 +507,7 @@ function generateCertificateHTML(certificateData) {
           box-shadow: 0 4px 15px rgba(6, 182, 212, 0.2);
         }
         
-        .steps-section {
-          margin-top: 40px;
-        }
-        
-        .steps-title {
+        .section-title {
           font-size: 1.8rem;
           font-weight: bold;
           color: #8b5cf6;
@@ -526,6 +517,10 @@ function generateCertificateHTML(certificateData) {
           align-items: center;
           justify-content: center;
           gap: 10px;
+        }
+        
+        .steps-section {
+          margin-top: 40px;
         }
         
         .step {
@@ -660,10 +655,12 @@ function generateCertificateHTML(certificateData) {
     <body>
       <div class="certificate-container">
         <div class="header">
-          <h1 class="title">📋 Informazioni Iscrizione</h1>
+          <h1 class="title">${certificateData.companyName}</h1>
           <p class="subtitle">Certificato di Tracciabilità Blockchain</p>
-          <div class="company-badge">🏢 ${certificateData.companyName}</div>
+          <p class="creator-badge">Creato con SimplyChain</p>
         </div>
+
+        <h2 class="section-title">📋 Informazioni Iscrizione</h2>
 
         <div class="info-grid">
           <div class="info-item">
@@ -685,6 +682,13 @@ function generateCertificateHTML(certificateData) {
             <div class="info-label">📊 Stato</div>
             <div class="info-value">✅ Certificato Attivo</div>
           </div>
+          
+          ${certificateData.description ? `
+            <div class="info-item">
+              <div class="info-label">📝 Descrizione</div>
+              <div class="info-value">${certificateData.description}</div>
+            </div>
+          ` : ''}
           
           ${certificateData.imageIpfsHash && certificateData.imageIpfsHash !== "N/A" ? `
             <div class="info-item">
@@ -714,7 +718,7 @@ function generateCertificateHTML(certificateData) {
 
         ${certificateData.steps && certificateData.steps.length > 0 ? `
           <div class="steps-section">
-            <h2 class="steps-title">🔄 Fasi di Lavorazione</h2>
+            <h2 class="section-title">🔄 Fasi di Lavorazione</h2>
             ${certificateData.steps.map((step, index) => `
               <div class="step">
                 <div class="step-number">${index + 1}</div>
@@ -757,16 +761,6 @@ function generateCertificateHTML(certificateData) {
                 </div>
               </div>
             `).join('')}
-            ${certificateData.description ? `
-              <div class="step" style="background: rgba(139, 92, 246, 0.1); border-color: rgba(139, 92, 246, 0.2);">
-                <div class="step-header">📝 Descrizione</div>
-                <div class="step-details">
-                  <div class="step-detail" style="grid-column: 1 / -1;">
-                    ${certificateData.description}
-                  </div>
-                </div>
-              </div>
-            ` : ''}
           </div>
         ` : ''}
 
