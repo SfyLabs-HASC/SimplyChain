@@ -209,10 +209,36 @@ async function handleViewCertificate(req, res) {
     if (!admin.default.apps.length) {
       console.log('🔥 Inizializzando Firebase Admin SDK...');
       
+      // Gestisce sia \n letterali che newline reali
+      let privateKey = process.env.FIREBASE_PRIVATE_KEY;
+      if (privateKey) {
+        // Se contiene \n letterali, li converte in newline reali
+        if (privateKey.includes('\\n')) {
+          privateKey = privateKey.replace(/\\n/g, '\n');
+        }
+        // Se non contiene BEGIN PRIVATE KEY, potrebbe essere che le newline sono già reali
+        // ma sono state convertite in spazi o altri caratteri
+        if (!privateKey.includes('BEGIN PRIVATE KEY')) {
+          // Prova a ricostruire la private key
+          privateKey = privateKey.replace(/\s+/g, '\n');
+        }
+      }
+      
+      console.log('🔑 Private Key info:', {
+        originalLength: process.env.FIREBASE_PRIVATE_KEY?.length || 0,
+        processedLength: privateKey?.length || 0,
+        startsWith: privateKey?.substring(0, 20) || 'UNDEFINED',
+        endsWith: privateKey?.substring(privateKey.length - 20) || 'UNDEFINED'
+      });
+      
+      if (!privateKey || !privateKey.includes('BEGIN PRIVATE KEY')) {
+        throw new Error('FIREBASE_PRIVATE_KEY non è valida. Deve contenere "BEGIN PRIVATE KEY"');
+      }
+      
       const serviceAccount = {
         projectId: process.env.FIREBASE_PROJECT_ID,
         clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-        privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+        privateKey: privateKey,
       };
       
       console.log('🔑 Service Account config:', {
