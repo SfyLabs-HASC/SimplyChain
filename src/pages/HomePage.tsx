@@ -28,6 +28,7 @@ const wallets = [
 ];
 
 export default function HomePage() {
+  // Updated for QR system testing
   const [isVideoOpen, setIsVideoOpen] = useState(false);
   const [textPhase, setTextPhase] = useState(1);
   const [connectButtonRef, setConnectButtonRef] = useState<HTMLButtonElement | null>(null);
