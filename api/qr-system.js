@@ -197,46 +197,79 @@ async function handleViewCertificate(req, res) {
 
   console.log('🔍 Recuperando certificato dal Realtime Database:', id);
 
-  const admin = await import('firebase-admin');
-  
-  if (!admin.default.apps.length) {
-    admin.default.initializeApp({
-      credential: admin.default.credential.cert({
+  try {
+    const admin = await import('firebase-admin');
+    
+    console.log('📋 Variabili d\'ambiente server:');
+    console.log('- FIREBASE_PROJECT_ID:', process.env.FIREBASE_PROJECT_ID ? 'SET' : 'MISSING');
+    console.log('- FIREBASE_CLIENT_EMAIL:', process.env.FIREBASE_CLIENT_EMAIL ? 'SET' : 'MISSING');
+    console.log('- FIREBASE_PRIVATE_KEY:', process.env.FIREBASE_PRIVATE_KEY ? 'SET' : 'MISSING');
+    console.log('- FIREBASE_DATABASE_URL:', process.env.FIREBASE_DATABASE_URL ? 'SET' : 'MISSING');
+    
+    if (!admin.default.apps.length) {
+      console.log('🔥 Inizializzando Firebase Admin SDK...');
+      
+      const serviceAccount = {
         projectId: process.env.FIREBASE_PROJECT_ID,
         clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
         privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-      }),
-      databaseURL: process.env.FIREBASE_DATABASE_URL
+      };
+      
+      console.log('🔑 Service Account config:', {
+        projectId: serviceAccount.projectId,
+        clientEmail: serviceAccount.clientEmail,
+        privateKeyLength: serviceAccount.privateKey?.length || 0
+      });
+      
+      admin.default.initializeApp({
+        credential: admin.default.credential.cert(serviceAccount),
+        databaseURL: process.env.FIREBASE_DATABASE_URL
+      });
+      
+      console.log('✅ Firebase Admin SDK inizializzato');
+    } else {
+      console.log('✅ Firebase Admin SDK già inizializzato');
+    }
+
+    console.log('🔥 Connessione al Realtime Database...');
+    const realtimeDb = admin.default.database();
+    const certificateRef = realtimeDb.ref(`certificates/${id}`);
+    
+    console.log('🔍 Recuperando certificato dal database...');
+    const snapshot = await certificateRef.once('value');
+    const certificateData = snapshot.val();
+    
+    console.log('📄 Dati certificato:', certificateData ? 'TROVATO' : 'NON TROVATO');
+
+    if (!certificateData) {
+      return res.status(404).send(generateErrorPage('Certificato non trovato', 'Il certificato richiesto non esiste o è stato rimosso.', '🔍'));
+    }
+
+    if (!certificateData.isActive) {
+      return res.status(410).send(generateErrorPage('Certificato non disponibile', 'Questo certificato è stato disattivato.', '⚠️'));
+    }
+
+    // Incrementa contatore visualizzazioni
+    try {
+      await certificateRef.child('viewCount').transaction((current) => (current || 0) + 1);
+      await certificateRef.child('lastViewed').set(new Date().toISOString());
+    } catch (viewError) {
+      console.warn('⚠️ Errore aggiornamento contatore:', viewError.message);
+    }
+
+    console.log('✅ Certificato trovato e visualizzato:', id);
+
+    const certificateHTML = generateCertificateHTML(certificateData);
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.send(certificateHTML);
+    
+  } catch (error) {
+    console.error('❌ Errore durante la visualizzazione del certificato:', error);
+    res.status(500).json({ 
+      error: 'Errore interno del server',
+      details: error.message 
     });
   }
-
-  const realtimeDb = admin.default.database();
-  const certificateRef = realtimeDb.ref(`certificates/${id}`);
-  
-  const snapshot = await certificateRef.once('value');
-  const certificateData = snapshot.val();
-
-  if (!certificateData) {
-    return res.status(404).send(generateErrorPage('Certificato non trovato', 'Il certificato richiesto non esiste o è stato rimosso.', '🔍'));
-  }
-
-  if (!certificateData.isActive) {
-    return res.status(410).send(generateErrorPage('Certificato non disponibile', 'Questo certificato è stato disattivato.', '⚠️'));
-  }
-
-  // Incrementa contatore visualizzazioni
-  try {
-    await certificateRef.child('viewCount').transaction((current) => (current || 0) + 1);
-    await certificateRef.child('lastViewed').set(new Date().toISOString());
-  } catch (viewError) {
-    console.warn('⚠️ Errore aggiornamento contatore:', viewError.message);
-  }
-
-  console.log('✅ Certificato trovato e visualizzato:', id);
-
-  const certificateHTML = generateCertificateHTML(certificateData);
-  res.setHeader('Content-Type', 'text/html; charset=utf-8');
-  res.send(certificateHTML);
 }
 
 // Gestisce l'aggiornamento dello stato QR
