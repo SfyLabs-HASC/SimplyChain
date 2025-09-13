@@ -4882,7 +4882,11 @@ const AddStepModal: React.FC<{
 
           message={txResult?.message || loadingMessage}
 
-          onClose={() => {}}
+          onClose={() => {
+            setTxResult(null);
+            setLoadingMessage("");
+            onClose();
+          }}
 
         />
 
@@ -5339,7 +5343,11 @@ const FinalizeModal: React.FC<{
 
           message={txResult?.message || loadingMessage}
 
-          onClose={() => {}}
+          onClose={() => {
+            setTxResult(null);
+            setLoadingMessage("");
+            onClose();
+          }}
 
         />
 
