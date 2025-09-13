@@ -6531,6 +6531,50 @@ const InfoModal: React.FC<{
 
       )
 
+    },
+
+    {
+
+      title: "Genera QR Code",
+
+      icon: "📱",
+
+      content: (
+
+        <div>
+
+          <div style={{ background: 'rgba(139, 92, 246, 0.1)', padding: '1.5rem', borderRadius: '1rem', border: '1px solid rgba(139, 92, 246, 0.3)', marginBottom: '1rem' }}>
+
+            <h5 style={{ color: '#8b5cf6', margin: '0 0 1rem 0', fontWeight: '600', fontSize: '1.1rem' }}>📱 QR Code per Certificati</h5>
+
+            <p style={{ margin: '0 0 1rem 0', color: '#d1d5db' }}>Genera un QR Code che riporta al tuo certificato online.</p>
+
+            <p style={{ margin: '0 0 1rem 0', color: '#d1d5db' }}>Il QR Code può essere stampato sulle etichette del prodotto per permettere ai clienti di verificare l'autenticità e la tracciabilità.</p>
+
+            <div style={{ background: 'rgba(139, 92, 246, 0.2)', padding: '1rem', borderRadius: '0.75rem', border: '1px solid rgba(139, 92, 246, 0.4)' }}>
+
+              <p style={{ margin: '0 0 0.5rem 0', color: '#a78bfa', fontWeight: '600' }}>💡 Come funziona:</p>
+
+              <ul style={{ paddingLeft: '1.5rem', color: '#d1d5db', margin: 0, fontSize: '0.9rem' }}>
+
+                <li>Il QR Code punta al certificato online</li>
+
+                <li>I clienti possono scansionarlo per verificare</li>
+
+                <li>Mostra tutte le informazioni di tracciabilità</li>
+
+                <li>Aggiornato in tempo reale</li>
+
+              </ul>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      )
+
     }
 
   ];
