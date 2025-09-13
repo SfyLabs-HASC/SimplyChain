@@ -2696,6 +2696,11 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
   const handleGenerateQRCode = async (batch: Batch) => {
     try {
       console.log('🔥 Generando QR Code con Firebase Realtime Database per batch:', batch.batchId);
+      console.log('🔍 DEBUG Batch state:', {
+        batchId: batch.batchId,
+        qrCodeGenerated: batch.qrCodeGenerated,
+        qrCodeTimestamp: batch.qrCodeTimestamp
+      });
       
       // Verifica la configurazione Firebase prima di procedere
       const { realtimeDb } = await import('../firebaseConfig');
@@ -2716,6 +2721,7 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
       const cleanCompanyName = currentCompanyData.companyName.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
       // Usa la funzione helper per ottenere il timestamp corretto
       const timestamp = getBatchTimestamp(batch);
+      console.log('🔍 DEBUG Final timestamp for batch', batch.batchId, ':', timestamp);
       
       const certificateId = `${cleanCompanyName}_${batch.batchId}_${timestamp}`;
       const certificateData = {
@@ -3177,6 +3183,7 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
       const cleanCompanyName = currentCompanyData.companyName.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
       // Usa la funzione helper per ottenere il timestamp corretto
       const timestamp = getBatchTimestamp(batch);
+      console.log('🔍 DEBUG Final timestamp for batch', batch.batchId, ':', timestamp);
       
       const certificateId = `${cleanCompanyName}_${batch.batchId}_${timestamp}`;
       
@@ -5014,6 +5021,7 @@ const FinalizeModal: React.FC<{
       const cleanCompanyName = currentCompanyData.companyName.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
       // Usa la funzione helper per ottenere il timestamp corretto
       const timestamp = getBatchTimestamp(batch);
+      console.log('🔍 DEBUG Final timestamp for batch', batch.batchId, ':', timestamp);
       
       const certificateId = `${cleanCompanyName}_${batch.batchId}_${timestamp}`;
       const certificateData = {
