@@ -2378,6 +2378,10 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
 
   const [showQRCodeModal, setShowQRCodeModal] = useState(false);
 
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+
+  const [successMessage, setSuccessMessage] = useState('');
+
 
 
   // State per i filtri
@@ -2771,7 +2775,8 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
         console.warn('⚠️ Errore salvando stato QR (non critico):', saveError);
       }
       
-      alert('🎉 QR Code generato con successo!\n\n🔥 Certificato salvato nel Firebase Realtime Database!\n📱 Il QR code è pronto per l\'uso.');
+      setSuccessMessage('QR Code generato con successo!');
+      setShowSuccessModal(true);
       
     } catch (error) {
       console.error('❌ Errore durante la generazione QR Code:', error);
@@ -3170,7 +3175,8 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
       URL.revokeObjectURL(url);
       
       console.log('✅ File HTML scaricato con successo');
-      alert('🎉 File HTML scaricato con successo!');
+      setSuccessMessage('File HTML scaricato con successo!');
+      setShowSuccessModal(true);
       
     } catch (error: any) {
       console.error('❌ Errore durante il download del file HTML:', error);
@@ -3579,6 +3585,33 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
 
         <>
 
+          {/* Paginazione superiore */}
+          {filteredBatches.length > itemsPerPage && (
+            <div className="flex items-center justify-center gap-3 mb-6 p-4">
+              <button
+                className="primary-gradient text-white px-3 py-2 rounded-md hover:scale-105 transition"
+                onClick={handlePreviousPage}
+                disabled={currentPage === 1}
+                style={{ opacity: currentPage === 1 ? 0.5 : 1 }}
+              >
+                ← Precedente
+              </button>
+              
+              <span className="text-white font-medium">
+                Pagina {currentPage} di {totalPages}
+              </span>
+              
+              <button
+                className="primary-gradient text-white px-3 py-2 rounded-md hover:scale-105 transition"
+                onClick={handleNextPage}
+                disabled={currentPage === totalPages}
+                style={{ opacity: currentPage === totalPages ? 0.5 : 1 }}
+              >
+                Successiva →
+              </button>
+            </div>
+          )}
+
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
 
             {currentItems.length > 0 ? (
@@ -3741,19 +3774,8 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
                         className="bg-gradient-to-r from-purple-600 to-purple-700 text-white px-3 py-2 rounded-md hover:scale-105 transition"
 
                         onClick={() => {
-
-                          if (batch.qrCodeGenerated) {
-
-                            // Mostra messaggio di attenzione per genera QR
-
-                            alert('⚠️ Attenzione!\n\nIl QR Code è già stato generato per questo batch.\n\nCliccando su "Genera QR Code" scaricherai nuovamente lo stesso QR Code associato a questo batch.\n\nQuesto è importante per mantenere la coerenza e non riempire inutilmente lo spazio del database.');
-
-                          }
-
                           setSelectedBatchForExport(batch);
-
                           setShowQRModal(true);
-
                         }}
 
                       >
@@ -4078,7 +4100,8 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
           }}
           onExportPDF={() => {
             // Per ora non fa nulla, come richiesto
-            alert('Funzionalità PDF in sviluppo');
+            setSuccessMessage('Funzionalità PDF in sviluppo');
+            setShowSuccessModal(true);
             setShowExportModal(false);
           }}
           onExportHTML={() => {
@@ -4143,6 +4166,17 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
 
         <QRCodeOfferModal onClose={() => setShowQRCodeModal(false)} />
 
+      )}
+
+      {/* Modale di successo */}
+      {showSuccessModal && (
+        <SuccessModal
+          message={successMessage}
+          onClose={() => {
+            setShowSuccessModal(false);
+            setSuccessMessage('');
+          }}
+        />
       )}
 
     </>
@@ -7128,6 +7162,38 @@ const QRInfoModal: React.FC<{
               Genera QR Code
             </button>
           </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Componente Modale di Successo
+const SuccessModal: React.FC<{
+  message: string;
+  onClose: () => void;
+}> = ({ message, onClose }) => {
+  return (
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={onClose}>
+      <div 
+        className="bg-slate-800 rounded-2xl shadow-2xl max-w-md w-full" 
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="p-8 text-center">
+          <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
+            <svg className="w-8 h-8 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          
+          <h2 className="text-2xl font-bold text-white mb-4">{message}</h2>
+          
+          <button
+            onClick={onClose}
+            className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white px-8 py-3 rounded-lg transition-all font-medium shadow-lg hover:shadow-green-500/25"
+          >
+            Chiudi
+          </button>
         </div>
       </div>
     </div>
