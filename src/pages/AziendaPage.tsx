@@ -2694,7 +2694,18 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
       
       // Step 2: Prepara i dati del certificato
       const cleanCompanyName = currentCompanyData.companyName.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
-      const certificateId = `${cleanCompanyName}_${batch.batchId}_${batch.qrCodeTimestamp || Date.now()}`;
+      // Se il QR è già stato generato, usa sempre lo stesso timestamp
+      let timestamp;
+      if (batch.qrCodeGenerated && batch.qrCodeTimestamp) {
+        timestamp = batch.qrCodeTimestamp;
+      } else if (batch.qrCodeGenerated && !batch.qrCodeTimestamp) {
+        // Per QR generati prima di questa modifica, usa un timestamp fisso
+        timestamp = 1757772000000 + batch.batchId; // Timestamp fisso basato su batchId
+      } else {
+        timestamp = Date.now();
+      }
+      
+      const certificateId = `${cleanCompanyName}_${batch.batchId}_${timestamp}`;
       const certificateData = {
         batchId: batch.batchId,
         name: batch.name,
@@ -3152,7 +3163,18 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
       
       // Genera i dati del certificato (stesso formato del QR)
       const cleanCompanyName = currentCompanyData.companyName.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
-      const certificateId = `${cleanCompanyName}_${batch.batchId}_${batch.qrCodeTimestamp || Date.now()}`;
+      // Se il QR è già stato generato, usa sempre lo stesso timestamp
+      let timestamp;
+      if (batch.qrCodeGenerated && batch.qrCodeTimestamp) {
+        timestamp = batch.qrCodeTimestamp;
+      } else if (batch.qrCodeGenerated && !batch.qrCodeTimestamp) {
+        // Per QR generati prima di questa modifica, usa un timestamp fisso
+        timestamp = 1757772000000 + batch.batchId; // Timestamp fisso basato su batchId
+      } else {
+        timestamp = Date.now();
+      }
+      
+      const certificateId = `${cleanCompanyName}_${batch.batchId}_${timestamp}`;
       
       const certificateData = {
         batchId: batch.batchId,
@@ -4964,7 +4986,18 @@ const FinalizeModal: React.FC<{
       
       // Step 2: Prepara i dati del certificato
       const cleanCompanyName = currentCompanyData.companyName.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
-      const certificateId = `${cleanCompanyName}_${batch.batchId}_${batch.qrCodeTimestamp || Date.now()}`;
+      // Se il QR è già stato generato, usa sempre lo stesso timestamp
+      let timestamp;
+      if (batch.qrCodeGenerated && batch.qrCodeTimestamp) {
+        timestamp = batch.qrCodeTimestamp;
+      } else if (batch.qrCodeGenerated && !batch.qrCodeTimestamp) {
+        // Per QR generati prima di questa modifica, usa un timestamp fisso
+        timestamp = 1757772000000 + batch.batchId; // Timestamp fisso basato su batchId
+      } else {
+        timestamp = Date.now();
+      }
+      
+      const certificateId = `${cleanCompanyName}_${batch.batchId}_${timestamp}`;
       const certificateData = {
         batchId: batch.batchId,
         name: batch.name,
