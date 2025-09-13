@@ -3628,6 +3628,8 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
 
           }}
 
+          currentCompanyData={currentCompanyData}
+
         />
 
       )}
@@ -4468,7 +4470,9 @@ const FinalizeModal: React.FC<{
 
   onCreditsUpdate: (credits: number) => void;
 
-}> = ({ batch, onClose, onSuccess, onCreditsUpdate }) => {
+  currentCompanyData: any;
+
+}> = ({ batch, onClose, onSuccess, onCreditsUpdate, currentCompanyData }) => {
 
   const account = useActiveAccount();
 
@@ -4478,7 +4482,97 @@ const FinalizeModal: React.FC<{
 
   const [loadingMessage, setLoadingMessage] = useState("");
 
+  const [qrCodeGenerated, setQrCodeGenerated] = useState(false);
 
+  const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string>("");
+
+  const [certificateUrl, setCertificateUrl] = useState<string>("");
+
+  // Funzione per generare QR Code automaticamente
+  const generateQRCode = async (batch: Batch) => {
+    try {
+      console.log('🔥 Generando QR Code automaticamente per batch:', batch.batchId);
+      
+      // Importa Firebase Realtime Database
+      const { realtimeDb } = await import('../firebaseConfig');
+      const { ref, set } = await import('firebase/database');
+      const QRCode = await import('qrcode');
+      
+      // Step 1: Prepara i dati del certificato
+      const certificateId = `${batch.batchId}_${Date.now()}`;
+      const certificateData = {
+        batchId: batch.batchId,
+        name: batch.name,
+        companyName: currentCompanyData.companyName,
+        walletAddress: account?.address,
+        date: batch.date,
+        location: batch.location,
+        description: batch.description,
+        transactionHash: batch.transactionHash,
+        imageIpfsHash: batch.imageIpfsHash,
+        steps: batch.steps || [],
+        createdAt: new Date().toISOString(),
+        isActive: true,
+        viewCount: 0
+      };
+      
+      console.log('💾 Salvando certificato nel Realtime Database...');
+      
+      // Step 2: Salva nel Realtime Database
+      const certificateRef = ref(realtimeDb, `certificates/${certificateId}`);
+      await set(certificateRef, certificateData);
+      
+      console.log('✅ Certificato salvato nel Realtime Database:', certificateId);
+      
+      // Step 3: Genera URL per il certificato
+      const baseUrl = window.location.hostname === 'localhost' 
+        ? window.location.origin 
+        : 'https://simplychain-app.vercel.app';
+        
+      const certUrl = `${baseUrl}/api/qr-system?action=view&id=${certificateId}`;
+      setCertificateUrl(certUrl);
+      
+      console.log('🌐 URL certificato:', certUrl);
+      
+      // Step 4: Genera QR Code
+      const qrCodeDataUrl = await QRCode.default.toDataURL(certUrl, {
+        width: 1000,
+        margin: 2,
+        color: {
+          dark: '#000000',
+          light: '#FFFFFF'
+        },
+        errorCorrectionLevel: 'M'
+      });
+      
+      setQrCodeDataUrl(qrCodeDataUrl);
+      setQrCodeGenerated(true);
+      
+      console.log('📱 QR Code generato automaticamente per URL:', certUrl);
+      
+      // Step 5: Salva stato in Firestore (per compatibilità)
+      try {
+        await fetch('/api/qr-system?action=update-status', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            walletAddress: account?.address,
+            batchId: batch.batchId,
+            qrCodeGenerated: true
+          })
+        });
+        console.log('✅ Stato QR salvato in Firestore');
+      } catch (saveError) {
+        console.warn('⚠️ Errore salvando stato QR (non critico):', saveError);
+      }
+      
+      return { success: true, certificateId, qrCodeDataUrl, certUrl };
+      
+    } catch (error) {
+      console.error('❌ Errore durante la generazione automatica QR Code:', error);
+      return { success: false, error: error.message };
+    }
+  };
 
   const handleFinalize = async () => {
 
@@ -4522,11 +4616,20 @@ const FinalizeModal: React.FC<{
 
         setTxResult({ status: "success", message: "Iscrizione finalizzata con successo!" });
 
-
-
         // Salva il transaction hash della finalizzazione
-
         console.log("Transaction hash per finalizzazione:", result.transactionHash);
+
+        // Genera automaticamente il QR Code dopo la finalizzazione
+        setLoadingMessage("Generazione QR Code in corso...");
+        const qrResult = await generateQRCode(batch);
+        
+        if (qrResult.success) {
+          console.log('✅ QR Code generato automaticamente con successo');
+          setLoadingMessage("Finalizzazione completata! QR Code generato.");
+        } else {
+          console.warn('⚠️ Errore nella generazione automatica del QR Code:', qrResult.error);
+          setLoadingMessage("Finalizzazione completata! (QR Code non generato)");
+        }
 
 
 
@@ -4655,6 +4758,78 @@ const FinalizeModal: React.FC<{
               ⚠️ Attenzione: Una volta finalizzata, non potrai più aggiungere step a questa iscrizione.
 
             </p>
+
+            {/* Anteprima QR Code generato */}
+            {qrCodeGenerated && qrCodeDataUrl && (
+              <div style={{ 
+                marginTop: '1.5rem', 
+                padding: '1rem', 
+                background: 'rgba(34, 197, 94, 0.1)', 
+                border: '1px solid rgba(34, 197, 94, 0.3)', 
+                borderRadius: '0.75rem' 
+              }}>
+                <h4 style={{ color: '#22c55e', marginBottom: '0.5rem', fontWeight: '600' }}>
+                  ✅ QR Code Generato Automaticamente!
+                </h4>
+                <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                  <img 
+                    src={qrCodeDataUrl} 
+                    alt="QR Code generato" 
+                    style={{ 
+                      width: '120px', 
+                      height: '120px', 
+                      border: '2px solid #22c55e', 
+                      borderRadius: '0.5rem' 
+                    }} 
+                  />
+                  <div style={{ flex: 1, minWidth: '200px' }}>
+                    <p style={{ color: '#d1d5db', fontSize: '0.9rem', marginBottom: '0.5rem' }}>
+                      Il QR Code è stato generato e salvato nel database. Puoi scaricarlo cliccando sul pulsante qui sotto.
+                    </p>
+                    <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                      <button
+                        onClick={() => {
+                          const a = document.createElement('a');
+                          a.href = qrCodeDataUrl;
+                          const cleanName = batch.name.replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, '_');
+                          a.download = `${cleanName}_qrcode.png`;
+                          document.body.appendChild(a);
+                          a.click();
+                          document.body.removeChild(a);
+                        }}
+                        style={{
+                          background: '#22c55e',
+                          color: 'white',
+                          padding: '0.5rem 1rem',
+                          borderRadius: '0.5rem',
+                          border: 'none',
+                          cursor: 'pointer',
+                          fontSize: '0.9rem',
+                          fontWeight: '500'
+                        }}
+                      >
+                        📱 Scarica QR Code
+                      </button>
+                      <button
+                        onClick={() => window.open(certificateUrl, '_blank')}
+                        style={{
+                          background: 'transparent',
+                          color: '#22c55e',
+                          padding: '0.5rem 1rem',
+                          borderRadius: '0.5rem',
+                          border: '1px solid #22c55e',
+                          cursor: 'pointer',
+                          fontSize: '0.9rem',
+                          fontWeight: '500'
+                        }}
+                      >
+                        🔗 Visualizza Certificato
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
 
           </div>
 
