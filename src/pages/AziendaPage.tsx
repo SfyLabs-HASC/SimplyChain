@@ -7170,6 +7170,9 @@ const AziendaPage: React.FC = () => {
           </div>
         </main>
 
+        {/* Footer */}
+        <Footer />
+
       </div>
 
     </>
@@ -7475,7 +7478,6 @@ const ExportModal: React.FC<{
         </div>
       </div>
     </div>
-    <Footer />
   );
 };
 
