@@ -2687,15 +2687,14 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
       const { ref, set, push } = await import('firebase/database');
       const QRCode = await import('qrcode');
       
-      // Step 1: Controlla se il QR code è già stato generato
+      // Step 1: Log per QR già generato (ma permette rigenerazione)
       if (batch.qrCodeGenerated) {
-        console.log('⚠️ QR Code già generato per questo batch:', batch.batchId);
-        return { success: false, error: 'QR Code già generato per questo batch' };
+        console.log('🔄 Rigenerando QR Code per batch:', batch.batchId);
       }
       
       // Step 2: Prepara i dati del certificato
       const cleanCompanyName = currentCompanyData.companyName.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
-      const certificateId = `${cleanCompanyName}_${batch.batchId}_${Date.now()}`;
+      const certificateId = `${cleanCompanyName}_${batch.batchId}_${batch.qrCodeGenerated ? 'existing' : Date.now()}`;
       const certificateData = {
         batchId: batch.batchId,
         name: batch.name,
@@ -2788,6 +2787,16 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
         alert('❌ Errore durante la generazione del QR Code. Riprova più tardi.\n\nDettagli: ' + error.message);
       }
     }
+  };
+
+  // Funzione helper per generare ID certificato consistente
+  const generateCertificateId = (batch: Batch, companyName: string) => {
+    const cleanCompanyName = companyName.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+    // Se il QR è già generato, usa un ID fisso per mantenere lo stesso QR
+    if (batch.qrCodeGenerated) {
+      return `${cleanCompanyName}_${batch.batchId}_existing`;
+    }
+    return `${cleanCompanyName}_${batch.batchId}_${Date.now()}`;
   };
 
   // Funzione per generare HTML certificato (versione client)
@@ -3141,7 +3150,7 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
       
       // Genera i dati del certificato (stesso formato del QR)
       const cleanCompanyName = currentCompanyData.companyName.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
-      const certificateId = `${cleanCompanyName}_${batch.batchId}_${Date.now()}`;
+      const certificateId = `${cleanCompanyName}_${batch.batchId}_${batch.qrCodeGenerated ? 'existing' : Date.now()}`;
       
       const certificateData = {
         batchId: batch.batchId,
@@ -4932,15 +4941,14 @@ const FinalizeModal: React.FC<{
       const { ref, set } = await import('firebase/database');
       const QRCode = await import('qrcode');
       
-      // Step 1: Controlla se il QR code è già stato generato
+      // Step 1: Log per QR già generato (ma permette rigenerazione)
       if (batch.qrCodeGenerated) {
-        console.log('⚠️ QR Code già generato per questo batch:', batch.batchId);
-        return { success: false, error: 'QR Code già generato per questo batch' };
+        console.log('🔄 Rigenerando QR Code per batch:', batch.batchId);
       }
       
       // Step 2: Prepara i dati del certificato
       const cleanCompanyName = currentCompanyData.companyName.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
-      const certificateId = `${cleanCompanyName}_${batch.batchId}_${Date.now()}`;
+      const certificateId = `${cleanCompanyName}_${batch.batchId}_${batch.qrCodeGenerated ? 'existing' : Date.now()}`;
       const certificateData = {
         batchId: batch.batchId,
         name: batch.name,
