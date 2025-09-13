@@ -4029,6 +4029,14 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
 
           }}
 
+          onBatchUpdate={(updatedBatch) => {
+            setBatches(prevBatches => 
+              prevBatches.map(b => 
+                b.batchId === updatedBatch.batchId ? updatedBatch : b
+              )
+            );
+          }}
+
           onCreditsUpdate={(newCredits: number) => {
 
             setCurrentCompanyData(prev => ({ ...prev, credits: newCredits }));
@@ -4910,11 +4918,13 @@ const FinalizeModal: React.FC<{
 
   onSuccess: () => void;
 
+  onBatchUpdate: (updatedBatch: Batch) => void;
+
   onCreditsUpdate: (credits: number) => void;
 
   currentCompanyData: any;
 
-}> = ({ batch, onClose, onSuccess, onCreditsUpdate, currentCompanyData }) => {
+}> = ({ batch, onClose, onSuccess, onBatchUpdate, onCreditsUpdate, currentCompanyData }) => {
 
   const account = useActiveAccount();
 
@@ -5085,24 +5095,12 @@ const FinalizeModal: React.FC<{
           console.log('✅ QR Code generato automaticamente con successo');
           
           // Aggiorna lo stato del batch per mostrare che il QR è stato generato
-          setBatches(prevBatches => 
-            prevBatches.map(b => 
-              b.batchId === batch.batchId 
-                ? { ...b, qrCodeGenerated: true, isClosed: true }
-                : b
-            )
-          );
+          onBatchUpdate({ ...batch, qrCodeGenerated: true, isClosed: true });
         } else {
           console.warn('⚠️ Errore nella generazione automatica del QR Code:', qrResult.error);
           
           // Chiudi comunque il batch anche se il QR non è stato generato
-          setBatches(prevBatches => 
-            prevBatches.map(b => 
-              b.batchId === batch.batchId 
-                ? { ...b, isClosed: true }
-                : b
-            )
-          );
+          onBatchUpdate({ ...batch, isClosed: true });
         }
 
         // Chiudi automaticamente il modale dopo la finalizzazione
