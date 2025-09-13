@@ -2763,47 +2763,7 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
       
     } catch (error) {
       console.error('❌ Errore durante la generazione QR Code:', error);
-      
-      // Fallback al sistema precedente se Realtime DB fallisce
-      console.log('🔄 Fallback al sistema precedente...');
-      try {
-        const response = await fetch('/api/export-batch', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            batch: batch,
-            exportType: 'qrcode',
-            companyName: currentCompanyData.companyName
-          }),
-        });
-
-        if (response.ok) {
-          const blob = await response.blob();
-          const url = window.URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = url;
-          const cleanName = batch.name.replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, '_');
-          a.download = `${cleanName}_qrcode.png`;
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
-          window.URL.revokeObjectURL(url);
-          
-          const updatedBatch = { ...batch, qrCodeGenerated: true };
-          setBatches(prevBatches => 
-            prevBatches.map(b => 
-              b.batchId === batch.batchId ? updatedBatch : b
-            )
-          );
-          
-          alert('🎉 QR Code generato con sistema di backup!');
-        } else {
-          throw new Error('Anche il sistema di backup ha fallito');
-        }
-      } catch (fallbackError) {
-        console.error('❌ Errore anche nel fallback:', fallbackError);
-        alert('❌ Errore durante la generazione del QR Code. Riprova più tardi.\n\nDettagli: ' + error.message);
-      }
+      alert('❌ Errore durante la generazione del QR Code. Riprova più tardi.\n\nDettagli: ' + error.message);
     }
   };
 
@@ -2813,8 +2773,21 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
 
       console.log('Iniziando export per batch:', batch.batchId, 'tipo:', exportType);
 
-      
+      // Per HTML, usa il sistema Realtime Database
+      if (exportType === 'html') {
+        const qrResult = await generateQRCode(batch);
+        
+        if (qrResult.success) {
+          // Apri il certificato in una nuova finestra
+          window.open(qrResult.certUrl, '_blank');
+          alert('🎉 Certificato HTML generato e aperto!');
+        } else {
+          throw new Error(qrResult.error);
+        }
+        return;
+      }
 
+      // Per PDF, usa l'API esistente ma senza Firebase Hosting
       const response = await fetch('/api/export-batch', {
 
         method: 'POST',
@@ -2833,19 +2806,13 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
 
       });
 
-
-
       console.log('Response status:', response.status, 'ok:', response.ok);
-
-      
 
       if (response.ok) {
 
         const contentType = response.headers.get('content-type');
 
         console.log('Content-Type:', contentType);
-
-        
 
         // Verifica che sia effettivamente un PDF
 
@@ -2854,8 +2821,6 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
           console.warn('Content-Type non è PDF:', contentType);
 
         }
-
-        
 
         const blob = await response.blob();
 
