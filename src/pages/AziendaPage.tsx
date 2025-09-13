@@ -2671,8 +2671,13 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
     try {
       console.log('🔥 Generando QR Code con Firebase Realtime Database per batch:', batch.batchId);
       
-      // Importa Firebase Realtime Database
+      // Verifica la configurazione Firebase prima di procedere
       const { realtimeDb } = await import('../firebaseConfig');
+      
+      if (!realtimeDb) {
+        throw new Error('Firebase Realtime Database non configurato. Controlla le variabili d\'ambiente VITE_FIREBASE_DATABASE_URL.');
+      }
+      
       const { ref, set, push } = await import('firebase/database');
       const QRCode = await import('qrcode');
       
@@ -4458,8 +4463,13 @@ const FinalizeModal: React.FC<{
     try {
       console.log('🔥 Generando QR Code automaticamente per batch:', batch.batchId);
       
-      // Importa Firebase Realtime Database
+      // Verifica la configurazione Firebase prima di procedere
       const { realtimeDb } = await import('../firebaseConfig');
+      
+      if (!realtimeDb) {
+        throw new Error('Firebase Realtime Database non configurato. Controlla le variabili d\'ambiente VITE_FIREBASE_DATABASE_URL.');
+      }
+      
       const { ref, set } = await import('firebase/database');
       const QRCode = await import('qrcode');
       
