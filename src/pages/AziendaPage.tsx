@@ -2694,7 +2694,7 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
       
       // Step 2: Prepara i dati del certificato
       const cleanCompanyName = currentCompanyData.companyName.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
-      const certificateId = `${cleanCompanyName}_${batch.batchId}_${batch.qrCodeGenerated ? 'existing' : Date.now()}`;
+      const certificateId = `${cleanCompanyName}_${batch.batchId}_${batch.qrCodeTimestamp || Date.now()}`;
       const certificateData = {
         batchId: batch.batchId,
         name: batch.name,
@@ -2751,7 +2751,8 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
       console.log('✅ QR Code scaricato con successo');
       
       // Step 6: Aggiorna lo stato del batch
-      const updatedBatch = { ...batch, qrCodeGenerated: true };
+      const timestamp = Date.now();
+      const updatedBatch = { ...batch, qrCodeGenerated: true, qrCodeTimestamp: timestamp };
       setBatches(prevBatches => 
         prevBatches.map(b => 
           b.batchId === batch.batchId ? updatedBatch : b
@@ -2766,7 +2767,8 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
           body: JSON.stringify({
             walletAddress: account?.address,
             batchId: batch.batchId,
-            qrCodeGenerated: true
+            qrCodeGenerated: true,
+            qrCodeTimestamp: timestamp
           })
         });
         console.log('✅ Stato QR salvato in Firestore');
@@ -3150,7 +3152,7 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
       
       // Genera i dati del certificato (stesso formato del QR)
       const cleanCompanyName = currentCompanyData.companyName.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
-      const certificateId = `${cleanCompanyName}_${batch.batchId}_${batch.qrCodeGenerated ? 'existing' : Date.now()}`;
+      const certificateId = `${cleanCompanyName}_${batch.batchId}_${batch.qrCodeTimestamp || Date.now()}`;
       
       const certificateData = {
         batchId: batch.batchId,
@@ -4962,7 +4964,7 @@ const FinalizeModal: React.FC<{
       
       // Step 2: Prepara i dati del certificato
       const cleanCompanyName = currentCompanyData.companyName.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
-      const certificateId = `${cleanCompanyName}_${batch.batchId}_${batch.qrCodeGenerated ? 'existing' : Date.now()}`;
+      const certificateId = `${cleanCompanyName}_${batch.batchId}_${batch.qrCodeTimestamp || Date.now()}`;
       const certificateData = {
         batchId: batch.batchId,
         name: batch.name,
@@ -5019,7 +5021,8 @@ const FinalizeModal: React.FC<{
           body: JSON.stringify({
             walletAddress: account?.address,
             batchId: batch.batchId,
-            qrCodeGenerated: true
+            qrCodeGenerated: true,
+            qrCodeTimestamp: timestamp
           })
         });
         console.log('✅ Stato QR salvato in Firestore');
@@ -5087,15 +5090,15 @@ const FinalizeModal: React.FC<{
         // Salva il transaction hash della finalizzazione
         console.log("Transaction hash per finalizzazione:", result.transactionHash);
 
-        // Genera automaticamente il QR Code dopo la finalizzazione
-        setLoadingMessage("Generazione QR Code in corso...");
+        // Genera automaticamente il QR Code dopo la finalizzazione (in background)
         const qrResult = await generateQRCode(batch);
         
         if (qrResult.success) {
           console.log('✅ QR Code generato automaticamente con successo');
           
           // Aggiorna lo stato del batch per mostrare che il QR è stato generato
-          onBatchUpdate({ ...batch, qrCodeGenerated: true, isClosed: true });
+          const timestamp = Date.now();
+          onBatchUpdate({ ...batch, qrCodeGenerated: true, qrCodeTimestamp: timestamp, isClosed: true });
         } else {
           console.warn('⚠️ Errore nella generazione automatica del QR Code:', qrResult.error);
           
