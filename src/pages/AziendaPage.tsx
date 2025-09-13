@@ -17,6 +17,7 @@
 import React, { useState, useEffect } from "react";
 
 import { ConnectButton, useActiveAccount, useReadContract, useSendTransaction } from "thirdweb/react";
+import Footer from '../components/Footer';
 
 import { useNavigate } from "react-router-dom";
 
@@ -2870,14 +2871,6 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
       position: relative;
     }
     
-    .lock-icon {
-      position: absolute;
-      top: 20px;
-      right: 20px;
-      font-size: 1.5rem;
-      color: #8b5cf6;
-      opacity: 0.7;
-    }
     
     .header {
       text-align: center;
@@ -3115,7 +3108,6 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
 </head>
 <body>
   <div class="certificate-container">
-    <div class="lock-icon">🔒</div>
     <div class="header">
       <div class="company-name-box">
         <h1 class="company-name">${certificateData.companyName}</h1>
@@ -3811,7 +3803,7 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
 
                     </div>
 
-                  {/* Spacer element che riempie tutto lo spazio disponibile - posizionato dopo l'ultima parola del box */}
+                  {/* Spacer element che riempie tutto lo spazio disponibile - posizionato dopo la linea */}
                   <div style={{ flex: '1' }}></div>
 
                   {/* Pulsanti spostati fuori dal contenuto per allineamento corretto */}
@@ -7483,6 +7475,7 @@ const ExportModal: React.FC<{
         </div>
       </div>
     </div>
+    <Footer />
   );
 };
 
