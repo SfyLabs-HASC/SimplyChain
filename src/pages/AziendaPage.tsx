@@ -2779,9 +2779,12 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
       
       console.log('✅ QR Code scaricato con successo');
       
-      // Step 6: Aggiorna lo stato del batch
-      const newTimestamp = Date.now();
-      const updatedBatch = { ...batch, qrCodeGenerated: true, qrCodeTimestamp: newTimestamp };
+      // Step 6: Aggiorna lo stato del batch (preserva il timestamp originale)
+      const updatedBatch = { 
+        ...batch, 
+        qrCodeGenerated: true, 
+        qrCodeTimestamp: batch.qrCodeTimestamp || timestamp // Usa il timestamp originale o quello generato
+      };
       setBatches(prevBatches => 
         prevBatches.map(b => 
           b.batchId === batch.batchId ? updatedBatch : b
@@ -2797,7 +2800,7 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
             walletAddress: account?.address,
             batchId: batch.batchId,
             qrCodeGenerated: true,
-            qrCodeTimestamp: newTimestamp
+            qrCodeTimestamp: batch.qrCodeTimestamp || timestamp
           })
         });
         console.log('✅ Stato QR salvato in Firestore');
@@ -5081,7 +5084,7 @@ const FinalizeModal: React.FC<{
             walletAddress: account?.address,
             batchId: batch.batchId,
             qrCodeGenerated: true,
-            qrCodeTimestamp: newTimestamp
+            qrCodeTimestamp: batch.qrCodeTimestamp || timestamp
           })
         });
         console.log('✅ Stato QR salvato in Firestore');
@@ -5156,8 +5159,7 @@ const FinalizeModal: React.FC<{
           console.log('✅ QR Code generato automaticamente con successo');
           
           // Aggiorna lo stato del batch per mostrare che il QR è stato generato
-          const finalTimestamp = Date.now();
-          onBatchUpdate({ ...batch, qrCodeGenerated: true, qrCodeTimestamp: finalTimestamp, isClosed: true });
+          onBatchUpdate({ ...batch, qrCodeGenerated: true, qrCodeTimestamp: batch.qrCodeTimestamp || Date.now(), isClosed: true });
         } else {
           console.warn('⚠️ Errore nella generazione automatica del QR Code:', qrResult.error);
           
