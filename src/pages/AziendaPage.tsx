@@ -3796,50 +3796,34 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
 
 
 
-                    <div className="mt-auto pt-4 border-t border-gray-600 flex justify-between items-center" style={{marginTop: '1rem'}}>
-
-                    <div className="text-sm text-muted-foreground">
-
-                      {batch.steps && batch.steps.length > 0 ? (
-
-                        <button
-
-                          className="accent-gradient text-white px-3 py-2 rounded-md hover:scale-105 transition"
-
-                          onClick={() => setSelectedBatchForSteps(batch)}
-
-                        >
-
-                          {batch.steps.length} steps
-
-                        </button>
-
-                      ) : (
-
-                        <button
-
-                          className="accent-gradient text-white px-3 py-2 rounded-md hover:scale-105 transition disabled"
-
-                          disabled={true}
-
-                        >
-
-                          0 steps
-
-                        </button>
-
-                      )}
+                    <div className="mt-auto pt-4 border-t border-gray-600" style={{marginTop: '1rem'}}>
 
                     </div>
 
-
-                  </div>
-
-                  {/* Spacer element che riempie tutto lo spazio disponibile */}
+                  {/* Spacer element che riempie tutto lo spazio disponibile - posizionato dopo l'ultima parola del box */}
                   <div style={{ flex: '1' }}></div>
 
                   {/* Pulsanti spostati fuori dal contenuto per allineamento corretto */}
                   <div className="pt-4" style={{ display: 'flex', flexDirection: 'row', gap: '0.5rem', alignItems: 'center', justifyContent: 'space-between' }}>
+
+                    {/* Pulsante Steps - sempre visibile */}
+                    <div>
+                      {batch.steps && batch.steps.length > 0 ? (
+                        <button
+                          className="accent-gradient text-white px-3 py-2 rounded-md hover:scale-105 transition"
+                          onClick={() => setSelectedBatchForSteps(batch)}
+                        >
+                          {batch.steps.length} steps
+                        </button>
+                      ) : (
+                        <button
+                          className="accent-gradient text-white px-3 py-2 rounded-md hover:scale-105 transition disabled"
+                          disabled={true}
+                        >
+                          0 steps
+                        </button>
+                      )}
+                    </div>
 
                     {/* Pulsante Esporta - mostrato solo per batch chiusi */}
 
