@@ -4,6 +4,8 @@ export default async function handler(req, res) {
 
   try {
     switch (action) {
+      case 'test':
+        return await handleTest(req, res);
       case 'create':
         return await handleCreateQR(req, res);
       case 'view':
@@ -11,7 +13,7 @@ export default async function handler(req, res) {
       case 'update-status':
         return await handleUpdateQRStatus(req, res);
       default:
-        return res.status(400).json({ error: 'Invalid action. Use: create, view, or update-status' });
+        return res.status(400).json({ error: 'Invalid action. Use: test, create, view, or update-status' });
     }
   } catch (error) {
     console.error('❌ Errore QR System API:', error);
@@ -20,6 +22,67 @@ export default async function handler(req, res) {
       details: error.message 
     });
   }
+}
+
+// Gestisce il test delle variabili d'ambiente
+async function handleTest(req, res) {
+  console.log('🧪 Testando variabili d\'ambiente Firebase...');
+  
+  const envVars = {
+    FIREBASE_PROJECT_ID: process.env.FIREBASE_PROJECT_ID,
+    FIREBASE_PRIVATE_KEY: process.env.FIREBASE_PRIVATE_KEY ? 'SET' : 'MISSING',
+    FIREBASE_CLIENT_EMAIL: process.env.FIREBASE_CLIENT_EMAIL,
+    FIREBASE_DATABASE_URL: process.env.FIREBASE_DATABASE_URL,
+    VERCEL_URL: process.env.VERCEL_URL
+  };
+  
+  // Test Firebase Admin SDK
+  let firebaseStatus = 'NOT_INITIALIZED';
+  let firebaseError = null;
+  
+  try {
+    const admin = await import('firebase-admin');
+    
+    if (!admin.apps.length) {
+      const serviceAccount = {
+        projectId: process.env.FIREBASE_PROJECT_ID,
+        privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+      };
+      
+      admin.initializeApp({
+        credential: admin.credential.cert(serviceAccount),
+        databaseURL: process.env.FIREBASE_DATABASE_URL
+      });
+    }
+    
+    firebaseStatus = 'INITIALIZED';
+    
+    // Test connessione database
+    const db = admin.database();
+    const testRef = db.ref('test/connection');
+    await testRef.set({
+      timestamp: Date.now(),
+      message: 'Test connessione server'
+    });
+    
+    firebaseStatus = 'CONNECTED';
+    
+  } catch (error) {
+    firebaseError = error.message;
+    firebaseStatus = 'ERROR';
+  }
+  
+  res.json({
+    status: 'success',
+    environment: process.env.NODE_ENV,
+    timestamp: new Date().toISOString(),
+    envVars,
+    firebase: {
+      status: firebaseStatus,
+      error: firebaseError
+    }
+  });
 }
 
 // Gestisce la creazione di QR Code con Realtime Database
