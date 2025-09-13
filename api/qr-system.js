@@ -78,6 +78,9 @@ async function handleCreateQR(req, res) {
   const baseUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000';
   const certificateUrl = `${baseUrl}/api/qr-system?action=view&id=${certificateId}`;
   
+  console.log('🌐 Base URL:', baseUrl);
+  console.log('🌐 Certificate URL:', certificateUrl);
+  
   console.log('🌐 URL certificato generato:', certificateUrl);
 
   // Step 4: Genera QR Code
