@@ -5074,8 +5074,6 @@ const FinalizeModal: React.FC<{
 
         clearTimeout(timeoutId);
 
-        setTxResult({ status: "success", message: "Iscrizione finalizzata con successo!" });
-
         // Salva il transaction hash della finalizzazione
         console.log("Transaction hash per finalizzazione:", result.transactionHash);
 
@@ -5085,7 +5083,7 @@ const FinalizeModal: React.FC<{
         
         if (qrResult.success) {
           console.log('✅ QR Code generato automaticamente con successo');
-          setLoadingMessage("Finalizzazione completata! QR Code generato.");
+          setTxResult({ status: "success", message: "Iscrizione finalizzata con successo! QR Code generato automaticamente." });
           
           // Aggiorna lo stato del batch per mostrare che il QR è stato generato
           setBatches(prevBatches => 
@@ -5097,7 +5095,7 @@ const FinalizeModal: React.FC<{
           );
         } else {
           console.warn('⚠️ Errore nella generazione automatica del QR Code:', qrResult.error);
-          setLoadingMessage("Finalizzazione completata! (QR Code non generato)");
+          setTxResult({ status: "success", message: "Iscrizione finalizzata con successo! (QR Code non generato)" });
           
           // Chiudi comunque il batch anche se il QR non è stato generato
           setBatches(prevBatches => 
