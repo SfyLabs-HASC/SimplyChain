@@ -2708,7 +2708,8 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
       console.log('✅ Certificato salvato nel Realtime Database:', certificateId);
       
       // Step 3: Genera URL per il certificato
-      const baseUrl = window.location.origin;
+      // Usa un URL fisso per evitare problemi con window.location.origin
+      const baseUrl = 'https://simplychain-kr64t1v59-sfylabs-hascs-projects.vercel.app';
       const certificateUrl = `${baseUrl}/api/qr-system?action=view&id=${certificateId}`;
       
       console.log('🌐 URL certificato:', certificateUrl);
@@ -4503,7 +4504,8 @@ const FinalizeModal: React.FC<{
       console.log('✅ Certificato salvato nel Realtime Database:', certificateId);
       
       // Step 3: Genera URL per il certificato
-      const baseUrl = window.location.origin;
+      // Usa un URL fisso per evitare problemi con window.location.origin
+      const baseUrl = 'https://simplychain-kr64t1v59-sfylabs-hascs-projects.vercel.app';
       const certUrl = `${baseUrl}/api/qr-system?action=view&id=${certificateId}`;
       setCertificateUrl(certUrl);
       

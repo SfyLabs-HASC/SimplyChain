@@ -138,11 +138,16 @@ async function handleCreateQR(req, res) {
   console.log('💾 Dati certificato salvati in Realtime Database:', certificateId);
 
   // Step 3: Genera URL per visualizzare il certificato
-  const baseUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000';
+  // Usa l'URL fisso per evitare problemi con VERCEL_URL
+  const baseUrl = 'https://simplychain-kr64t1v59-sfylabs-hascs-projects.vercel.app';
   const certificateUrl = `${baseUrl}/api/qr-system?action=view&id=${certificateId}`;
   
-  console.log('🌐 Base URL:', baseUrl);
-  console.log('🌐 Certificate URL:', certificateUrl);
+  console.log('🌐 Environment info:');
+  console.log('- VERCEL_URL:', process.env.VERCEL_URL);
+  console.log('- NODE_ENV:', process.env.NODE_ENV);
+  console.log('- Base URL:', baseUrl);
+  console.log('- Certificate URL:', certificateUrl);
+  console.log('- Certificate ID:', certificateId);
   
   console.log('🌐 URL certificato generato:', certificateUrl);
 
