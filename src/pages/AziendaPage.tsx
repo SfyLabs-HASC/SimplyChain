@@ -2368,6 +2368,8 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
 
   const [showQRModal, setShowQRModal] = useState(false);
 
+  const [showExportModal, setShowExportModal] = useState(false);
+
   const [showBannerModal, setShowBannerModal] = useState(false);
 
   const [selectedExportType, setSelectedExportType] = useState<'pdf' | 'html' | null>(null);
@@ -2681,8 +2683,15 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
       const { ref, set, push } = await import('firebase/database');
       const QRCode = await import('qrcode');
       
-      // Step 1: Prepara i dati del certificato
-      const certificateId = `${batch.batchId}_${Date.now()}`;
+      // Step 1: Controlla se il QR code è già stato generato
+      if (batch.qrCodeGenerated) {
+        console.log('⚠️ QR Code già generato per questo batch:', batch.batchId);
+        return { success: false, error: 'QR Code già generato per questo batch' };
+      }
+      
+      // Step 2: Prepara i dati del certificato
+      const cleanCompanyName = currentCompanyData.companyName.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+      const certificateId = `${cleanCompanyName}_${batch.batchId}_${Date.now()}`;
       const certificateData = {
         batchId: batch.batchId,
         name: batch.name,
@@ -3314,9 +3323,9 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
                   {/* Pulsanti spostati fuori dal contenuto per allineamento corretto */}
                   <div className="pt-4" style={{ display: 'flex', flexDirection: 'row', gap: '0.5rem', alignItems: 'center', justifyContent: 'space-between' }}>
 
-                    {/* Pulsante Esporta - mostrato solo per batch chiusi */}
+                    {/* Pulsante Esporta - mostrato solo per batch chiusi con QR generato */}
 
-                    {batch.isClosed && (
+                    {batch.isClosed && batch.qrCodeGenerated && (
 
                       <button
 
@@ -3324,9 +3333,9 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
 
                         onClick={() => {
 
-                          // Esporta direttamente PDF
+                          setSelectedBatchForExport(batch);
 
-                          handleExport(batch, 'pdf', 'banner1');
+                          setShowExportModal(true);
 
                         }}
 
@@ -3347,6 +3356,14 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
                         className="bg-gradient-to-r from-purple-600 to-purple-700 text-white px-3 py-2 rounded-md hover:scale-105 transition"
 
                         onClick={() => {
+
+                          if (batch.qrCodeGenerated) {
+
+                            // Mostra messaggio di attenzione per scarica QR
+
+                            alert('⚠️ Attenzione!\n\nIl QR Code è già stato generato per questo batch.\n\nCliccando su "Scarica QR Code" scaricherai nuovamente lo stesso QR Code associato a questo batch.\n\nQuesto è importante per mantenere la coerenza e non riempire inutilmente lo spazio del database.');
+
+                          }
 
                           setSelectedBatchForExport(batch);
 
@@ -3666,7 +3683,26 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
 
       )}
 
-
+      {/* Modale Export */}
+      {showExportModal && selectedBatchForExport && (
+        <ExportModal
+          batch={selectedBatchForExport}
+          onClose={() => {
+            setShowExportModal(false);
+            setSelectedBatchForExport(null);
+          }}
+          onExportPDF={() => {
+            // Per ora non fa nulla, come richiesto
+            alert('Funzionalità PDF in sviluppo');
+            setShowExportModal(false);
+          }}
+          onExportHTML={() => {
+            // Genera lo stesso file HTML che viene usato per il QR
+            handleExport(selectedBatchForExport, 'html', 'banner1');
+            setShowExportModal(false);
+          }}
+        />
+      )}
 
       {/* Modale per scelta banner */}
 
@@ -4477,8 +4513,15 @@ const FinalizeModal: React.FC<{
       const { ref, set } = await import('firebase/database');
       const QRCode = await import('qrcode');
       
-      // Step 1: Prepara i dati del certificato
-      const certificateId = `${batch.batchId}_${Date.now()}`;
+      // Step 1: Controlla se il QR code è già stato generato
+      if (batch.qrCodeGenerated) {
+        console.log('⚠️ QR Code già generato per questo batch:', batch.batchId);
+        return { success: false, error: 'QR Code già generato per questo batch' };
+      }
+      
+      // Step 2: Prepara i dati del certificato
+      const cleanCompanyName = currentCompanyData.companyName.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+      const certificateId = `${cleanCompanyName}_${batch.batchId}_${Date.now()}`;
       const certificateData = {
         batchId: batch.batchId,
         name: batch.name,
@@ -4612,9 +4655,27 @@ const FinalizeModal: React.FC<{
         if (qrResult.success) {
           console.log('✅ QR Code generato automaticamente con successo');
           setLoadingMessage("Finalizzazione completata! QR Code generato.");
+          
+          // Aggiorna lo stato del batch per mostrare che il QR è stato generato
+          setBatches(prevBatches => 
+            prevBatches.map(b => 
+              b.batchId === batch.batchId 
+                ? { ...b, qrCodeGenerated: true, isClosed: true }
+                : b
+            )
+          );
         } else {
           console.warn('⚠️ Errore nella generazione automatica del QR Code:', qrResult.error);
           setLoadingMessage("Finalizzazione completata! (QR Code non generato)");
+          
+          // Chiudi comunque il batch anche se il QR non è stato generato
+          setBatches(prevBatches => 
+            prevBatches.map(b => 
+              b.batchId === batch.batchId 
+                ? { ...b, isClosed: true }
+                : b
+            )
+          );
         }
 
 
@@ -6278,23 +6339,45 @@ const AziendaPage: React.FC = () => {
   // Effect per gestire il disconnect e reindirizzare alla homepage
   // Solo dopo che il sistema ha avuto tempo di caricare l'account
   const [accountCheckDelay, setAccountCheckDelay] = useState(true);
+  const [isConnecting, setIsConnecting] = useState(false);
 
   useEffect(() => {
     // Dai tempo al sistema di caricare l'account dopo F5
     const timer = setTimeout(() => {
       setAccountCheckDelay(false);
-    }, 1000); // 1 secondo di delay
+    }, 2000); // 2 secondi di delay per essere più sicuri
 
     return () => clearTimeout(timer);
   }, []);
 
   useEffect(() => {
     // Solo reindirizza se non c'è account E abbiamo aspettato il caricamento
-    if (!account && !accountCheckDelay) {
+    // E non siamo già sulla home page
+    if (!account && !accountCheckDelay && window.location.pathname !== '/') {
+      console.log('🔄 Reindirizzamento alla home per mancanza account');
       navigate('/');
       return;
     }
+    
+    // Resetta il loading quando l'account viene caricato
+    if (account) {
+      setIsConnecting(false);
+    }
   }, [account, navigate, accountCheckDelay]);
+
+  // Gestisce il tasto indietro del browser
+  useEffect(() => {
+    const handlePopState = (event: PopStateEvent) => {
+      // Se l'utente va indietro e non c'è account, reindirizza alla home
+      if (!account && window.location.pathname !== '/') {
+        console.log('🔄 Tasto indietro: reindirizzamento alla home');
+        navigate('/');
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [account, navigate]);
 
 
 
@@ -6459,10 +6542,29 @@ const AziendaPage: React.FC = () => {
             chain={polygon}
 
             accountAbstraction={{ chain: polygon, sponsorGas: true }}
+            
+            onConnect={() => {
+              setIsConnecting(true);
+            }}
+            
+            onDisconnect={() => {
+              setIsConnecting(false);
+            }}
 
           />
 
         </header>
+
+        {/* Overlay di loading per la connessione */}
+        {isConnecting && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4 text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+              <h3 className="text-lg font-semibold text-gray-800 mb-2">Connessione in corso...</h3>
+              <p className="text-gray-600">Stai per accedere all'area privata</p>
+            </div>
+          </div>
+        )}
 
         <main>
 
@@ -6553,6 +6655,77 @@ const QRInfoModal: React.FC<{
   );
 };
 
+// Componente Modale Export
+const ExportModal: React.FC<{
+  batch: Batch;
+  onClose: () => void;
+  onExportPDF: () => void;
+  onExportHTML: () => void;
+}> = ({ batch, onClose, onExportPDF, onExportHTML }) => {
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '800px', padding: '2rem' }}>
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-2xl font-bold text-white flex items-center gap-2">
+            📋 Informazioni Esportazione
+          </h2>
+          <button onClick={onClose} className="text-gray-400 hover:text-white text-2xl">×</button>
+        </div>
 
+        <div className="space-y-4 text-gray-300 leading-relaxed">
+          <div className="bg-blue-900/20 border border-blue-600/30 rounded-lg p-4 mb-6">
+            <p className="text-blue-300 text-center">
+              Hai completato con successo la tua iscrizione. Adesso potrai esportare:
+            </p>
+          </div>
+          
+          <div className="space-y-4 mb-6">
+            <div className="bg-gray-800/50 border border-gray-600/30 rounded-lg p-4">
+              <h3 className="font-semibold text-white mb-2 flex items-center gap-2">
+                📄 Certificato EasyChain in formato PDF
+              </h3>
+              <p className="text-gray-300 text-sm">
+                Utile all'azienda per uso interno o documentale. Questo file può essere archiviato, 
+                stampato o condiviso con terzi per attestare l'iscrizione e l'autenticità del prodotto, 
+                senza necessariamente passare per il QR Code.
+              </p>
+            </div>
+            
+            <div className="bg-gray-800/50 border border-gray-600/30 rounded-lg p-4">
+              <h3 className="font-semibold text-white mb-2 flex items-center gap-2">
+                🌐 Certificato EasyChain in formato HTML
+              </h3>
+              <p className="text-gray-300 text-sm">
+                Pensato per la pubblicazione online. Caricalo su un tuo spazio privato, in modo da essere 
+                sicuro che il link non cambierà mai. Avrai il controllo al 100% del processo di creazione del Qr Code.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex gap-3 mt-8">
+          <button
+            onClick={onClose}
+            className="flex-1 bg-gray-600 hover:bg-gray-700 text-white px-4 py-3 rounded-lg transition"
+          >
+            Chiudi
+          </button>
+          <button
+            onClick={onExportPDF}
+            className="flex-1 bg-red-600 hover:bg-red-700 text-white px-4 py-3 rounded-lg transition"
+          >
+            📄 Genera PDF
+          </button>
+          <button
+            onClick={onExportHTML}
+            className="flex-1 bg-green-600 hover:bg-green-700 text-white px-4 py-3 rounded-lg transition"
+          >
+            🌐 Genera HTML
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 export default AziendaPage;

@@ -131,7 +131,8 @@ async function handleCreateQR(req, res) {
   }
 
   const realtimeDb = admin.default.database();
-  const certificateId = `${batch.batchId}_${Date.now()}`;
+  const cleanCompanyName = companyName.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+  const certificateId = `${cleanCompanyName}_${batch.batchId}_${Date.now()}`;
   const certificateRef = realtimeDb.ref(`certificates/${certificateId}`);
   
   await certificateRef.set(certificateData);
@@ -659,7 +660,7 @@ function generateCertificateHTML(certificateData) {
     <body>
       <div class="certificate-container">
         <div class="header">
-          <h1 class="title">🔗 SimplyChain</h1>
+          <h1 class="title">📋 Informazioni Iscrizione</h1>
           <p class="subtitle">Certificato di Tracciabilità Blockchain</p>
           <div class="company-badge">🏢 ${certificateData.companyName}</div>
         </div>
@@ -689,10 +690,11 @@ function generateCertificateHTML(certificateData) {
             <div class="info-item">
               <div class="info-label">🖼️ Immagine Prodotto</div>
               <div class="info-value">
-                <img src="https://musical-emerald-partridge.myfilebase.com/ipfs/${certificateData.imageIpfsHash}" 
-                     alt="Immagine prodotto" 
-                     class="image-preview"
-                     onclick="openImageModal(this.src)">
+                <a href="https://musical-emerald-partridge.myfilebase.com/ipfs/${certificateData.imageIpfsHash}" 
+                   target="_blank" 
+                   class="blockchain-link">
+                  🖼️ Apri Immagine
+                </a>
               </div>
             </div>
           ` : ''}
@@ -709,12 +711,6 @@ function generateCertificateHTML(certificateData) {
           </div>
         </div>
         
-        ${certificateData.description ? `
-          <div class="info-item" style="margin-bottom: 30px;">
-            <div class="info-label">📝 Descrizione</div>
-            <div class="info-value">${certificateData.description}</div>
-          </div>
-        ` : ''}
 
         ${certificateData.steps && certificateData.steps.length > 0 ? `
           <div class="steps-section">
@@ -761,13 +757,23 @@ function generateCertificateHTML(certificateData) {
                 </div>
               </div>
             `).join('')}
+            ${certificateData.description ? `
+              <div class="step" style="background: rgba(139, 92, 246, 0.1); border-color: rgba(139, 92, 246, 0.2);">
+                <div class="step-header">📝 Descrizione</div>
+                <div class="step-details">
+                  <div class="step-detail" style="grid-column: 1 / -1;">
+                    ${certificateData.description}
+                  </div>
+                </div>
+              </div>
+            ` : ''}
           </div>
         ` : ''}
 
         <div class="footer">
           <p>🔗 <strong>SimplyChain</strong> - Tracciabilità Blockchain per le imprese italiane</p>
           <p>Certificato generato il ${new Date(certificateData.createdAt).toLocaleDateString('it-IT')}</p>
-          <p>Servizio Gratuito prodotto da <strong>SFY s.r.l.</strong></p>
+          <p>Servizio prodotto da <strong>SFY s.r.l.</strong></p>
           <p>📧 Contattaci: sfy.startup@gmail.com</p>
         </div>
       </div>
