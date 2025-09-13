@@ -2876,25 +2876,27 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
       padding-bottom: 30px;
     }
     
-    .title {
+    .company-name-box {
+      background: linear-gradient(135deg, #8b5cf6 0%, #06b6d4 100%);
+      padding: 20px 30px;
+      border-radius: 15px;
+      margin-bottom: 20px;
+      box-shadow: 0 10px 25px rgba(139, 92, 246, 0.3);
+      border: 2px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .company-name {
       font-size: 2.5rem;
       font-weight: bold;
-      background: linear-gradient(135deg, #8b5cf6 0%, #06b6d4 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      margin-bottom: 10px;
+      color: #ffffff;
+      margin: 0;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
     }
     
     .subtitle {
       font-size: 1.2rem;
       color: #94a3b8;
       margin-bottom: 5px;
-    }
-    
-    .creator-badge {
-      font-size: 1rem;
-      color: #94a3b8;
     }
     
     .info-grid {
@@ -2965,6 +2967,31 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
       gap: 10px;
     }
     
+    .description-section {
+      margin-top: 40px;
+      background: rgba(139, 92, 246, 0.1);
+      border: 1px solid rgba(139, 92, 246, 0.3);
+      border-radius: 15px;
+      padding: 25px;
+    }
+    
+    .description-title {
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: #8b5cf6;
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .description-content {
+      font-size: 1.1rem;
+      color: #f1f5f9;
+      line-height: 1.7;
+      text-align: justify;
+    }
+    
     .steps-section {
       margin-top: 40px;
     }
@@ -3028,6 +3055,26 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
       color: #06b6d4;
     }
     
+    .step-description {
+      margin-top: 20px;
+      padding: 15px;
+      background: rgba(6, 182, 212, 0.05);
+      border: 1px solid rgba(6, 182, 212, 0.2);
+      border-radius: 8px;
+    }
+    
+    .step-description strong {
+      color: #06b6d4;
+      font-size: 1rem;
+    }
+    
+    .step-description-content {
+      margin-top: 8px;
+      color: #f1f5f9;
+      line-height: 1.6;
+      text-align: justify;
+    }
+    
     .footer {
       text-align: center;
       margin-top: 40px;
@@ -3059,9 +3106,10 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
 <body>
   <div class="certificate-container">
     <div class="header">
-      <h1 class="title">${certificateData.companyName}</h1>
+      <div class="company-name-box">
+        <h1 class="company-name">${certificateData.companyName}</h1>
+      </div>
       <p class="subtitle">Certificato di Tracciabilità Blockchain</p>
-      <p class="creator-badge">Creato con SimplyChain</p>
     </div>
 
     <h2 class="section-title">📋 Informazioni Iscrizione</h2>
@@ -3085,13 +3133,6 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
         <div class="info-label">📊 Stato</div>
         <div class="info-value">✅ Certificato Attivo</div>
       </div>
-      
-      ${certificateData.description ? `
-        <div class="info-item">
-          <div class="info-label">📝 Descrizione</div>
-          <div class="info-value">${certificateData.description}</div>
-        </div>
-      ` : ''}
       
       ${certificateData.imageIpfsHash && certificateData.imageIpfsHash !== "N/A" ? `
         <div class="info-item">
@@ -3118,17 +3159,23 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
       </div>
     </div>
 
+    ${certificateData.description ? `
+      <div class="description-section">
+        <h3 class="description-title">📝 Descrizione</h3>
+        <div class="description-content">${certificateData.description}</div>
+      </div>
+    ` : ''}
+
     ${certificateData.steps && certificateData.steps.length > 0 ? `
       <div class="steps-section">
         <h2 class="section-title">🔄 Fasi di Lavorazione</h2>
         ${certificateData.steps.map((step, index) => `
           <div class="step">
-            <div class="step-number">${index + 1}</div>
-            <div class="step-header">${step.eventName}</div>
+            <div class="step-number">Step ${index + 1}</div>
             <div class="step-details">
               <div class="step-detail">
-                <strong>📝 Descrizione:</strong><br>
-                ${step.description || 'Nessuna descrizione'}
+                <strong>Nome:</strong><br>
+                ${step.eventName}
               </div>
               <div class="step-detail">
                 <strong>📅 Data:</strong><br>
@@ -3161,6 +3208,12 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
                 </div>
               ` : ''}
             </div>
+            ${step.description ? `
+              <div class="step-description">
+                <strong>📝 Descrizione:</strong><br>
+                <div class="step-description-content">${step.description}</div>
+              </div>
+            ` : ''}
           </div>
         `).join('')}
       </div>
