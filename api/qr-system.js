@@ -705,7 +705,7 @@ function generateCertificateHTML(certificateData) {
               <a href="https://polygonscan.com/inputdatadecoder?tx=${certificateData.transactionHash}" 
                  target="_blank" 
                  class="blockchain-link">
-                🔍 Verifica su PolygonScan
+                🔍 Verifica su Polygon
               </a>
             </div>
           </div>

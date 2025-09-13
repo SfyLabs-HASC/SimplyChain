@@ -2785,23 +2785,435 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
     }
   };
 
+  // Funzione per generare HTML certificato (versione client)
+  const generateCertificateHTMLClient = (certificateData: any) => {
+    return `
+    <!DOCTYPE html>
+    <html lang="it">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>${certificateData.name} - Certificato di Tracciabilità</title>
+      
+      <meta property="og:title" content="${certificateData.name} - Certificato SimplyChain">
+      <meta property="og:description" content="Certificato di tracciabilità blockchain prodotto da ${certificateData.companyName}">
+      <meta property="og:type" content="website">
+      <meta name="twitter:card" content="summary_large_image">
+      
+      <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { 
+          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+          background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+          color: #f1f5f9;
+          min-height: 100vh;
+          padding: 20px;
+          line-height: 1.6;
+        }
+        
+        .certificate-container {
+          max-width: 900px;
+          margin: 0 auto;
+          background: rgba(30, 41, 59, 0.95);
+          border-radius: 20px;
+          padding: 40px;
+          box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+          border: 1px solid rgba(139, 92, 246, 0.3);
+          backdrop-filter: blur(10px);
+        }
+        
+        .header {
+          text-align: center;
+          margin-bottom: 40px;
+          border-bottom: 2px solid rgba(139, 92, 246, 0.3);
+          padding-bottom: 30px;
+        }
+        
+        .title {
+          font-size: 2.5rem;
+          font-weight: bold;
+          background: linear-gradient(135deg, #8b5cf6 0%, #06b6d4 100%);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+          margin-bottom: 10px;
+        }
+        
+        .subtitle {
+          font-size: 1.2rem;
+          color: #94a3b8;
+          margin-bottom: 10px;
+        }
+        
+        .company-badge {
+          display: inline-block;
+          background: rgba(139, 92, 246, 0.2);
+          color: #a78bfa;
+          padding: 8px 16px;
+          border-radius: 20px;
+          font-weight: 600;
+          border: 1px solid rgba(139, 92, 246, 0.3);
+        }
+        
+        .info-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+          gap: 20px;
+          margin-bottom: 30px;
+        }
+        
+        .info-item {
+          background: rgba(139, 92, 246, 0.1);
+          padding: 20px;
+          border-radius: 12px;
+          border: 1px solid rgba(139, 92, 246, 0.2);
+          transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        
+        .info-item:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 8px 25px rgba(139, 92, 246, 0.15);
+        }
+        
+        .info-label {
+          font-weight: 600;
+          color: #8b5cf6;
+          margin-bottom: 8px;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+        
+        .info-value {
+          color: #f1f5f9;
+          font-size: 1.1rem;
+          word-break: break-word;
+        }
+        
+        .blockchain-link {
+          display: inline-flex;
+          align-items: center;
+          gap: 5px;
+          color: #06b6d4;
+          text-decoration: none;
+          font-weight: 500;
+          padding: 10px 16px;
+          background: rgba(6, 182, 212, 0.1);
+          border-radius: 25px;
+          border: 1px solid rgba(6, 182, 212, 0.3);
+          transition: all 0.3s ease;
+          margin-top: 10px;
+        }
+        
+        .blockchain-link:hover {
+          background: rgba(6, 182, 212, 0.2);
+          transform: translateY(-1px);
+          box-shadow: 0 4px 15px rgba(6, 182, 212, 0.2);
+        }
+        
+        .steps-section {
+          margin-top: 40px;
+        }
+        
+        .steps-title {
+          font-size: 1.8rem;
+          font-weight: bold;
+          color: #8b5cf6;
+          margin-bottom: 20px;
+          text-align: center;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 10px;
+        }
+        
+        .step {
+          background: rgba(6, 182, 212, 0.1);
+          border: 1px solid rgba(6, 182, 212, 0.2);
+          border-radius: 12px;
+          padding: 25px;
+          margin-bottom: 20px;
+          position: relative;
+          transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        
+        .step:hover {
+          transform: translateX(5px);
+          box-shadow: 0 8px 25px rgba(6, 182, 212, 0.15);
+        }
+        
+        .step-number {
+          position: absolute;
+          top: -10px;
+          left: 20px;
+          background: #06b6d4;
+          color: #0f172a;
+          width: 30px;
+          height: 30px;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-weight: bold;
+          font-size: 0.9rem;
+        }
+        
+        .step-header {
+          font-size: 1.3rem;
+          font-weight: bold;
+          color: #06b6d4;
+          margin-bottom: 15px;
+          margin-left: 20px;
+        }
+        
+        .step-details {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+          gap: 15px;
+          margin-left: 20px;
+        }
+        
+        .step-detail {
+          font-size: 0.95rem;
+          color: #cbd5e1;
+          background: rgba(15, 23, 42, 0.3);
+          padding: 12px;
+          border-radius: 8px;
+          border: 1px solid rgba(6, 182, 212, 0.1);
+        }
+        
+        .step-detail strong {
+          color: #06b6d4;
+        }
+        
+        .footer {
+          text-align: center;
+          margin-top: 40px;
+          padding-top: 20px;
+          border-top: 1px solid rgba(139, 92, 246, 0.3);
+          color: #94a3b8;
+        }
+        
+        .view-counter {
+          position: fixed;
+          bottom: 20px;
+          right: 20px;
+          background: rgba(139, 92, 246, 0.9);
+          color: white;
+          padding: 8px 12px;
+          border-radius: 20px;
+          font-size: 0.8rem;
+          backdrop-filter: blur(10px);
+        }
+        
+        @media (max-width: 768px) {
+          .certificate-container {
+            padding: 20px;
+            margin: 10px;
+          }
+          
+          .title {
+            font-size: 2rem;
+          }
+          
+          .info-grid {
+            grid-template-columns: 1fr;
+          }
+          
+          .step-details {
+            grid-template-columns: 1fr;
+          }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="certificate-container">
+        <div class="header">
+          <h1 class="title">📋 Informazioni Iscrizione</h1>
+          <p class="subtitle">Certificato di Tracciabilità Blockchain</p>
+          <div class="company-badge">🏢 ${certificateData.companyName}</div>
+        </div>
+
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">📦 Nome Prodotto</div>
+            <div class="info-value">${certificateData.name}</div>
+          </div>
+          
+          <div class="info-item">
+            <div class="info-label">📅 Data di Origine</div>
+            <div class="info-value">${certificateData.date || 'N/D'}</div>
+          </div>
+          
+          <div class="info-item">
+            <div class="info-label">📍 Luogo di Produzione</div>
+            <div class="info-value">${certificateData.location || 'N/D'}</div>
+          </div>
+          
+          <div class="info-item">
+            <div class="info-label">📊 Stato</div>
+            <div class="info-value">✅ Certificato Attivo</div>
+          </div>
+          
+          ${certificateData.imageIpfsHash && certificateData.imageIpfsHash !== "N/A" ? `
+            <div class="info-item">
+              <div class="info-label">🖼️ Immagine Prodotto</div>
+              <div class="info-value">
+                <a href="https://musical-emerald-partridge.myfilebase.com/ipfs/${certificateData.imageIpfsHash}" 
+                   target="_blank" 
+                   class="blockchain-link">
+                  🖼️ Apri Immagine
+                </a>
+              </div>
+            </div>
+          ` : ''}
+          
+          <div class="info-item">
+            <div class="info-label">🔗 Verifica Blockchain</div>
+            <div class="info-value">
+              <a href="https://polygonscan.com/inputdatadecoder?tx=${certificateData.transactionHash}" 
+                 target="_blank" 
+                 class="blockchain-link">
+                🔍 Verifica su Polygon
+              </a>
+            </div>
+          </div>
+        </div>
+
+        ${certificateData.steps && certificateData.steps.length > 0 ? `
+          <div class="steps-section">
+            <h2 class="steps-title">🔄 Fasi di Lavorazione</h2>
+            ${certificateData.steps.map((step, index) => `
+              <div class="step">
+                <div class="step-number">${index + 1}</div>
+                <div class="step-header">${step.eventName}</div>
+                <div class="step-details">
+                  <div class="step-detail">
+                    <strong>📝 Descrizione:</strong><br>
+                    ${step.description || 'Nessuna descrizione'}
+                  </div>
+                  <div class="step-detail">
+                    <strong>📅 Data:</strong><br>
+                    ${step.date || 'N/D'}
+                  </div>
+                  <div class="step-detail">
+                    <strong>📍 Luogo:</strong><br>
+                    ${step.location || 'N/D'}
+                  </div>
+                  ${step.attachmentsIpfsHash && step.attachmentsIpfsHash !== "N/A" ? `
+                    <div class="step-detail">
+                      <strong>📎 Allegati:</strong><br>
+                      <a href="https://musical-emerald-partridge.myfilebase.com/ipfs/${step.attachmentsIpfsHash}" 
+                         target="_blank" 
+                         class="blockchain-link" 
+                         style="margin-top: 5px;">
+                        📁 Visualizza File
+                      </a>
+                    </div>
+                  ` : ''}
+                  ${step.transactionHash ? `
+                    <div class="step-detail">
+                      <strong>🔗 Verifica Blockchain:</strong><br>
+                      <a href="https://polygonscan.com/inputdatadecoder?tx=${step.transactionHash}" 
+                         target="_blank" 
+                         class="blockchain-link"
+                         style="margin-top: 5px;">
+                        🔍 Verifica Step
+                      </a>
+                    </div>
+                  ` : ''}
+                </div>
+              </div>
+            `).join('')}
+            ${certificateData.description ? `
+              <div class="step" style="background: rgba(139, 92, 246, 0.1); border-color: rgba(139, 92, 246, 0.2);">
+                <div class="step-header">📝 Descrizione</div>
+                <div class="step-details">
+                  <div class="step-detail" style="grid-column: 1 / -1;">
+                    ${certificateData.description}
+                  </div>
+                </div>
+              </div>
+            ` : ''}
+          </div>
+        ` : ''}
+
+        <div class="footer">
+          <p>🔗 <strong>SimplyChain</strong> - Tracciabilità Blockchain per le imprese italiane</p>
+          <p>Certificato generato il ${new Date(certificateData.createdAt).toLocaleDateString('it-IT')}</p>
+          <p>Servizio prodotto da <strong>SFY s.r.l.</strong></p>
+          <p>📧 Contattaci: sfy.startup@gmail.com</p>
+        </div>
+      </div>
+      
+      ${certificateData.viewCount ? `
+        <div class="view-counter">
+          👁️ ${certificateData.viewCount} visualizzazioni
+        </div>
+      ` : ''}
+    </body>
+    </html>
+  `;
+  };
+
+  // Funzione per scaricare il file HTML
+  const downloadHTMLFile = async (batch: Batch) => {
+    try {
+      console.log('🔥 Generando file HTML per download per batch:', batch.batchId);
+      
+      // Genera i dati del certificato (stesso formato del QR)
+      const cleanCompanyName = currentCompanyData.companyName.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+      const certificateId = `${cleanCompanyName}_${batch.batchId}_${Date.now()}`;
+      
+      const certificateData = {
+        batchId: batch.batchId,
+        name: batch.name,
+        companyName: currentCompanyData.companyName,
+        walletAddress: account?.address,
+        date: batch.date,
+        location: batch.location,
+        description: batch.description,
+        transactionHash: batch.transactionHash,
+        imageIpfsHash: batch.imageIpfsHash,
+        steps: batch.steps || [],
+        createdAt: new Date().toISOString(),
+        isActive: true,
+        viewCount: 0
+      };
+
+      // Genera l'HTML del certificato
+      const certificateHTML = generateCertificateHTMLClient(certificateData);
+      
+      // Crea e scarica il file
+      const blob = new Blob([certificateHTML], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      const cleanName = batch.name.replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, '_');
+      a.download = `${cleanName}_certificato.html`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      
+      console.log('✅ File HTML scaricato con successo');
+      alert('🎉 File HTML scaricato con successo!');
+      
+    } catch (error: any) {
+      console.error('❌ Errore durante il download del file HTML:', error);
+      alert('❌ Errore durante il download del file HTML. Riprova più tardi.\n\nDettagli: ' + error.message);
+    }
+  };
+
   const handleExport = async (batch: Batch, exportType: 'pdf' | 'html', bannerId: string) => {
 
     try {
 
       console.log('Iniziando export per batch:', batch.batchId, 'tipo:', exportType);
 
-      // Per HTML, usa il sistema Realtime Database
+      // Per HTML, scarica il file HTML
       if (exportType === 'html') {
-        const qrResult = await generateQRCode(batch);
-        
-        if (qrResult.success) {
-          // Apri il certificato in una nuova finestra
-          window.open(qrResult.certUrl, '_blank');
-          alert('🎉 Certificato HTML generato e aperto!');
-        } else {
-          throw new Error(qrResult.error);
-        }
+        await downloadHTMLFile(batch);
         return;
       }
 
@@ -3373,7 +3785,7 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
 
                       >
 
-                        {batch.qrCodeGenerated ? 'Scarica QR Code' : 'Crea QR Code'}
+                        Scarica QR Code
 
                       </button>
 
@@ -6738,7 +7150,7 @@ const QRInfoModal: React.FC<{
               onClick={onGenerateQR}
               className="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-4 py-3 rounded-lg transition-all font-medium shadow-lg hover:shadow-purple-500/25"
             >
-              📱 Genera QR Code
+              Genera QR Code
             </button>
           </div>
         </div>
