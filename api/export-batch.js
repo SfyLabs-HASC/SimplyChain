@@ -12,8 +12,13 @@ export default async function handler(req, res) {
       return await handleQRCodeGenerationRealtime(batch, companyName, res);
       
     } else if (exportType === 'pdf') {
-      // Genera un vero PDF con QR code
-      return await generateRealPDF(batch, companyName, res);
+      // Genera HTML ottimizzato per PDF (compatibile con Vercel)
+      const pdfHtml = generatePrintableHTML(batch, companyName);
+      
+      res.setHeader('Content-Type', 'text/html; charset=utf-8');
+      res.setHeader('Content-Disposition', `attachment; filename="CERTIFICATO_TRACCIABILITA_${batch.name.replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, '_')}.html"`);
+      res.setHeader('Cache-Control', 'no-cache');
+      res.send(pdfHtml);
 
     } else if (exportType === 'html') {
       const html = `
@@ -535,6 +540,11 @@ function generatePrintableHTML(batch, companyName) {
           color: #6b7280;
           text-align: center;
         }
+        .qr-code img {
+          width: 100%;
+          height: 100%;
+          border-radius: 6px;
+        }
         .blockchain-link {
           color: #8b5cf6;
           text-decoration: none;
@@ -599,38 +609,6 @@ function generatePrintableHTML(batch, companyName) {
           font-weight: 600;
         }
       </style>
-      <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
-      <script>
-        function generateQRCode(text, elementId) {
-          const canvas = document.getElementById(elementId);
-          if (canvas && window.QRCode) {
-            QRCode.toCanvas(canvas, text, {
-              width: 80,
-              height: 80,
-              color: {
-                dark: '#8b5cf6',
-                light: '#ffffff'
-              }
-            });
-          }
-        }
-        
-        window.onload = function() {
-          // Generate QR codes for blockchain links
-          const batchTxHash = '${batch.transactionHash}';
-          if (batchTxHash) {
-            generateQRCode('https://polygonscan.com/inputdatadecoder?tx=' + batchTxHash, 'batch-qr');
-          }
-          
-          // Generate QR codes for each step
-          ${batch.steps ? batch.steps.map((step, index) => `
-            const step${index}TxHash = '${step.transactionHash}';
-            if (step${index}TxHash) {
-              generateQRCode('https://polygonscan.com/inputdatadecoder?tx=' + step${index}TxHash, 'step-${index}-qr');
-            }
-          `).join('') : ''}
-        }
-      </script>
     </head>
     <body>
       <button class="print-button no-print" onclick="window.print()">🖨️ Stampa PDF</button>
@@ -695,7 +673,9 @@ function generatePrintableHTML(batch, companyName) {
             <div class="info-item" style="margin-top: 20px;">
               <div class="info-label">Verifica su Blockchain</div>
               <div class="qr-container">
-                <canvas id="batch-qr" class="qr-code"></canvas>
+                <div class="qr-code">
+                  <img src="https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=https://polygonscan.com/inputdatadecoder?tx=${batch.transactionHash}&color=8b5cf6&bgcolor=ffffff" alt="QR Code Blockchain" />
+                </div>
                 <div>
                   <div class="step-detail-value">Transaction Hash:</div>
                   <div class="step-detail-value" style="font-family: monospace; font-size: 12px; word-break: break-all;">${batch.transactionHash}</div>
@@ -731,7 +711,9 @@ function generatePrintableHTML(batch, companyName) {
                       <div class="step-detail">
                         <div class="step-detail-label">Verifica Blockchain</div>
                         <div class="qr-container">
-                          <canvas id="step-${index}-qr" class="qr-code"></canvas>
+                          <div class="qr-code">
+                            <img src="https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=https://polygonscan.com/inputdatadecoder?tx=${step.transactionHash}&color=8b5cf6&bgcolor=ffffff" alt="QR Code Step ${index + 1}" />
+                          </div>
                           <div>
                             <div class="step-detail-value" style="font-family: monospace; font-size: 12px; word-break: break-all;">${step.transactionHash}</div>
                             <a href="https://polygonscan.com/inputdatadecoder?tx=${step.transactionHash}" target="_blank" class="blockchain-link">
@@ -1171,256 +1153,4 @@ async function deployToFirebaseHosting(htmlContent, fileName, companyName, batch
   }
 }
 
-// Funzione per generare vero PDF con QR code
-async function generateRealPDF(batch, companyName, res) {
-  try {
-    console.log('🔥 Generando vero PDF per batch:', batch.batchId);
-    
-    const { jsPDF } = await import('jspdf');
-    const QRCode = await import('qrcode');
-    
-    // Crea nuovo documento PDF
-    const doc = new jsPDF('p', 'mm', 'a4');
-    const pageWidth = doc.internal.pageSize.getWidth();
-    const pageHeight = doc.internal.pageSize.getHeight();
-    
-    // Colori del tema
-    const primaryColor = [139, 92, 246]; // #8b5cf6
-    const lightGray = [248, 250, 252]; // #f8fafc
-    const darkGray = [31, 41, 55]; // #1f2937
-    
-    // Header con sfondo viola
-    doc.setFillColor(...primaryColor);
-    doc.rect(0, 0, pageWidth, 50, 'F');
-    
-    // Logo (S)
-    doc.setFillColor(255, 255, 255);
-    doc.circle(25, 25, 8, 'F');
-    doc.setTextColor(...primaryColor);
-    doc.setFontSize(16);
-    doc.setFont('helvetica', 'bold');
-    doc.text('S', 25, 30, { align: 'center' });
-    
-    // Titolo
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(24);
-    doc.setFont('helvetica', 'bold');
-    doc.text('CERTIFICATO DI TRACCIABILITÀ', pageWidth/2, 20, { align: 'center' });
-    
-    // Simply Chain
-    doc.setFontSize(16);
-    doc.setFont('helvetica', 'normal');
-    doc.text('SIMPLY CHAIN', pageWidth/2, 30, { align: 'center' });
-    
-    // Azienda
-    doc.setFontSize(12);
-    doc.text(`Prodotto da: ${companyName}`, pageWidth/2, 40, { align: 'center' });
-    
-    let yPosition = 70;
-    
-    // Sezione Informazioni Batch
-    doc.setFillColor(...lightGray);
-    doc.rect(10, yPosition, pageWidth - 20, 60, 'F');
-    
-    doc.setTextColor(...primaryColor);
-    doc.setFontSize(16);
-    doc.setFont('helvetica', 'bold');
-    doc.text('📦 INFORMAZIONI ISCRIZIONE', 15, yPosition + 10);
-    
-    yPosition += 20;
-    
-    // Informazioni in griglia
-    const infoData = [
-      ['Nome Prodotto', batch.name],
-      ['Data di Origine', batch.date || 'N/D'],
-      ['Luogo di Produzione', batch.location || 'N/D'],
-      ['Stato', '✅ Finalizzato'],
-      ['Batch ID', batch.batchId],
-      ['Data Generazione', new Date().toLocaleDateString('it-IT')]
-    ];
-    
-    doc.setTextColor(...darkGray);
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'normal');
-    
-    infoData.forEach(([label, value], index) => {
-      const x = 15 + (index % 2) * 90;
-      const y = yPosition + Math.floor(index / 2) * 8;
-      
-      doc.setFont('helvetica', 'bold');
-      doc.text(label + ':', x, y);
-      doc.setFont('helvetica', 'normal');
-      doc.text(value, x + 40, y);
-    });
-    
-    yPosition += 50;
-    
-    // Descrizione se presente
-    if (batch.description) {
-      doc.setFillColor(255, 255, 255);
-      doc.rect(10, yPosition, pageWidth - 20, 20, 'F');
-      
-      doc.setTextColor(...primaryColor);
-      doc.setFontSize(12);
-      doc.setFont('helvetica', 'bold');
-      doc.text('Descrizione:', 15, yPosition + 8);
-      
-      doc.setTextColor(...darkGray);
-      doc.setFontSize(10);
-      doc.setFont('helvetica', 'normal');
-      const splitDesc = doc.splitTextToSize(batch.description, pageWidth - 30);
-      doc.text(splitDesc, 15, yPosition + 15);
-      
-      yPosition += 25;
-    }
-    
-    // QR Code per batch
-    try {
-      const batchQRUrl = `https://polygonscan.com/inputdatadecoder?tx=${batch.transactionHash}`;
-      const batchQRDataUrl = await QRCode.default.toDataURL(batchQRUrl, {
-        width: 60,
-        margin: 1,
-        color: { dark: '#8b5cf6', light: '#ffffff' }
-      });
-      
-      doc.addImage(batchQRDataUrl, 'PNG', 15, yPosition, 20, 20);
-      
-      doc.setTextColor(...primaryColor);
-      doc.setFontSize(10);
-      doc.setFont('helvetica', 'bold');
-      doc.text('Verifica Blockchain:', 40, yPosition + 8);
-      
-      doc.setTextColor(...darkGray);
-      doc.setFontSize(8);
-      doc.setFont('helvetica', 'normal');
-      doc.text('Transaction Hash:', 40, yPosition + 15);
-      doc.text(batch.transactionHash, 40, yPosition + 20);
-      
-      yPosition += 30;
-    } catch (qrError) {
-      console.log('Errore QR batch:', qrError);
-    }
-    
-    // Steps se presenti
-    if (batch.steps && batch.steps.length > 0) {
-      // Nuova pagina se necessario
-      if (yPosition > pageHeight - 80) {
-        doc.addPage();
-        yPosition = 20;
-      }
-      
-      doc.setFillColor(...lightGray);
-      doc.rect(10, yPosition, pageWidth - 20, 15, 'F');
-      
-      doc.setTextColor(...primaryColor);
-      doc.setFontSize(16);
-      doc.setFont('helvetica', 'bold');
-      doc.text('🔄 FASI DI LAVORAZIONE', 15, yPosition + 10);
-      
-      yPosition += 25;
-      
-      batch.steps.forEach((step, index) => {
-        // Nuova pagina se necessario
-        if (yPosition > pageHeight - 60) {
-          doc.addPage();
-          yPosition = 20;
-        }
-        
-        // Step container
-        doc.setFillColor(255, 255, 255);
-        doc.rect(10, yPosition, pageWidth - 20, 50, 'F');
-        doc.setDrawColor(...primaryColor);
-        doc.rect(10, yPosition, pageWidth - 20, 50, 'S');
-        
-        // Numero step
-        doc.setFillColor(...primaryColor);
-        doc.circle(20, yPosition + 10, 5, 'F');
-        doc.setTextColor(255, 255, 255);
-        doc.setFontSize(10);
-        doc.setFont('helvetica', 'bold');
-        doc.text((index + 1).toString(), 20, yPosition + 13, { align: 'center' });
-        
-        // Titolo step
-        doc.setTextColor(...primaryColor);
-        doc.setFontSize(12);
-        doc.setFont('helvetica', 'bold');
-        doc.text(step.eventName, 30, yPosition + 8);
-        
-        // Dettagli step
-        doc.setTextColor(...darkGray);
-        doc.setFontSize(9);
-        doc.setFont('helvetica', 'normal');
-        
-        const stepDetails = [
-          ['Descrizione:', step.description || 'Nessuna descrizione'],
-          ['Data:', step.date || 'N/D'],
-          ['Luogo:', step.location || 'N/D']
-        ];
-        
-        stepDetails.forEach(([label, value], detailIndex) => {
-          const y = yPosition + 15 + (detailIndex * 6);
-          doc.setFont('helvetica', 'bold');
-          doc.text(label, 30, y);
-          doc.setFont('helvetica', 'normal');
-          doc.text(value, 30 + 25, y);
-        });
-        
-        // QR Code per step
-        try {
-          const stepQRUrl = `https://polygonscan.com/inputdatadecoder?tx=${step.transactionHash}`;
-          const stepQRDataUrl = await QRCode.default.toDataURL(stepQRUrl, {
-            width: 40,
-            margin: 1,
-            color: { dark: '#8b5cf6', light: '#ffffff' }
-          });
-          
-          doc.addImage(stepQRDataUrl, 'PNG', pageWidth - 35, yPosition + 5, 15, 15);
-          
-          doc.setTextColor(...primaryColor);
-          doc.setFontSize(8);
-          doc.setFont('helvetica', 'bold');
-          doc.text('Verifica:', pageWidth - 35, yPosition + 25);
-          
-          doc.setTextColor(...darkGray);
-          doc.setFontSize(6);
-          doc.setFont('helvetica', 'normal');
-          const txHash = step.transactionHash.substring(0, 20) + '...';
-          doc.text(txHash, pageWidth - 35, yPosition + 30);
-        } catch (qrError) {
-          console.log('Errore QR step:', qrError);
-        }
-        
-        yPosition += 55;
-      });
-    }
-    
-    // Footer
-    const footerY = pageHeight - 20;
-    doc.setFillColor(...lightGray);
-    doc.rect(0, footerY, pageWidth, 20, 'F');
-    
-    doc.setTextColor(...darkGray);
-    doc.setFontSize(8);
-    doc.setFont('helvetica', 'normal');
-    doc.text('SIMPLY CHAIN - Tracciabilità Blockchain per le imprese italiane', pageWidth/2, footerY + 8, { align: 'center' });
-    doc.text('Servizio Gratuito prodotto da SFY s.r.l. - sfy.startup@gmail.com', pageWidth/2, footerY + 15, { align: 'center' });
-    
-    // Invia il PDF
-    const pdfBuffer = doc.output('arraybuffer');
-    
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename="CERTIFICATO_TRACCIABILITA_${batch.name.replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, '_')}.pdf"`);
-    res.setHeader('Cache-Control', 'no-cache');
-    res.send(Buffer.from(pdfBuffer));
-    
-    console.log('✅ Vero PDF generato con successo');
-    
-  } catch (error) {
-    console.error('❌ Errore generazione PDF:', error);
-    res.status(500).json({ 
-      error: 'Errore nella generazione del PDF',
-      details: error.message 
-    });
-  }
-}
 
