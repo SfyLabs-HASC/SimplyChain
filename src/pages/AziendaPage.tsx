@@ -2842,13 +2842,14 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>${certificateData.companyName} - Certificato di Tracciabilità</title>
-  
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@400&display=swap">
   <meta property="og:title" content="${certificateData.companyName} - Certificato SimplyChain">
   <meta property="og:description" content="Certificato di tracciabilità blockchain prodotto da ${certificateData.companyName}">
   <meta property="og:type" content="website">
   <meta name="twitter:card" content="summary_large_image">
   
   <style>
+    .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; vertical-align: middle; }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { 
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
@@ -3115,48 +3116,48 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
       <p class="subtitle">Certificato di Tracciabilità Blockchain</p>
     </div>
 
-    <h2 class="section-title">📋 Informazioni Iscrizione</h2>
+    <h2 class="section-title"><span class="material-symbols-outlined">info</span> Informazioni Iscrizione</h2>
     <div class="info-grid">
       <div class="info-item">
-        <div class="info-label">📦 Nome Prodotto</div>
+        <div class="info-label"><span class="material-symbols-outlined">inventory_2</span> Nome Prodotto</div>
         <div class="info-value">${certificateData.name}</div>
       </div>
       
       <div class="info-item">
-        <div class="info-label">📅 Data di Origine</div>
+        <div class="info-label"><span class="material-symbols-outlined">calendar_month</span> Data di Origine</div>
         <div class="info-value">${certificateData.date || 'N/D'}</div>
       </div>
       
       <div class="info-item">
-        <div class="info-label">📍 Luogo di Produzione</div>
+        <div class="info-label"><span class="material-symbols-outlined">location_on</span> Luogo di Produzione</div>
         <div class="info-value">${certificateData.location || 'N/D'}</div>
       </div>
       
       <div class="info-item">
-        <div class="info-label">📊 Stato</div>
-        <div class="info-value">✅ Certificato Attivo</div>
+        <div class="info-label"><span class="material-symbols-outlined">verified</span> Stato</div>
+        <div class="info-value"><span class="material-symbols-outlined">check_circle</span> Certificato Attivo</div>
       </div>
       
       ${certificateData.imageIpfsHash && certificateData.imageIpfsHash !== "N/A" ? `
         <div class="info-item">
-          <div class="info-label">🖼️ Immagine Prodotto</div>
+          <div class="info-label"><span class="material-symbols-outlined">image</span> Immagine Prodotto</div>
           <div class="info-value">
             <a href="https://musical-emerald-partridge.myfilebase.com/ipfs/${certificateData.imageIpfsHash}" 
                target="_blank" 
                class="blockchain-link">
-              🖼️ Apri Immagine
+              <span class="material-symbols-outlined">open_in_new</span> Apri Immagine
             </a>
           </div>
         </div>
       ` : ''}
       
       <div class="info-item">
-        <div class="info-label">🔗 Verifica Blockchain</div>
+        <div class="info-label"><span class="material-symbols-outlined">link</span> Verifica Blockchain</div>
         <div class="info-value">
           <a href="https://polygonscan.com/inputdatadecoder?tx=${certificateData.transactionHash}" 
              target="_blank" 
              class="blockchain-link">
-            🔍 Verifica su Polygon
+            <span class="material-symbols-outlined">travel_explore</span> Verifica su Polygon
           </a>
         </div>
       </div>
@@ -3164,57 +3165,57 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
 
     ${certificateData.description ? `
       <div class="description-section">
-        <h3 class="description-title">📝 Descrizione</h3>
+        <h3 class="description-title"><span class="material-symbols-outlined">description</span> Descrizione</h3>
         <div class="description-content">${certificateData.description}</div>
       </div>
     ` : ''}
 
     ${certificateData.steps && certificateData.steps.length > 0 ? `
       <div class="steps-section">
-        <h2 class="section-title">🔄 Fasi di Lavorazione</h2>
+        <h2 class="section-title"><span class="material-symbols-outlined">sync</span> Fasi di Lavorazione</h2>
         ${certificateData.steps.map((step, index) => `
           <div class="step">
             <div class="step-number-circle">${index + 1}</div>
             <h3 class="step-header">Step ${index + 1}</h3>
             <div class="step-details">
               <div class="step-detail">
-                <strong>📦 Nome:</strong><br>
+                <strong><span class="material-symbols-outlined">inventory_2</span> Nome:</strong><br>
                 ${step.eventName}
               </div>
               <div class="step-detail">
-                <strong>📅 Data:</strong><br>
+                <strong><span class="material-symbols-outlined">calendar_month</span> Data:</strong><br>
                 ${step.date || 'N/D'}
               </div>
               <div class="step-detail">
-                <strong>📍 Luogo:</strong><br>
+                <strong><span class="material-symbols-outlined">location_on</span> Luogo:</strong><br>
                 ${step.location || 'N/D'}
               </div>
               ${step.attachmentsIpfsHash && step.attachmentsIpfsHash !== "N/A" ? `
                 <div class="step-detail">
-                  <strong>📎 Allegati:</strong><br>
+                  <strong><span class="material-symbols-outlined">attachment</span> Allegati:</strong><br>
                   <a href="https://musical-emerald-partridge.myfilebase.com/ipfs/${step.attachmentsIpfsHash}" 
                      target="_blank" 
                      class="blockchain-link" 
                      style="margin-top: 5px;">
-                    📁 Visualizza File
+                    <span class="material-symbols-outlined">folder_open</span> Visualizza File
                   </a>
                 </div>
               ` : ''}
               ${step.transactionHash ? `
                 <div class="step-detail">
-                  <strong>🔗 Verifica Blockchain:</strong><br>
+                  <strong><span class="material-symbols-outlined">link</span> Verifica Blockchain:</strong><br>
                   <a href="https://polygonscan.com/inputdatadecoder?tx=${step.transactionHash}" 
                      target="_blank" 
                      class="blockchain-link"
                      style="margin-top: 5px;">
-                    🔍 Verifica Step
+                    <span class="material-symbols-outlined">travel_explore</span> Verifica Step
                   </a>
                 </div>
               ` : ''}
             </div>
             ${step.description ? `
               <div class="step-description">
-                <strong>📝 Descrizione:</strong><br>
+                <strong><span class="material-symbols-outlined">description</span> Descrizione:</strong><br>
                 <div class="step-description-content">${step.description}</div>
               </div>
             ` : ''}
@@ -3224,9 +3225,9 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
     ` : ''}
 
     <div class="footer">
-      <p>Certificato generato con 🔗 <strong>SimplyChain</strong> il ${new Date(certificateData.createdAt).toLocaleDateString('it-IT')}</p>
+      <p><span class="material-symbols-outlined">link</span> Certificato generato con <strong>SimplyChain</strong> il ${new Date(certificateData.createdAt).toLocaleDateString('it-IT')}</p>
       <p>Servizio prodotto da <strong>SFY s.r.l.</strong></p>
-      <p>📧 Contattaci: sfy.startup@gmail.com</p>
+      <p><span class="material-symbols-outlined">mail</span> Contattaci: sfy.startup@gmail.com</p>
     </div>
   </div>
 </body>

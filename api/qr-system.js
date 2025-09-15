@@ -395,6 +395,7 @@ function generateCertificateHTML(certificateData) {
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <title>${certificateData.name} - Certificato di Tracciabilità</title>
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@400&display=swap">
       
       <meta property="og:title" content="${certificateData.name} - Certificato SimplyChain">
       <meta property="og:description" content="Certificato di tracciabilità blockchain prodotto da ${certificateData.companyName}">
@@ -402,6 +403,7 @@ function generateCertificateHTML(certificateData) {
       <meta name="twitter:card" content="summary_large_image">
       
       <style>
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; vertical-align: middle; }
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { 
           font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
