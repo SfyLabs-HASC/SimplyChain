@@ -1135,15 +1135,19 @@ async function deployToFirebaseHosting(htmlContent, fileName, companyName, batch
   }
 }
 
-// Funzione per generare PDF usando puppeteer
+// Funzione per generare PDF usando puppeteer-core (compatibile con Vercel)
 async function generatePDF(batch, companyName, res) {
   try {
     console.log('🔥 Generando PDF per batch:', batch.batchId);
     
-    const puppeteer = await import('puppeteer');
+    const puppeteer = await import('puppeteer-core');
+    const chromium = await import('@sparticuz/chromium');
+    
     const browser = await puppeteer.default.launch({
-      headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox']
+      args: chromium.default.args,
+      defaultViewport: chromium.default.defaultViewport,
+      executablePath: await chromium.default.executablePath(),
+      headless: chromium.default.headless,
     });
     
     const page = await browser.newPage();
@@ -1177,10 +1181,15 @@ async function generatePDF(batch, companyName, res) {
     
   } catch (error) {
     console.error('❌ Errore generazione PDF:', error);
-    res.status(500).json({ 
-      error: 'Errore nella generazione del PDF',
-      details: error.message 
-    });
+    
+    // Fallback: genera HTML che può essere convertito in PDF dal browser
+    console.log('🔄 Fallback: generando HTML per conversione PDF');
+    const pdfHtml = generatePrintableHTML(batch, companyName);
+    
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.setHeader('Content-Disposition', `attachment; filename="CERTIFICATO_TRACCIABILITA_${batch.name.replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, '_')}.html"`);
+    res.setHeader('Cache-Control', 'no-cache');
+    res.send(pdfHtml);
   }
 }
 
