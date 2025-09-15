@@ -3828,7 +3828,7 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
                     {/* Pulsante Esporta - mostrato solo per batch chiusi */}
                     {batch.isClosed && (
                       <button
-                        className="primary-gradient text-white px-4 py-2 rounded-md hover:scale-105 transition text-sm font-medium whitespace-nowrap"
+                        className="bg-gradient-to-r from-fuchsia-600 to-violet-700 hover:from-fuchsia-700 hover:to-violet-800 text-white px-4 py-2 rounded-md hover:scale-105 transition text-sm font-medium whitespace-nowrap"
                         onClick={() => {
                           setSelectedBatchForExport(batch);
                           setShowExportModal(true);
@@ -3841,7 +3841,7 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
                     {/* Pulsante Genera QR Code - mostrato solo per batch chiusi */}
                     {batch.isClosed && (
                       <button
-                        className="bg-gradient-to-r from-purple-600 to-purple-700 text-white px-4 py-2 rounded-md hover:scale-105 transition text-sm font-medium whitespace-nowrap"
+                        className="bg-gradient-to-r from-purple-600 to-indigo-700 hover:from-purple-700 hover:to-indigo-800 text-white px-4 py-2 rounded-md hover:scale-105 transition text-sm font-medium whitespace-nowrap"
                         onClick={() => {
                           setSelectedBatchForExport(batch);
                           setShowQRModal(true);
