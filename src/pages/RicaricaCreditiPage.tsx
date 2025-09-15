@@ -982,15 +982,6 @@ const RicaricaCreditiPage: React.FC = () => {
           </div>
         )}
 
-        {/* Tasto Torna Indietro in fondo - stile AziendaPage */}
-        <div className="flex justify-center pt-8">
-          <button
-            onClick={() => navigate('/azienda')}
-            className="bg-slate-600 hover:bg-slate-700 text-white px-8 py-3 rounded-2xl font-semibold hover:scale-105 transition flex items-center gap-2"
-          >
-            ← Torna alla Dashboard
-          </button>
-        </div>
         
       </div>
     );
@@ -1044,40 +1035,14 @@ const RicaricaCreditiPage: React.FC = () => {
                 </div>
               </div>
 
-              {/* Info azienda e Connect Button */}
+              {/* Connect Button */}
               <div className="flex items-center space-x-4">
-                {userData && (
-                  <div className="hidden md:flex items-center space-x-6 text-sm">
-                    <div className="text-center">
-                      <p className="text-slate-400">Azienda</p>
-                      <p className="text-white font-semibold">{userData.companyName}</p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-slate-400">Crediti</p>
-                      <p className="text-white font-semibold">{userData.credits}</p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-slate-400">Stato</p>
-                      <p className={`font-semibold ${userData.status === 'active' ? 'text-green-400' : 'text-yellow-400'}`}>
-                        {userData.status === 'active' ? 'ATTIVO' : 'NON ATTIVO'}
-                      </p>
-                    </div>
-                  </div>
-                )}
-                
                 <ConnectButton
                   client={client}
                   wallets={wallets}
                   chain={polygon}
                   accountAbstraction={{ chain: polygon, sponsorGas: true }}
                 />
-                
-                <button
-                  onClick={() => navigate('/azienda')}
-                  className="bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-xl font-semibold hover:scale-105 transition"
-                >
-                  ← Dashboard
-                </button>
               </div>
             </div>
           </div>
@@ -1110,6 +1075,46 @@ const RicaricaCreditiPage: React.FC = () => {
         </main>
         
         </div>
+
+        {/* Rettangolo dati azienda in basso - come AziendaPage */}
+        {userData && (
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-6 border border-slate-700/50 flex flex-col md:flex-row justify-between items-center gap-6">
+              <div>
+                <div className="flex items-center gap-4 flex-wrap">
+                  <h2 className="text-2xl md:text-3xl font-extrabold bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
+                    {userData.companyName}
+                  </h2>
+                </div>
+                
+                <div className="flex flex-col md:flex-row gap-4 items-center mt-2">
+                  <div className="flex flex-col md:flex-row gap-4 items-center">
+                    <span className="text-slate-300">
+                      Crediti Rimanenti: <strong className="text-white">{userData.credits}</strong>
+                    </span>
+                  </div>
+                  
+                  <div className="flex flex-col md:flex-row gap-4 items-center">
+                    <span className="text-slate-300">
+                      Stato: <strong className={userData.status === 'active' ? 'text-green-400' : 'text-yellow-400'}>
+                        {userData.status === 'active' ? 'ATTIVO' : 'NON ATTIVO'}
+                      </strong>
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-4">
+                <button
+                  onClick={() => navigate('/azienda')}
+                  className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-6 py-3 rounded-xl font-semibold hover:scale-105 transition flex items-center gap-2"
+                >
+                  ← Torna alla Dashboard
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Footer identico ad AziendaPage */}
         <Footer />
