@@ -19,6 +19,22 @@ const firebaseConfig = {
 // Controlla che le variabili siano state caricate per un debug più facile
 if (!firebaseConfig.projectId) {
   console.error("Configurazione di Firebase non trovata. Assicurati di aver impostato le variabili d'ambiente VITE_ su Vercel e di aver fatto un redeploy.");
+  console.error("Variabili mancanti:", {
+    apiKey: !!firebaseConfig.apiKey,
+    authDomain: !!firebaseConfig.authDomain,
+    projectId: !!firebaseConfig.projectId,
+    storageBucket: !!firebaseConfig.storageBucket,
+    messagingSenderId: !!firebaseConfig.messagingSenderId,
+    appId: !!firebaseConfig.appId,
+    databaseURL: !!firebaseConfig.databaseURL
+  });
+}
+
+// Verifica specifica per il Realtime Database URL
+if (!firebaseConfig.databaseURL) {
+  console.error("❌ VITE_FIREBASE_DATABASE_URL non è configurata!");
+  console.error("Aggiungi questa variabile d'ambiente su Vercel:");
+  console.error("VITE_FIREBASE_DATABASE_URL=https://your-project-id-default-rtdb.firebaseio.com/");
 }
 
 // Inizializza Firebase solo se non è già stato fatto per evitare errori

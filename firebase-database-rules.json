@@ -1,0 +1,9 @@
+{
+  "rules": {
+    "certificates": {
+      ".read": true,
+      ".write": true,
+      ".validate": "newData.hasChildren(['batchId', 'name', 'companyName', 'createdAt'])"
+    }
+  }
+}

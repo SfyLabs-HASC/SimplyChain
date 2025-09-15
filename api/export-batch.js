@@ -8,8 +8,8 @@ export default async function handler(req, res) {
     const { batch, exportType, companyName, bannerId } = req.body;
 
     if (exportType === 'qrcode') {
-      // Genera HTML, salvalo sul server e crea QR Code
-      return await handleQRCodeGeneration(batch, companyName, res);
+      // Usa il sistema Realtime Database invece di Firebase Hosting
+      return await handleQRCodeGenerationRealtime(batch, companyName, res);
       
     } else if (exportType === 'pdf') {
       // Per ora PDF non è supportato in ambiente serverless
@@ -485,7 +485,88 @@ function generatePrintableHTML(batch, companyName) {
   `;
 }
 
-// Funzione per gestire la generazione QR Code
+// Funzione per gestire la generazione QR Code con Realtime Database
+async function handleQRCodeGenerationRealtime(batch, companyName, res) {
+  try {
+    console.log('🔥 Generando QR Code con Realtime Database per batch:', batch.batchId);
+    
+    // Step 1: Genera dati certificato
+    const certificateData = {
+      batchId: batch.batchId,
+      name: batch.name,
+      companyName: companyName,
+      walletAddress: batch.walletAddress || 'unknown',
+      date: batch.date,
+      location: batch.location,
+      description: batch.description,
+      transactionHash: batch.transactionHash,
+      imageIpfsHash: batch.imageIpfsHash,
+      steps: batch.steps || [],
+      createdAt: new Date().toISOString(),
+      isActive: true,
+      viewCount: 0
+    };
+
+    // Step 2: Salva dati nel Realtime Database
+    const admin = await import('firebase-admin');
+    
+    if (!admin.default.apps.length) {
+      admin.default.initializeApp({
+        credential: admin.default.credential.cert({
+          projectId: process.env.FIREBASE_PROJECT_ID,
+          clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+          privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+        }),
+        databaseURL: process.env.FIREBASE_DATABASE_URL
+      });
+    }
+
+    const realtimeDb = admin.default.database();
+    const certificateId = `${batch.batchId}_${Date.now()}`;
+    const certificateRef = realtimeDb.ref(`certificates/${certificateId}`);
+    
+    await certificateRef.set(certificateData);
+    console.log('💾 Dati certificato salvati in Realtime Database:', certificateId);
+
+    // Step 3: Genera URL per visualizzare il certificato
+    const baseUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000';
+    const certificateUrl = `${baseUrl}/api/qr-system?action=view&id=${certificateId}`;
+    
+    console.log('🌐 URL certificato generato:', certificateUrl);
+
+    // Step 4: Genera QR Code
+    const QRCode = await import('qrcode');
+    const qrCodeDataUrl = await QRCode.default.toDataURL(certificateUrl, {
+      width: 1000,
+      margin: 2,
+      color: {
+        dark: '#000000',
+        light: '#FFFFFF'
+      },
+      errorCorrectionLevel: 'M'
+    });
+    
+    const qrBuffer = Buffer.from(qrCodeDataUrl.split(',')[1], 'base64');
+    console.log('📱 QR Code generato per URL:', certificateUrl);
+
+    // Step 5: Restituisci il QR Code
+    res.setHeader('Content-Type', 'image/png');
+    const cleanBatchName = batch.name.replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, '_');
+    res.setHeader('Content-Disposition', `attachment; filename="${cleanBatchName}_qrcode.png"`);
+    res.send(qrBuffer);
+    
+    console.log('✅ QR Code creato con successo usando Realtime Database');
+    
+  } catch (error) {
+    console.error('❌ Errore generazione QR Code:', error);
+    res.status(500).json({ 
+      error: 'Errore nella generazione del QR Code',
+      details: error.message 
+    });
+  }
+}
+
+// Funzione per gestire la generazione QR Code (vecchia versione con Firebase Hosting)
 async function handleQRCodeGeneration(batch, companyName, res) {
   try {
     console.log('🔥 Iniziando generazione QR Code per batch:', batch.batchId);
