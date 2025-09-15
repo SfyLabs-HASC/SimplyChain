@@ -3352,12 +3352,9 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
 
         console.log('Content-Type:', contentType);
 
-        // Verifica che sia effettivamente un PDF
-
-        if (exportType === 'pdf' && !contentType?.includes('pdf')) {
-
-          console.warn('Content-Type non è PDF:', contentType);
-
+        // Per PDF, accettiamo anche HTML (che viene convertito in PDF dal browser)
+        if (exportType === 'pdf' && !contentType?.includes('html') && !contentType?.includes('pdf')) {
+          console.warn('Content-Type non è HTML o PDF:', contentType);
         }
 
         const blob = await response.blob();
@@ -3376,10 +3373,8 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
 
         // Verifica che il blob abbia il tipo corretto
 
-        if (exportType === 'pdf' && !blob.type.includes('pdf')) {
-
-          console.warn('Blob type non è PDF:', blob.type);
-
+        if (exportType === 'pdf' && !blob.type.includes('html') && !blob.type.includes('pdf')) {
+          console.warn('Blob type non è HTML o PDF:', blob.type);
         }
 
         
@@ -3390,7 +3385,7 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
 
         a.href = url;
 
-        a.download = `${batch.name}_export.${exportType}`;
+        a.download = `CERTIFICATO_TRACCIABILITA_${batch.name.replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, '_')}.html`;
 
         document.body.appendChild(a);
 

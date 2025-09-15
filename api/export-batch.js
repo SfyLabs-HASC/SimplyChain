@@ -18,6 +18,7 @@ export default async function handler(req, res) {
       
       res.setHeader('Content-Type', 'text/html; charset=utf-8');
       res.setHeader('Content-Disposition', `attachment; filename="CERTIFICATO_TRACCIABILITA_${batch.name.replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, '_')}.html"`);
+      res.setHeader('Cache-Control', 'no-cache');
       res.send(pdfHtml);
 
     } else if (exportType === 'html') {
