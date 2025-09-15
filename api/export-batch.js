@@ -1245,7 +1245,7 @@ async function generatePDFWithPDFLib(batch, companyName, res) {
       borderWidth: 1,
     });
     
-    page.drawText('📦 INFORMAZIONI ISCRIZIONE', {
+    page.drawText('INFORMAZIONI ISCRIZIONE', {
       x: 60,
       y: 670,
       size: 16,
@@ -1258,7 +1258,7 @@ async function generatePDFWithPDFLib(batch, companyName, res) {
       ['Nome Prodotto:', batch.name],
       ['Data di Origine:', batch.date || 'N/D'],
       ['Luogo di Produzione:', batch.location || 'N/D'],
-      ['Stato:', '✅ Finalizzato'],
+      ['Stato:', 'Finalizzato'],
       ['Batch ID:', batch.batchId],
       ['Data Generazione:', new Date().toLocaleDateString('it-IT')]
     ];
@@ -1428,7 +1428,7 @@ async function generatePDFWithPDFLib(batch, companyName, res) {
         borderWidth: 1,
       });
       
-      page.drawText('🔄 FASI DI LAVORAZIONE', {
+      page.drawText('FASI DI LAVORAZIONE', {
         x: 60,
         y: yPosition + 5,
         size: 16,
@@ -1445,13 +1445,13 @@ async function generatePDFWithPDFLib(batch, companyName, res) {
           yPosition = 700;
         }
         
-        // Step container
+        // Step container (come card AziendaPage)
         page.drawRectangle({
           x: 50,
           y: yPosition - 60,
           width: 495,
           height: 60,
-          color: white,
+          color: cardBg,
           borderColor: primaryColor,
           borderWidth: 1,
         });
@@ -1495,14 +1495,14 @@ async function generatePDFWithPDFLib(batch, companyName, res) {
             y: y,
             size: 9,
             font: font,
-            color: darkGray,
+            color: textGray, // Come nelle card
           });
           page.drawText(value, {
             x: 90 + 60,
             y: y,
             size: 9,
             font: regularFont,
-            color: darkGray,
+            color: white, // Testo bianco come nelle card
           });
         });
         
@@ -1555,13 +1555,15 @@ async function generatePDFWithPDFLib(batch, companyName, res) {
       });
     }
     
-    // Footer
+    // Footer (come AziendaPage)
     page.drawRectangle({
       x: 0,
       y: 0,
       width: 595,
       height: 50,
-      color: lightGray,
+      color: cardBg,
+      borderColor: primaryColor,
+      borderWidth: 1,
     });
     
     page.drawText('SIMPLY CHAIN - Tracciabilità Blockchain per le imprese italiane', {
@@ -1569,7 +1571,7 @@ async function generatePDFWithPDFLib(batch, companyName, res) {
       y: 30,
       size: 8,
       font: font,
-      color: darkGray,
+      color: white, // Testo bianco come nel footer
       align: 'center',
     });
     
@@ -1578,7 +1580,7 @@ async function generatePDFWithPDFLib(batch, companyName, res) {
       y: 15,
       size: 8,
       font: font,
-      color: darkGray,
+      color: textGray, // Testo grigio come nel footer
       align: 'center',
     });
     
@@ -1591,10 +1593,10 @@ async function generatePDFWithPDFLib(batch, companyName, res) {
     res.setHeader('Cache-Control', 'no-cache');
     res.send(Buffer.from(pdfBytes));
     
-    console.log('✅ Vero PDF generato con successo');
+    console.log('Vero PDF generato con successo');
     
   } catch (error) {
-    console.error('❌ Errore generazione PDF:', error);
+    console.error('Errore generazione PDF:', error);
     res.status(500).json({ 
       error: 'Errore nella generazione del PDF',
       details: error.message 
