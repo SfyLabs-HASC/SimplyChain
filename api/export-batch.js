@@ -12,8 +12,8 @@ export default async function handler(req, res) {
       return await handleQRCodeGenerationRealtime(batch, companyName, res);
       
     } else if (exportType === 'pdf') {
-      // Genera un vero PDF con PDFKit
-      return await generatePDFWithPDFKit(batch, companyName, res);
+      // Genera un vero PDF con pdf-lib
+      return await generatePDFWithPDFLib(batch, companyName, res);
 
     } else if (exportType === 'html') {
       const html = `
@@ -1148,4 +1148,440 @@ async function deployToFirebaseHosting(htmlContent, fileName, companyName, batch
   }
 }
 
+// Funzione per generare vero PDF con pdf-lib
+async function generatePDFWithPDFLib(batch, companyName, res) {
+  try {
+    console.log('🔥 Generando vero PDF con pdf-lib per batch:', batch.batchId);
+    
+    const { PDFDocument, rgb, StandardFonts } = await import('pdf-lib');
+    
+    // Crea nuovo documento PDF
+    const pdfDoc = await PDFDocument.create();
+    const page = pdfDoc.addPage([595, 842]); // A4 size
+    
+    // Colori del tema
+    const primaryColor = rgb(0.545, 0.361, 0.965); // #8b5cf6
+    const lightGray = rgb(0.973, 0.980, 0.988); // #f8fafc
+    const darkGray = rgb(0.122, 0.161, 0.216); // #1f2937
+    const white = rgb(1, 1, 1);
+    
+    // Header con sfondo viola
+    page.drawRectangle({
+      x: 0,
+      y: 742,
+      width: 595,
+      height: 100,
+      color: primaryColor,
+    });
+    
+    // Logo (S) - cerchio bianco
+    page.drawCircle({
+      x: 50,
+      y: 792,
+      radius: 15,
+      color: white,
+    });
+    
+    // Testo S nel cerchio
+    const font = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+    const regularFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
+    
+    page.drawText('S', {
+      x: 42,
+      y: 787,
+      size: 20,
+      font: font,
+      color: primaryColor,
+    });
+    
+    // Titolo principale
+    page.drawText('CERTIFICATO DI TRACCIABILITÀ', {
+      x: 0,
+      y: 762,
+      size: 24,
+      font: font,
+      color: white,
+      align: 'center',
+    });
+    
+    // Simply Chain
+    page.drawText('SIMPLY CHAIN', {
+      x: 0,
+      y: 737,
+      size: 16,
+      font: font,
+      color: white,
+      align: 'center',
+    });
+    
+    // Azienda
+    page.drawText(`Prodotto da: ${companyName}`, {
+      x: 0,
+      y: 712,
+      size: 12,
+      font: font,
+      color: white,
+      align: 'center',
+    });
+    
+    // Sezione Informazioni Batch
+    page.drawRectangle({
+      x: 50,
+      y: 600,
+      width: 495,
+      height: 100,
+      color: lightGray,
+    });
+    
+    page.drawText('📦 INFORMAZIONI ISCRIZIONE', {
+      x: 60,
+      y: 670,
+      size: 16,
+      font: font,
+      color: primaryColor,
+    });
+    
+    // Griglia informazioni
+    const infoData = [
+      ['Nome Prodotto:', batch.name],
+      ['Data di Origine:', batch.date || 'N/D'],
+      ['Luogo di Produzione:', batch.location || 'N/D'],
+      ['Stato:', '✅ Finalizzato'],
+      ['Batch ID:', batch.batchId],
+      ['Data Generazione:', new Date().toLocaleDateString('it-IT')]
+    ];
+    
+    infoData.forEach(([label, value], index) => {
+      const x = 60 + (index % 2) * 240;
+      const y = 640 + Math.floor(index / 2) * 15;
+      
+      page.drawText(label, {
+        x: x,
+        y: y,
+        size: 10,
+        font: font,
+        color: darkGray,
+      });
+      
+      page.drawText(value, {
+        x: x + 80,
+        y: y,
+        size: 10,
+        font: regularFont,
+        color: darkGray,
+      });
+    });
+    
+    let yPosition = 480;
+    
+    // Descrizione se presente
+    if (batch.description) {
+      page.drawRectangle({
+        x: 50,
+        y: yPosition,
+        width: 495,
+        height: 40,
+        color: white,
+      });
+      
+      page.drawText('Descrizione:', {
+        x: 60,
+        y: yPosition + 20,
+        size: 12,
+        font: font,
+        color: primaryColor,
+      });
+      
+      // Dividi la descrizione in righe se troppo lunga
+      const maxWidth = 475;
+      const words = batch.description.split(' ');
+      let line = '';
+      let lines = [];
+      
+      for (const word of words) {
+        const testLine = line + word + ' ';
+        if (testLine.length * 6 > maxWidth) { // 6px per carattere approssimativo
+          lines.push(line);
+          line = word + ' ';
+        } else {
+          line = testLine;
+        }
+      }
+      lines.push(line);
+      
+      lines.forEach((line, index) => {
+        page.drawText(line, {
+          x: 60,
+          y: yPosition + 5 - (index * 12),
+          size: 10,
+          font: regularFont,
+          color: darkGray,
+        });
+      });
+      
+      yPosition -= 60;
+    }
+    
+    // QR Code per batch (placeholder)
+    page.drawRectangle({
+      x: 60,
+      y: yPosition,
+      width: 60,
+      height: 60,
+      borderColor: primaryColor,
+      borderWidth: 1,
+    });
+    
+    page.drawText('QR CODE', {
+      x: 75,
+      y: yPosition + 30,
+      size: 10,
+      font: font,
+      color: primaryColor,
+      align: 'center',
+    });
+    
+    page.drawText('Blockchain', {
+      x: 75,
+      y: yPosition + 20,
+      size: 8,
+      font: font,
+      color: primaryColor,
+      align: 'center',
+    });
+    
+    page.drawText('Verification', {
+      x: 75,
+      y: yPosition + 10,
+      size: 8,
+      font: font,
+      color: primaryColor,
+      align: 'center',
+    });
+    
+    // Testo verifica blockchain
+    page.drawText('Verifica Blockchain:', {
+      x: 140,
+      y: yPosition + 30,
+      size: 10,
+      font: font,
+      color: primaryColor,
+    });
+    
+    page.drawText('Transaction Hash:', {
+      x: 140,
+      y: yPosition + 15,
+      size: 8,
+      font: font,
+      color: darkGray,
+    });
+    
+    // Dividi l'hash in righe se troppo lungo
+    const hash = batch.transactionHash;
+    const hashLines = [];
+    for (let i = 0; i < hash.length; i += 50) {
+      hashLines.push(hash.substring(i, i + 50));
+    }
+    
+    hashLines.forEach((line, index) => {
+      page.drawText(line, {
+        x: 140,
+        y: yPosition - (index * 10),
+        size: 8,
+        font: regularFont,
+        color: darkGray,
+      });
+    });
+    
+    yPosition -= 100;
+    
+    // Steps se presenti
+    if (batch.steps && batch.steps.length > 0) {
+      // Nuova pagina se necessario
+      if (yPosition < 200) {
+        const newPage = pdfDoc.addPage([595, 842]);
+        yPosition = 700;
+      }
+      
+      page.drawRectangle({
+        x: 50,
+        y: yPosition,
+        width: 495,
+        height: 20,
+        color: lightGray,
+      });
+      
+      page.drawText('🔄 FASI DI LAVORAZIONE', {
+        x: 60,
+        y: yPosition + 5,
+        size: 16,
+        font: font,
+        color: primaryColor,
+      });
+      
+      yPosition -= 40;
+      
+      batch.steps.forEach((step, index) => {
+        // Nuova pagina se necessario
+        if (yPosition < 100) {
+          const newPage = pdfDoc.addPage([595, 842]);
+          yPosition = 700;
+        }
+        
+        // Step container
+        page.drawRectangle({
+          x: 50,
+          y: yPosition - 60,
+          width: 495,
+          height: 60,
+          color: white,
+          borderColor: primaryColor,
+          borderWidth: 1,
+        });
+        
+        // Numero step
+        page.drawCircle({
+          x: 70,
+          y: yPosition - 20,
+          radius: 8,
+          color: primaryColor,
+        });
+        
+        page.drawText((index + 1).toString(), {
+          x: 65,
+          y: yPosition - 25,
+          size: 10,
+          font: font,
+          color: white,
+        });
+        
+        // Titolo step
+        page.drawText(step.eventName, {
+          x: 90,
+          y: yPosition - 10,
+          size: 12,
+          font: font,
+          color: primaryColor,
+        });
+        
+        // Dettagli step
+        const stepDetails = [
+          ['Descrizione:', step.description || 'Nessuna descrizione'],
+          ['Data:', step.date || 'N/D'],
+          ['Luogo:', step.location || 'N/D']
+        ];
+        
+        stepDetails.forEach(([label, value], detailIndex) => {
+          const y = yPosition - 25 - (detailIndex * 12);
+          page.drawText(label, {
+            x: 90,
+            y: y,
+            size: 9,
+            font: font,
+            color: darkGray,
+          });
+          page.drawText(value, {
+            x: 90 + 60,
+            y: y,
+            size: 9,
+            font: regularFont,
+            color: darkGray,
+          });
+        });
+        
+        // QR Code per step (placeholder)
+        page.drawRectangle({
+          x: 500,
+          y: yPosition - 55,
+          width: 40,
+          height: 40,
+          borderColor: primaryColor,
+          borderWidth: 1,
+        });
+        
+        page.drawText('QR', {
+          x: 515,
+          y: yPosition - 30,
+          size: 8,
+          font: font,
+          color: primaryColor,
+          align: 'center',
+        });
+        
+        page.drawText('CODE', {
+          x: 515,
+          y: yPosition - 40,
+          size: 8,
+          font: font,
+          color: primaryColor,
+          align: 'center',
+        });
+        
+        page.drawText('Verifica:', {
+          x: 500,
+          y: yPosition - 50,
+          size: 6,
+          font: font,
+          color: primaryColor,
+        });
+        
+        const txHash = step.transactionHash.substring(0, 15) + '...';
+        page.drawText(txHash, {
+          x: 500,
+          y: yPosition - 60,
+          size: 6,
+          font: regularFont,
+          color: darkGray,
+        });
+        
+        yPosition -= 80;
+      });
+    }
+    
+    // Footer
+    page.drawRectangle({
+      x: 0,
+      y: 0,
+      width: 595,
+      height: 50,
+      color: lightGray,
+    });
+    
+    page.drawText('SIMPLY CHAIN - Tracciabilità Blockchain per le imprese italiane', {
+      x: 0,
+      y: 30,
+      size: 8,
+      font: font,
+      color: darkGray,
+      align: 'center',
+    });
+    
+    page.drawText('Servizio Gratuito prodotto da SFY s.r.l. - sfy.startup@gmail.com', {
+      x: 0,
+      y: 15,
+      size: 8,
+      font: font,
+      color: darkGray,
+      align: 'center',
+    });
+    
+    // Genera il PDF
+    const pdfBytes = await pdfDoc.save();
+    
+    // Invia il PDF
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="CERTIFICATO_TRACCIABILITA_${batch.name.replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, '_')}.pdf"`);
+    res.setHeader('Cache-Control', 'no-cache');
+    res.send(Buffer.from(pdfBytes));
+    
+    console.log('✅ Vero PDF generato con successo');
+    
+  } catch (error) {
+    console.error('❌ Errore generazione PDF:', error);
+    res.status(500).json({ 
+      error: 'Errore nella generazione del PDF',
+      details: error.message 
+    });
+  }
+}
 
