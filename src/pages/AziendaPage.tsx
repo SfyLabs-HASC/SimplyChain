@@ -4298,6 +4298,7 @@ const AddStepModal: React.FC<{
   });
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [fileError, setFileError] = useState<string | null>(null);
 
   const [txResult, setTxResult] = useState<{ status: "success" | "error"; message: string; } | null>(null);
 
@@ -4314,9 +4315,15 @@ const AddStepModal: React.FC<{
 
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-
-    setSelectedFile(e.target.files?.[0] || null);
-
+    const file = e.target.files?.[0] || null;
+    if (file && file.size > 5 * 1024 * 1024) {
+      setFileError("Il file supera i 5 MB. Scegli un'immagine più leggera.");
+      setSelectedFile(null);
+      e.currentTarget.value = '';
+      return;
+    }
+    setFileError(null);
+    setSelectedFile(file);
   };
 
 
@@ -4839,10 +4846,11 @@ const AddStepModal: React.FC<{
 
                   </small>
 
-                  {selectedFile && (
-
-                    <p className="text-primary underline mt-2 block">File: {selectedFile.name}</p>
-
+                  {fileError && (
+                    <p className="text-red-400 mt-2">{fileError}</p>
+                  )}
+                  {selectedFile && !fileError && (
+                    <p className="text-purple-300 underline mt-2 block">File: {selectedFile.name}</p>
                   )}
 
                 </div>
