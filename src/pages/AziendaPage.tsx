@@ -1883,6 +1883,18 @@ const AziendaPageStyles = () => (
 
         font-weight: bold;
 
+        display: inline-block;
+
+        padding: 0.25rem 0.5rem;
+
+        border: 1px solid #7c3aed;
+
+        border-radius: 0.5rem;
+
+        background: transparent;
+
+        margin-right: 0.5rem;
+
       }
 
 
@@ -1942,6 +1954,18 @@ const AziendaPageStyles = () => (
       .batch-number {
 
         color: #7c3aed;
+
+        display: inline-block;
+
+        padding: 0.25rem 0.5rem;
+
+        border: 1px solid #7c3aed;
+
+        border-radius: 0.5rem;
+
+        background: transparent;
+
+        margin-right: 0.5rem;
 
       }
 
@@ -3729,7 +3753,7 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
 
                     <h3 className="batch-title">
 
-                      <span className="batch-number">#{getBatchDisplayNumber(batch.batchId)}</span> - {batch.name}
+                      <span className="batch-number">{getBatchDisplayNumber(batch.batchId)}</span> {batch.name}
 
                     </h3>
 
@@ -6558,6 +6582,14 @@ const InfoModal: React.FC<{
 
             </div>
 
+            <div style={{ background: 'rgba(139, 92, 246, 0.1)', padding: '1rem', borderRadius: '0.75rem', border: '1px solid rgba(139, 92, 246, 0.3)' }}>
+
+              <h5 style={{ color: '#8b5cf6', margin: '0 0 0.5rem 0', fontWeight: '600' }}>📱 QR Code per Certificati</h5>
+
+              <p style={{ margin: 0, color: '#d1d5db', fontSize: '0.9rem' }}>Genera un QR Code che riporta al tuo certificato online.</p>
+
+            </div>
+
           </div>
 
         </div>
@@ -6662,49 +6694,7 @@ const InfoModal: React.FC<{
 
     },
 
-    {
-
-      title: "Genera QR Code",
-
-      icon: "📱",
-
-      content: (
-
-        <div>
-
-          <div style={{ background: 'rgba(139, 92, 246, 0.1)', padding: '1.5rem', borderRadius: '1rem', border: '1px solid rgba(139, 92, 246, 0.3)', marginBottom: '1rem' }}>
-
-            <h5 style={{ color: '#8b5cf6', margin: '0 0 1rem 0', fontWeight: '600', fontSize: '1.1rem' }}>📱 QR Code per Certificati</h5>
-
-            <p style={{ margin: '0 0 1rem 0', color: '#d1d5db' }}>Genera un QR Code che riporta al tuo certificato online.</p>
-
-            <p style={{ margin: '0 0 1rem 0', color: '#d1d5db' }}>Il QR Code può essere stampato sulle etichette del prodotto per permettere ai clienti di verificare l'autenticità e la tracciabilità.</p>
-
-            <div style={{ background: 'rgba(139, 92, 246, 0.2)', padding: '1rem', borderRadius: '0.75rem', border: '1px solid rgba(139, 92, 246, 0.4)' }}>
-
-              <p style={{ margin: '0 0 0.5rem 0', color: '#a78bfa', fontWeight: '600' }}>💡 Come funziona:</p>
-
-              <ul style={{ paddingLeft: '1.5rem', color: '#d1d5db', margin: 0, fontSize: '0.9rem' }}>
-
-                <li>Il QR Code punta al certificato online</li>
-
-                <li>I clienti possono scansionarlo per verificare</li>
-
-                <li>Mostra tutte le informazioni di tracciabilità</li>
-
-                <li>Aggiornato in tempo reale</li>
-
-              </ul>
-
-            </div>
-
-          </div>
-
-        </div>
-
-      )
-
-    }
+    // Rimosso slide QR; info spostata nella prima pagina
 
   ];
 
@@ -6713,12 +6703,13 @@ const InfoModal: React.FC<{
   const nextSlide = () => {
 
     if (isAnimating) return;
+    if (currentSlide >= slides.length - 1) return; // disabilita oltre l'ultima pagina
 
     setIsAnimating(true);
 
     setTimeout(() => {
 
-      setCurrentSlide((prev) => (prev + 1) % slides.length);
+      setCurrentSlide((prev) => Math.min(prev + 1, slides.length - 1));
 
       setIsAnimating(false);
 
@@ -6731,12 +6722,13 @@ const InfoModal: React.FC<{
   const prevSlide = () => {
 
     if (isAnimating) return;
+    if (currentSlide <= 0) return; // disabilita prima della prima pagina
 
     setIsAnimating(true);
 
     setTimeout(() => {
 
-      setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length);
+      setCurrentSlide((prev) => Math.max(prev - 1, 0));
 
       setIsAnimating(false);
 
@@ -6822,7 +6814,7 @@ const InfoModal: React.FC<{
 
               onClick={prevSlide} 
 
-              disabled={isAnimating}
+              disabled={isAnimating || currentSlide === 0}
 
               style={{ 
 
@@ -6840,7 +6832,7 @@ const InfoModal: React.FC<{
 
                 transition: 'all 0.3s ease',
 
-                opacity: isAnimating ? 0.5 : 1
+                opacity: (isAnimating || currentSlide === 0) ? 0.5 : 1
 
               }}
 
@@ -6854,7 +6846,7 @@ const InfoModal: React.FC<{
 
               onClick={nextSlide} 
 
-              disabled={isAnimating}
+              disabled={isAnimating || currentSlide === slides.length - 1}
 
               style={{ 
 
@@ -6872,7 +6864,7 @@ const InfoModal: React.FC<{
 
                 transition: 'all 0.3s ease',
 
-                opacity: isAnimating ? 0.5 : 1
+                opacity: (isAnimating || currentSlide === slides.length - 1) ? 0.5 : 1
 
               }}
 
