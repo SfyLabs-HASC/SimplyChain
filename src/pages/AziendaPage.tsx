@@ -7277,15 +7277,6 @@ const QRInfoModal: React.FC<{
               </div>
             </div>
 
-            <div className="flex items-start space-x-3">
-              <div className="text-purple-400 text-lg">🔗</div>
-              <div>
-                <h4 className="text-white font-medium mb-1">Hosting</h4>
-                <p className="text-slate-400 text-sm">
-                  SimplyChain ospita i dati collegati al QR Code
-                </p>
-              </div>
-            </div>
           </div>
 
           <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-4">
