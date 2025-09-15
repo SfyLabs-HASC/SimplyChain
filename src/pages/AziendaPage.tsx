@@ -4197,9 +4197,9 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
             setSelectedBatchForExport(null);
           }}
           onExportPDF={() => {
-            // Per ora non fa nulla, come richiesto
-            setSuccessMessage('Funzionalità PDF in sviluppo');
-            setShowSuccessModal(true);
+            if (selectedBatchForExport) {
+              handleExport(selectedBatchForExport, 'pdf', '');
+            }
             setShowExportModal(false);
           }}
           onExportHTML={() => {
