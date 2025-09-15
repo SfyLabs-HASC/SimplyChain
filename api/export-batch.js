@@ -17,7 +17,7 @@ export default async function handler(req, res) {
       const pdfHtml = generatePrintableHTML(batch, companyName);
       
       res.setHeader('Content-Type', 'text/html; charset=utf-8');
-      res.setHeader('Content-Disposition', `attachment; filename="${batch.name}_certificato_stampa.html"`);
+      res.setHeader('Content-Disposition', `attachment; filename="CERTIFICATO_TRACCIABILITA_${batch.name.replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, '_')}.html"`);
       res.send(pdfHtml);
 
     } else if (exportType === 'html') {
@@ -340,7 +340,7 @@ export default async function handler(req, res) {
       `;
 
       res.setHeader('Content-Type', 'text/html; charset=utf-8');
-      res.setHeader('Content-Disposition', `attachment; filename="${batch.name}_certificato.html"`);
+      res.setHeader('Content-Disposition', `attachment; filename="CERTIFICATO_TRACCIABILITA_${batch.name.replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, '_')}.html"`);
       res.send(html);
     } else {
       return res.status(400).json({ error: 'Export type not supported' });
@@ -359,126 +359,369 @@ function generatePrintableHTML(batch, companyName) {
     <head>
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>${batch.name} - Certificato di Tracciabilità (PDF)</title>
+      <title>CERTIFICATO DI TRACCIABILITÀ - ${batch.name}</title>
       <style>
         @media print {
           body { -webkit-print-color-adjust: exact; color-adjust: exact; }
           .no-print { display: none; }
+          .page-break { page-break-before: always; }
         }
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { 
-          font-family: Arial, sans-serif; 
-          line-height: 1.4; 
-          color: #333;
+          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+          line-height: 1.6; 
+          color: #1f2937;
           background: white;
           padding: 20px;
         }
-        .print-header {
-          text-align: center;
-          padding: 20px;
-          background: #3b82f6;
-          color: white;
-          margin-bottom: 30px;
-          border-radius: 8px;
+        .certificate-container {
+          max-width: 800px;
+          margin: 0 auto;
+          background: white;
+          border: 3px solid #8b5cf6;
+          border-radius: 12px;
+          overflow: hidden;
+          box-shadow: 0 10px 25px rgba(139, 92, 246, 0.1);
         }
-        .print-header h1 { font-size: 24px; margin-bottom: 10px; }
-        .company-name { font-size: 16px; opacity: 0.9; }
-        .batch-info { margin-bottom: 30px; }
+        .certificate-header {
+          background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+          color: white;
+          padding: 30px;
+          text-align: center;
+          position: relative;
+        }
+        .logo {
+          width: 60px;
+          height: 60px;
+          background: white;
+          border-radius: 50%;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 24px;
+          font-weight: bold;
+          color: #8b5cf6;
+          margin-bottom: 15px;
+        }
+        .certificate-title {
+          font-size: 28px;
+          font-weight: 800;
+          margin-bottom: 8px;
+          text-transform: uppercase;
+          letter-spacing: 1px;
+        }
+        .company-info {
+          font-size: 18px;
+          opacity: 0.95;
+          font-weight: 500;
+        }
+        .certificate-content {
+          padding: 30px;
+        }
+        .section {
+          margin-bottom: 35px;
+          background: #f8fafc;
+          border-radius: 12px;
+          padding: 25px;
+          border-left: 5px solid #8b5cf6;
+        }
+        .section-title {
+          color: #8b5cf6;
+          font-size: 20px;
+          font-weight: 700;
+          margin-bottom: 20px;
+          display: flex;
+          align-items: center;
+          gap: 10px;
+        }
         .info-grid {
           display: grid;
-          grid-template-columns: 1fr 1fr;
+          grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
           gap: 20px;
-          margin: 20px 0;
+          margin-bottom: 20px;
         }
         .info-item {
+          background: white;
           padding: 15px;
-          border: 1px solid #e5e7eb;
           border-radius: 8px;
+          border: 1px solid #e5e7eb;
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
         }
-        .info-label { font-weight: bold; color: #374151; margin-bottom: 5px; }
-        .info-value { color: #6b7280; }
-        .steps-section { margin-top: 30px; }
-        .step {
+        .info-label {
+          font-weight: 600;
+          color: #6b7280;
+          font-size: 14px;
+          margin-bottom: 5px;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+        }
+        .info-value {
+          color: #1f2937;
+          font-size: 16px;
+          font-weight: 500;
+        }
+        .description-box {
+          background: white;
+          padding: 20px;
+          border-radius: 8px;
+          border: 1px solid #e5e7eb;
+          margin-top: 15px;
+        }
+        .steps-container {
+          display: flex;
+          flex-direction: column;
+          gap: 20px;
+        }
+        .step-item {
+          background: white;
+          border-radius: 10px;
+          padding: 20px;
+          border: 1px solid #e5e7eb;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+          position: relative;
+        }
+        .step-number {
+          position: absolute;
+          top: -10px;
+          left: 20px;
+          background: #8b5cf6;
+          color: white;
+          width: 30px;
+          height: 30px;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-weight: bold;
+          font-size: 14px;
+        }
+        .step-title {
+          color: #8b5cf6;
+          font-size: 18px;
+          font-weight: 700;
           margin-bottom: 15px;
-          padding: 15px;
+          margin-top: 5px;
+        }
+        .step-details {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+          gap: 15px;
+        }
+        .step-detail {
+          display: flex;
+          flex-direction: column;
+          gap: 5px;
+        }
+        .step-detail-label {
+          font-weight: 600;
+          color: #6b7280;
+          font-size: 14px;
+        }
+        .step-detail-value {
+          color: #1f2937;
+          font-size: 15px;
+        }
+        .qr-container {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          margin-top: 10px;
+        }
+        .qr-code {
+          width: 80px;
+          height: 80px;
           border: 1px solid #e5e7eb;
           border-radius: 8px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
           background: #f9fafb;
+          font-size: 12px;
+          color: #6b7280;
+          text-align: center;
         }
-        .step-header { font-weight: bold; color: #059669; margin-bottom: 10px; }
+        .blockchain-link {
+          color: #8b5cf6;
+          text-decoration: none;
+          font-weight: 500;
+          font-size: 14px;
+        }
+        .footer {
+          background: #f8fafc;
+          padding: 20px;
+          text-align: center;
+          color: #6b7280;
+          font-size: 14px;
+          border-top: 1px solid #e5e7eb;
+        }
         .print-button {
           position: fixed;
           top: 20px;
           right: 20px;
-          padding: 10px 20px;
-          background: #3b82f6;
+          padding: 12px 24px;
+          background: #8b5cf6;
           color: white;
           border: none;
           border-radius: 8px;
           cursor: pointer;
+          font-weight: 600;
+          box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+        }
+        .status-badge {
+          display: inline-block;
+          padding: 6px 12px;
+          background: #10b981;
+          color: white;
+          border-radius: 20px;
+          font-size: 14px;
+          font-weight: 600;
         }
       </style>
+      <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+      <script>
+        function generateQRCode(text, elementId) {
+          const canvas = document.getElementById(elementId);
+          if (canvas && window.QRCode) {
+            QRCode.toCanvas(canvas, text, {
+              width: 80,
+              height: 80,
+              color: {
+                dark: '#8b5cf6',
+                light: '#ffffff'
+              }
+            });
+          }
+        }
+        
+        window.onload = function() {
+          // Generate QR codes for blockchain links
+          const batchTxHash = '${batch.transactionHash}';
+          if (batchTxHash) {
+            generateQRCode('https://polygonscan.com/inputdatadecoder?tx=' + batchTxHash, 'batch-qr');
+          }
+          
+          // Generate QR codes for each step
+          ${batch.steps ? batch.steps.map((step, index) => `
+            const step${index}TxHash = '${step.transactionHash}';
+            if (step${index}TxHash) {
+              generateQRCode('https://polygonscan.com/inputdatadecoder?tx=' + step${index}TxHash, 'step-${index}-qr');
+            }
+          `).join('') : ''}
+        }
+      </script>
     </head>
     <body>
       <button class="print-button no-print" onclick="window.print()">🖨️ Stampa PDF</button>
       
-      <div class="print-header">
-        <h1>📋 CERTIFICATO DI TRACCIABILITÀ</h1>
-        <div class="company-name">Prodotto da: ${companyName}</div>
-      </div>
-
-      <div class="batch-info">
-        <h2>📦 INFORMAZIONI ISCRIZIONE</h2>
-        <div class="info-grid">
-          <div class="info-item">
-            <div class="info-label">📦 Nome Prodotto</div>
-            <div class="info-value">${batch.name}</div>
-          </div>
-          <div class="info-item">
-            <div class="info-label">📅 Data di Origine</div>
-            <div class="info-value">${batch.date || 'N/D'}</div>
-          </div>
-          <div class="info-item">
-            <div class="info-label">📍 Luogo di Produzione</div>
-            <div class="info-value">${batch.location || 'N/D'}</div>
-          </div>
-          <div class="info-item">
-            <div class="info-label">📊 Stato</div>
-            <div class="info-value">✅ Finalizzato</div>
-          </div>
+      <div class="certificate-container">
+        <div class="certificate-header">
+          <div class="logo">S</div>
+          <div class="certificate-title">Certificato di Tracciabilità</div>
+          <div class="company-info">SIMPLY CHAIN</div>
+          <div style="margin-top: 10px; font-size: 16px; opacity: 0.9;">Prodotto da: ${companyName}</div>
         </div>
-        
-        ${batch.description ? `
-          <div class="info-item">
-            <div class="info-label">Descrizione</div>
-            <div class="info-value">${batch.description}</div>
-          </div>
-        ` : ''}
-        
-        <div class="info-item">
-          <div class="info-label">🔗 Verifica su Blockchain</div>
-          <div class="info-value">${batch.transactionHash}</div>
-        </div>
-      </div>
 
-      ${batch.steps && batch.steps.length > 0 ? `
-        <div class="steps-section">
-          <h2>🔄 FASI DI LAVORAZIONE</h2>
-          ${batch.steps.map((step, index) => `
-            <div class="step">
-              <div class="step-header">Step ${index + 1}: ${step.eventName}</div>
-              <div><strong>Descrizione:</strong> ${step.description || 'Nessuna descrizione'}</div>
-              <div><strong>Data:</strong> ${step.date || 'N/D'}</div>
-              <div><strong>Luogo:</strong> ${step.location || 'N/D'}</div>
-              ${step.transactionHash ? `<div><strong>Transaction Hash:</strong> ${step.transactionHash}</div>` : ''}
+        <div class="certificate-content">
+          <!-- Informazioni Batch -->
+          <div class="section">
+            <div class="section-title">📦 Informazioni Iscrizione</div>
+            <div class="info-grid">
+              <div class="info-item">
+                <div class="info-label">Nome Prodotto</div>
+                <div class="info-value">${batch.name}</div>
+              </div>
+              <div class="info-item">
+                <div class="info-label">Data di Origine</div>
+                <div class="info-value">${batch.date || 'N/D'}</div>
+              </div>
+              <div class="info-item">
+                <div class="info-label">Luogo di Produzione</div>
+                <div class="info-value">${batch.location || 'N/D'}</div>
+              </div>
+              <div class="info-item">
+                <div class="info-label">Stato</div>
+                <div class="info-value">
+                  <span class="status-badge">✅ Finalizzato</span>
+                </div>
+              </div>
+              <div class="info-item">
+                <div class="info-label">Batch ID</div>
+                <div class="info-value">${batch.batchId}</div>
+              </div>
+              <div class="info-item">
+                <div class="info-label">Data Generazione</div>
+                <div class="info-value">${new Date().toLocaleDateString('it-IT')}</div>
+              </div>
             </div>
-          `).join('')}
-        </div>
-      ` : ''}
+            
+            ${batch.description ? `
+              <div class="description-box">
+                <div class="info-label">Descrizione</div>
+                <div class="info-value">${batch.description}</div>
+              </div>
+            ` : ''}
+            
+            <div class="info-item" style="margin-top: 20px;">
+              <div class="info-label">Verifica su Blockchain</div>
+              <div class="qr-container">
+                <canvas id="batch-qr" class="qr-code"></canvas>
+                <div>
+                  <div class="step-detail-value">Transaction Hash:</div>
+                  <div class="step-detail-value" style="font-family: monospace; font-size: 12px; word-break: break-all;">${batch.transactionHash}</div>
+                  <a href="https://polygonscan.com/inputdatadecoder?tx=${batch.transactionHash}" target="_blank" class="blockchain-link">
+                    🔗 Verifica su Polygonscan
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
 
-      <div style="text-align: center; margin-top: 40px; font-size: 12px; color: #9ca3af;">
-        Generato tramite SimplyChain - Tracciabilità Blockchain per le imprese italiane.<br>
-        Servizio Gratuito prodotto da SFY s.r.l. - Contattaci per maggiori informazioni: sfy.startup@gmail.com
+          ${batch.steps && batch.steps.length > 0 ? `
+            <div class="section">
+              <div class="section-title">🔄 Fasi di Lavorazione</div>
+              <div class="steps-container">
+                ${batch.steps.map((step, index) => `
+                  <div class="step-item">
+                    <div class="step-number">${index + 1}</div>
+                    <div class="step-title">${step.eventName}</div>
+                    <div class="step-details">
+                      <div class="step-detail">
+                        <div class="step-detail-label">Descrizione</div>
+                        <div class="step-detail-value">${step.description || 'Nessuna descrizione'}</div>
+                      </div>
+                      <div class="step-detail">
+                        <div class="step-detail-label">Data</div>
+                        <div class="step-detail-value">${step.date || 'N/D'}</div>
+                      </div>
+                      <div class="step-detail">
+                        <div class="step-detail-label">Luogo</div>
+                        <div class="step-detail-value">${step.location || 'N/D'}</div>
+                      </div>
+                      <div class="step-detail">
+                        <div class="step-detail-label">Verifica Blockchain</div>
+                        <div class="qr-container">
+                          <canvas id="step-${index}-qr" class="qr-code"></canvas>
+                          <div>
+                            <div class="step-detail-value" style="font-family: monospace; font-size: 12px; word-break: break-all;">${step.transactionHash}</div>
+                            <a href="https://polygonscan.com/inputdatadecoder?tx=${step.transactionHash}" target="_blank" class="blockchain-link">
+                              🔗 Verifica Transazione
+                            </a>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          ` : ''}
+        </div>
+
+        <div class="footer">
+          <strong>SIMPLY CHAIN</strong> - Tracciabilità Blockchain per le imprese italiane<br>
+          Servizio Gratuito prodotto da SFY s.r.l.<br>
+          Contattaci: sfy.startup@gmail.com | Generato il ${new Date().toLocaleString('it-IT')}
+        </div>
       </div>
     </body>
     </html>
