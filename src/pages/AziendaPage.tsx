@@ -3379,21 +3379,35 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
 
         
 
-        const url = window.URL.createObjectURL(blob);
-
-        const a = document.createElement('a');
-
-        a.href = url;
-
-        a.download = `CERTIFICATO_TRACCIABILITA_${batch.name.replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, '_')}.${exportType}`;
-
-        document.body.appendChild(a);
-
-        a.click();
-
-        window.URL.revokeObjectURL(url);
-
-        document.body.removeChild(a);
+        // Per PDF (che è HTML), apri in nuova finestra invece di scaricare
+        if (exportType === 'pdf') {
+          const htmlContent = await response.text();
+          const newWindow = window.open('', '_blank');
+          if (newWindow) {
+            newWindow.document.write(htmlContent);
+            newWindow.document.close();
+          } else {
+            // Fallback: scarica il file
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `CERTIFICATO_TRACCIABILITA_${batch.name.replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, '_')}.html`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+          }
+        } else {
+          // Per HTML normale, scarica il file
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `CERTIFICATO_TRACCIABILITA_${batch.name.replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, '_')}.${exportType}`;
+          document.body.appendChild(a);
+          a.click();
+          window.URL.revokeObjectURL(url);
+          document.body.removeChild(a);
+        }
 
 
 
