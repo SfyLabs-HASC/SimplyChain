@@ -3723,14 +3723,13 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
 
               currentItems.map((batch) => (
 
-                <div key={batch.batchId} className="batch-card glass-card rounded-2xl p-6 tech-shadow hover:shadow-lg transition h-full flex flex-col">
+                <div key={batch.batchId} className="rounded-2xl p-6 h-full flex flex-col bg-slate-800/60 border border-slate-700/50 hover:bg-slate-800/80 transition-colors shadow-sm">
 
                   <div className="flex-1 flex flex-col">
 
-                    <h3 className="batch-title">
-
-                      <span className="batch-number">#{getBatchDisplayNumber(batch.batchId)}</span> - {batch.name}
-
+                    <h3 className="text-white text-lg font-semibold flex items-center gap-2">
+                      <span className="inline-flex items-center justify-center w-7 h-7 rounded-md bg-gradient-to-r from-purple-600 to-blue-600 text-white text-sm">{getBatchDisplayNumber(batch.batchId)}</span>
+                      <span>{batch.name}</span>
                     </h3>
 
                     <p><strong className="label-violet">Descrizione:</strong> {batch.description ? truncateText(batch.description, window.innerWidth < 768 ? 80 : 100) : "N/D"}</p>
@@ -3739,14 +3738,10 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
 
                     <p><strong className="label-violet">Luogo:</strong> {batch.location || "N/D"}</p>
 
-                    <p>
-
-                      <strong>Stato:</strong> <span className={batch.isClosed ? 'text-red-500 font-semibold' : 'text-green-500 font-semibold'}>
-
+                    <p className="text-slate-300">
+                      <strong className="text-purple-300">Stato:</strong> <span className={batch.isClosed ? 'text-red-400 font-semibold' : 'text-green-400 font-semibold'}>
                         {batch.isClosed ? ' Chiuso' : ' Aperto'}
-
                       </span>
-
                     </p>
 
                     <p><strong className="label-violet">Tx Hash:</strong>
@@ -4726,11 +4721,13 @@ const AddStepModal: React.FC<{
 
                 <div className="mb-4">
 
-                  <label>
+                  <label className="text-slate-200 font-medium">
+
+                    <span className="material-symbols-outlined align-middle mr-1 text-purple-300">location_on</span>
 
                     Luogo
 
-                    <span style={{ color: "#6c757d" }}> Non obbligatorio</span>
+                    <span style={{ color: "#9ca3af" }}> Non obbligatorio</span>
 
                   </label>
 
@@ -4744,7 +4741,7 @@ const AddStepModal: React.FC<{
 
                     onChange={handleInputChange}
 
-                    className="w-full p-3 rounded-lg bg-gray-800 border border-gray-700 text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                    className="w-full p-3 rounded-lg bg-slate-900 border border-purple-500/30 text-foreground focus:outline-none focus:ring-2 focus:ring-purple-500/50"
 
                     maxLength={50}
 
@@ -4772,11 +4769,13 @@ const AddStepModal: React.FC<{
 
                 <div className="mb-4">
 
-                  <label>
+                  <label className="text-slate-200 font-medium">
+
+                    <span className="material-symbols-outlined align-middle mr-1 text-purple-300">calendar_month</span>
 
                     Data
 
-                    <span style={{ color: "#6c757d" }}> Non obbligatorio</span>
+                    <span style={{ color: "#9ca3af" }}> Non obbligatorio</span>
 
                   </label>
 
@@ -4790,7 +4789,7 @@ const AddStepModal: React.FC<{
 
                     onChange={handleInputChange}
 
-                    className="w-full p-3 rounded-lg bg-gray-800 border border-gray-700 text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                    className="w-full p-3 rounded-lg bg-slate-900 border border-purple-500/30 text-foreground focus:outline-none focus:ring-2 focus:ring-purple-500/50"
 
                     max={today}
 
