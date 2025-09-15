@@ -90,6 +90,73 @@ async function handleSaveBillingDetails(req, res) {
   }
 }
 
+// --- AGGIUNTO: 4. Logica per inviare email di contatto custom ---
+async function handleCustomContact(req, res) {
+  try {
+    const { email, companyName, message, userEmail } = req.body;
+    
+    if (!email || !companyName || !message) {
+      return res.status(400).json({ error: 'Email, nome azienda e messaggio sono obbligatori.' });
+    }
+
+    if (message.length > 500) {
+      return res.status(400).json({ error: 'Messaggio troppo lungo (max 500 caratteri).' });
+    }
+
+    const { data, error } = await resend.emails.send({
+      from: 'Simply Chain <onboarding@resend.dev>',
+      to: ['sfy.startup@gmail.com'],
+      subject: `Richiesta prezzo custom - ${companyName}`,
+      html: `
+        <div style="font-family: sans-serif; padding: 20px; border: 1px solid #eee; border-radius: 8px; background: #f9f9f9;">
+          <h2 style="color: #8b5cf6;">Richiesta Prezzo Personalizzato</h2>
+          <p>L'azienda <strong>${companyName}</strong> ha richiesto un preventivo personalizzato per i crediti.</p>
+          
+          <hr style="margin: 20px 0; border: none; border-top: 1px solid #ddd;">
+          
+          <h3 style="color: #333;">Dettagli Richiesta:</h3>
+          <ul style="list-style: none; padding: 0;">
+            <li style="margin: 10px 0; padding: 10px; background: white; border-radius: 5px; border-left: 4px solid #8b5cf6;">
+              <strong>Nome Azienda:</strong> ${companyName}
+            </li>
+            <li style="margin: 10px 0; padding: 10px; background: white; border-radius: 5px; border-left: 4px solid #8b5cf6;">
+              <strong>Email Contatto:</strong> ${email}
+            </li>
+            <li style="margin: 10px 0; padding: 10px; background: white; border-radius: 5px; border-left: 4px solid #8b5cf6;">
+              <strong>Email Utente:</strong> ${userEmail}
+            </li>
+          </ul>
+          
+          <h3 style="color: #333;">Messaggio:</h3>
+          <div style="background: white; padding: 15px; border-radius: 5px; border: 1px solid #ddd; margin: 10px 0;">
+            ${message.replace(/\n/g, '<br>')}
+          </div>
+          
+          <hr style="margin: 20px 0; border: none; border-top: 1px solid #ddd;">
+          
+          <p style="color: #666; font-size: 14px;">
+            <strong>Data richiesta:</strong> ${new Date().toLocaleString('it-IT')}
+          </p>
+          
+          <p style="color: #666; font-size: 14px; margin-top: 20px;">
+            Rispondi direttamente a questa email per contattare l'azienda.
+          </p>
+        </div>
+      `,
+    });
+
+    if (error) {
+      console.error('Resend error:', error);
+      return res.status(400).json({ error: 'Errore nell\'invio dell\'email.' });
+    }
+
+    res.status(200).json({ message: 'Richiesta inviata con successo.' });
+  } catch (error) {
+    console.error("Errore nell'invio della richiesta custom:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+}
+
 // --- Handler Principale che decide quale funzione eseguire ---
 export default async (req, res) => {
   if (req.method !== 'POST') {
@@ -105,6 +172,10 @@ export default async (req, res) => {
     // AGGIUNTO: Nuovo caso per il salvataggio dei dati
     case 'save-billing-details':
       return await handleSaveBillingDetails(req, res);
+    
+    // AGGIUNTO: Nuovo caso per il contatto custom
+    case 'custom-contact':
+      return await handleCustomContact(req, res);
       
     default:
       // Se non c'è 'action' o è sconosciuto, esegue l'invio dell'email

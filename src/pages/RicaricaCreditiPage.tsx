@@ -36,6 +36,12 @@ interface CreditPackage {
   description: string;
 }
 
+interface CustomContactForm {
+  email: string;
+  companyName: string;
+  message: string;
+}
+
 // --- Setup ---
 const client = createThirdwebClient({ clientId: "023dd6504a82409b2bc7cb971fd35b16" });
 
@@ -106,12 +112,189 @@ const RicaricaCreditiStyles = () => (
 
 // --- Pacchetti Crediti ---
 const creditPackages: CreditPackage[] = [
-  { id: 'price_1', credits: 10, pricePerCredit: 0.20, totalPrice: 2.00, description: 'Pacchetto 10 crediti' },
-  { id: 'price_2', credits: 50, pricePerCredit: 0.12, totalPrice: 6.00, description: 'Pacchetto 50 crediti' },
-  { id: 'price_3', credits: 100, pricePerCredit: 0.10, totalPrice: 10.00, description: 'Pacchetto 100 crediti' },
-  { id: 'price_4', credits: 500, pricePerCredit: 0.09, totalPrice: 45.00, description: 'Pacchetto 500 crediti' },
-  { id: 'price_5', credits: 1000, pricePerCredit: 0.07, totalPrice: 70.00, description: 'Pacchetto 1000 crediti' },
+  { id: 'price_1', credits: 10, pricePerCredit: 1.00, totalPrice: 10.00, description: 'Pacchetto 10 crediti' },
+  { id: 'price_2', credits: 50, pricePerCredit: 1.00, totalPrice: 50.00, description: 'Pacchetto 50 crediti' },
+  { id: 'price_3', credits: 100, pricePerCredit: 1.00, totalPrice: 100.00, description: 'Pacchetto 100 crediti' },
+  { id: 'price_4', credits: 500, pricePerCredit: 1.00, totalPrice: 500.00, description: 'Pacchetto 500 crediti' },
+  { id: 'price_5', credits: 1000, pricePerCredit: 1.00, totalPrice: 1000.00, description: 'Pacchetto 1000 crediti' },
 ];
+
+// --- Componente Form Contatto Custom ---
+const CustomContactModal: React.FC<{ isOpen: boolean, onClose: () => void, userData: UserData | null }> = ({ isOpen, onClose, userData }) => {
+  const [formData, setFormData] = useState<CustomContactForm>({
+    email: '',
+    companyName: userData?.companyName || '',
+    message: ''
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errors, setErrors] = useState<Partial<CustomContactForm>>({});
+  const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
+
+  const validateForm = () => {
+    const newErrors: Partial<CustomContactForm> = {};
+    
+    if (!formData.email.trim()) {
+      newErrors.email = 'Email obbligatoria';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = 'Email non valida';
+    }
+    
+    if (!formData.companyName.trim()) {
+      newErrors.companyName = 'Nome azienda obbligatorio';
+    }
+    
+    if (!formData.message.trim()) {
+      newErrors.message = 'Messaggio obbligatorio';
+    } else if (formData.message.length > 500) {
+      newErrors.message = 'Messaggio troppo lungo (max 500 caratteri)';
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!validateForm()) return;
+    
+    setIsSubmitting(true);
+    setSubmitStatus('idle');
+    
+    try {
+      const response = await fetch('/api/send-email?action=custom-contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: formData.email,
+          companyName: formData.companyName,
+          message: formData.message,
+          userEmail: userData?.email || 'N/A'
+        })
+      });
+      
+      if (response.ok) {
+        setSubmitStatus('success');
+        setTimeout(() => {
+          onClose();
+          setFormData({ email: '', companyName: userData?.companyName || '', message: '' });
+          setSubmitStatus('idle');
+        }, 2000);
+      } else {
+        setSubmitStatus('error');
+      }
+    } catch (error) {
+      console.error('Errore invio email:', error);
+      setSubmitStatus('error');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-slate-800/90 backdrop-blur-sm rounded-2xl p-6 w-full max-w-md border border-slate-700/50">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-xl font-bold text-white">Richiesta Prezzo Custom</h3>
+          <button
+            onClick={onClose}
+            className="text-slate-400 hover:text-white transition"
+          >
+            ✕
+          </button>
+        </div>
+        
+        {submitStatus === 'success' ? (
+          <div className="text-center py-4">
+            <div className="text-green-400 text-4xl mb-2">✓</div>
+            <p className="text-green-300">Messaggio inviato con successo!</p>
+            <p className="text-slate-400 text-sm">Ti contatteremo presto</p>
+          </div>
+        ) : submitStatus === 'error' ? (
+          <div className="text-center py-4">
+            <div className="text-red-400 text-4xl mb-2">✗</div>
+            <p className="text-red-300">Errore nell'invio del messaggio</p>
+            <button
+              onClick={() => setSubmitStatus('idle')}
+              className="mt-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition"
+            >
+              Riprova
+            </button>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-1">
+                Email *
+              </label>
+              <input
+                type="email"
+                value={formData.email}
+                onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:border-purple-500 focus:outline-none"
+                placeholder="tua@email.com"
+              />
+              {errors.email && <p className="text-red-400 text-xs mt-1">{errors.email}</p>}
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-1">
+                Nome Azienda *
+              </label>
+              <input
+                type="text"
+                value={formData.companyName}
+                onChange={(e) => setFormData(prev => ({ ...prev, companyName: e.target.value }))}
+                className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:border-purple-500 focus:outline-none"
+                placeholder="Nome della tua azienda"
+              />
+              {errors.companyName && <p className="text-red-400 text-xs mt-1">{errors.companyName}</p>}
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-1">
+                Messaggio * (max 500 caratteri)
+              </label>
+              <textarea
+                value={formData.message}
+                onChange={(e) => setFormData(prev => ({ ...prev, message: e.target.value }))}
+                className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:border-purple-500 focus:outline-none resize-none"
+                rows={4}
+                placeholder="Descrivi le tue esigenze per un prezzo personalizzato..."
+                maxLength={500}
+              />
+              <div className="flex justify-between items-center mt-1">
+                {errors.message && <p className="text-red-400 text-xs">{errors.message}</p>}
+                <p className="text-slate-400 text-xs ml-auto">
+                  {formData.message.length}/500
+                </p>
+              </div>
+            </div>
+            
+            <div className="flex gap-3 pt-2">
+              <button
+                type="button"
+                onClick={onClose}
+                className="flex-1 bg-slate-600 hover:bg-slate-700 text-white px-4 py-2 rounded-lg transition"
+              >
+                Annulla
+              </button>
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 disabled:opacity-50 text-white px-4 py-2 rounded-lg transition font-semibold"
+              >
+                {isSubmitting ? 'Invio...' : 'Invia Richiesta'}
+              </button>
+            </div>
+          </form>
+        )}
+      </div>
+    </div>
+  );
+};
 
 // --- Componente Form di Fatturazione con Validazione ---
 const BillingForm: React.FC<{ initialDetails?: BillingDetails | null, onSave: (details: BillingDetails) => void, isSaving: boolean }> = ({ initialDetails, onSave, isSaving }) => {
@@ -384,6 +567,7 @@ const RicaricaCreditiPage: React.FC = () => {
   const [isEditingBilling, setIsEditingBilling] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [currentStep, setCurrentStep] = useState(1); // 1: Pacchetti, 2: Dati, 3: Pagamento
+  const [showCustomModal, setShowCustomModal] = useState(false);
 
   // Effect per gestire il disconnect e reindirizzare alla homepage
   useEffect(() => {
@@ -632,6 +816,31 @@ const RicaricaCreditiPage: React.FC = () => {
                   </div>
                 </div>
               ))}
+              
+              {/* Opzione Custom */}
+              <div
+                onClick={() => setShowCustomModal(true)}
+                className="p-4 rounded-xl border-2 cursor-pointer transition-all hover:scale-105 border-purple-500 bg-gradient-to-r from-purple-600/20 to-blue-600/20 hover:from-purple-600/30 hover:to-blue-600/30"
+              >
+                <div className="flex justify-between items-center">
+                  <div>
+                    <h3 className="text-lg font-bold text-white">
+                      Prezzo Personalizzato
+                    </h3>
+                    <p className="text-slate-300">
+                      Contatta per un preventivo su misura
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-2xl font-bold text-purple-400">
+                      Custom
+                    </p>
+                    <p className="text-sm text-slate-400">
+                      Contatta SFY
+                    </p>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         )}
@@ -904,6 +1113,13 @@ const RicaricaCreditiPage: React.FC = () => {
 
         {/* Footer identico ad AziendaPage */}
         <Footer />
+
+        {/* Modal Contatto Custom */}
+        <CustomContactModal 
+          isOpen={showCustomModal} 
+          onClose={() => setShowCustomModal(false)} 
+          userData={userData} 
+        />
 
       </div>
     </>
