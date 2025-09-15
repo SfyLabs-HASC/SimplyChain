@@ -5915,17 +5915,26 @@ const NewInscriptionModal: React.FC<{
 
     <>
 
-      <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4" onClick={onClose}>
+      <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={onClose}>
 
-        <div className="bg-card p-6 rounded-2xl border border-border max-w-2xl w-full text-foreground" onClick={(e) => e.stopPropagation()}>
+        <div className="bg-slate-800 rounded-2xl shadow-2xl max-w-2xl w-full text-foreground border border-slate-700/50" onClick={(e) => e.stopPropagation()}>
 
-          <div className="p-4 border-b border-border">
-
-            <h2>Nuova Iscrizione ({currentStep}/6)</h2>
-
+          <div className="sticky top-0 z-10 bg-slate-800/95 backdrop-blur-sm border-b border-slate-700/50 p-5 rounded-t-2xl flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl flex items-center justify-center">
+                <span className="material-symbols-outlined text-white">edit_square</span>
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-white">Inizializza Nuova Iscrizione</h2>
+                <p className="text-sm text-slate-400">Passo {currentStep} di 6</p>
+              </div>
+            </div>
+            <button onClick={onClose} className="text-slate-400 hover:text-white transition-colors p-2 hover:bg-slate-700 rounded-lg">
+              <span className="material-symbols-outlined">close</span>
+            </button>
           </div>
 
-          <div className="p-4" style={{ minHeight: "350px" }}>
+          <div className="p-5" style={{ minHeight: "350px" }}>
 
             {currentStep === 1 && (
 
@@ -5933,11 +5942,13 @@ const NewInscriptionModal: React.FC<{
 
                 <div className="mb-4">
 
-                  <label>
+                  <label className="text-slate-200 font-medium">
+
+                    <span className="material-symbols-outlined align-middle mr-1 text-purple-300">badge</span>
 
                     Nome Iscrizione 
 
-                    <span style={{ color: "red", fontWeight: "bold" }}> * Obbligatorio</span>
+                    <span style={{ color: "#ef4444", fontWeight: "bold" }}> * Obbligatorio</span>
 
                   </label>
 
@@ -5963,7 +5974,7 @@ const NewInscriptionModal: React.FC<{
 
                 <div style={helpTextStyle}>
 
-                  <p><strong>ℹ️ Come scegliere il Nome Iscrizione</strong></p>
+                  <p><strong><span className="material-symbols-outlined align-middle mr-1">info</span> Come scegliere il Nome Iscrizione</strong></p>
 
                   <p>Il Nome Iscrizione è un'etichetta descrittiva che ti aiuta a identificare in modo chiaro ciò che stai registrando on-chain. Ad esempio:</p>
 
@@ -5977,7 +5988,7 @@ const NewInscriptionModal: React.FC<{
 
                   </ul>
 
-                  <p style={{ marginTop: "1rem" }}><strong>📌 Consiglio:</strong> scegli un nome breve ma significativo, che ti permetta di ritrovare facilmente l'iscrizione anche dopo mesi o anni.</p>
+                  <p style={{ marginTop: "1rem" }}><strong><span className="material-symbols-outlined align-middle mr-1">push_pin</span> Consiglio:</strong> scegli un nome breve ma significativo, che ti permetta di ritrovare facilmente l'iscrizione anche dopo mesi o anni.</p>
 
                 </div>
 
