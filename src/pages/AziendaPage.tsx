@@ -7391,9 +7391,9 @@ const ExportModal: React.FC<{
         <div className="p-6 space-y-6">
           <div className="bg-green-500/10 border border-green-500/20 rounded-xl p-6 text-center">
             <div className="text-green-400 text-3xl mb-3">🎉</div>
-            <h3 className="text-green-300 font-semibold text-lg mb-2">Iscrizione Completata!</h3>
+            <h3 className="text-green-300 font-semibold text-lg mb-2">Iscrizione Finalizzata.</h3>
             <p className="text-slate-300">
-              Hai completato con successo la tua iscrizione. Adesso potrai esportare:
+              Hai chiuso con successo la tua iscrizione. Adesso potrai esportare:
             </p>
           </div>
           
