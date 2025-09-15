@@ -6,6 +6,7 @@ import { polygon } from "thirdweb/chains";
 import { inAppWallet } from "thirdweb/wallets";
 import { loadStripe } from "@stripe/stripe-js";
 import { Elements, PaymentElement, useStripe, useElements } from "@stripe/react-stripe-js";
+import Footer from '../components/Footer';
 import "../App.css";
 
 // --- Interfacce Dati ---
@@ -223,7 +224,7 @@ const BillingForm: React.FC<{ initialDetails?: BillingDetails | null, onSave: (d
             </div>
           </>
         )}
-        <button onClick={handleSave} className="web3-button" style={{ marginTop: '1rem' }} disabled={isSaving}>
+        <button onClick={handleSave} className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-6 py-3 rounded-lg font-semibold transition" style={{ marginTop: '1rem' }} disabled={isSaving}>
             {isSaving ? 'Salvataggio...' : 'Salva Dati'}
         </button>
       </div>
@@ -336,7 +337,7 @@ const PaymentForm: React.FC = () => {
             setPaymentStatus('idle');
             setErrorMessage('');
           }}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition"
+          className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition"
         >
           Riprova
         </button>
@@ -352,7 +353,7 @@ const PaymentForm: React.FC = () => {
         <button
           type="submit"
           disabled={!stripe || !elements || isProcessing}
-          className="bg-green-600 hover:bg-green-700 disabled:bg-gray-600 text-white px-8 py-3 rounded-lg transition font-semibold flex items-center gap-2"
+          className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 disabled:bg-slate-600 text-white px-8 py-3 rounded-lg transition font-semibold flex items-center gap-2"
         >
           {isProcessing ? (
             <>
@@ -361,7 +362,7 @@ const PaymentForm: React.FC = () => {
             </>
           ) : (
             <>
-              💳 Paga Ora
+              Paga Ora
             </>
           )}
         </button>
@@ -567,29 +568,29 @@ const RicaricaCreditiPage: React.FC = () => {
 
     return (
       <div className="space-y-6">
-        {/* Progress Steps */}
-        <div className="glass-card rounded-2xl p-6 tech-shadow">
+        {/* Progress Steps - stile AziendaPage */}
+        <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-6 border border-slate-700/50 mb-6">
           <div className="flex items-center justify-center space-x-8">
-            <div className={`flex items-center gap-2 ${currentStep >= 1 ? 'text-primary' : 'text-gray-500'}`}>
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${currentStep >= 1 ? 'bg-primary text-white' : 'bg-gray-600'}`}>
+            <div className={`flex items-center gap-2 ${currentStep >= 1 ? 'text-purple-400' : 'text-slate-500'}`}>
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${currentStep >= 1 ? 'bg-purple-600 text-white' : 'bg-slate-600'}`}>
                 1
               </div>
               <span className="font-medium">Seleziona Pacchetto</span>
             </div>
             
-            <div className={`w-12 h-0.5 ${currentStep >= 2 ? 'bg-primary' : 'bg-gray-600'}`}></div>
+            <div className={`w-12 h-0.5 ${currentStep >= 2 ? 'bg-purple-600' : 'bg-slate-600'}`}></div>
             
-            <div className={`flex items-center gap-2 ${currentStep >= 2 ? 'text-primary' : 'text-gray-500'}`}>
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${currentStep >= 2 ? 'bg-primary text-white' : 'bg-gray-600'}`}>
+            <div className={`flex items-center gap-2 ${currentStep >= 2 ? 'text-purple-400' : 'text-slate-500'}`}>
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${currentStep >= 2 ? 'bg-purple-600 text-white' : 'bg-slate-600'}`}>
                 2
               </div>
               <span className="font-medium">Dati Fatturazione</span>
             </div>
             
-            <div className={`w-12 h-0.5 ${currentStep >= 3 ? 'bg-primary' : 'bg-gray-600'}`}></div>
+            <div className={`w-12 h-0.5 ${currentStep >= 3 ? 'bg-purple-600' : 'bg-slate-600'}`}></div>
             
-            <div className={`flex items-center gap-2 ${currentStep >= 3 ? 'text-primary' : 'text-gray-500'}`}>
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${currentStep >= 3 ? 'bg-primary text-white' : 'bg-gray-600'}`}>
+            <div className={`flex items-center gap-2 ${currentStep >= 3 ? 'text-purple-400' : 'text-slate-500'}`}>
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${currentStep >= 3 ? 'bg-purple-600 text-white' : 'bg-slate-600'}`}>
                 3
               </div>
               <span className="font-medium">Pagamento</span>
@@ -597,11 +598,11 @@ const RicaricaCreditiPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Step 1: Pacchetti Crediti */}
+        {/* Step 1: Pacchetti Crediti - stile AziendaPage */}
         {currentStep === 1 && (
-          <div className="glass-card rounded-2xl p-6 tech-shadow transform transition-all duration-500 ease-in-out">
+          <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-6 border border-slate-700/50 transform transition-all duration-500 ease-in-out">
             <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
-              💎 Seleziona un Pacchetto Crediti
+              Seleziona un Pacchetto Crediti
             </h2>
             
             <div className="grid gap-4">
@@ -609,22 +610,22 @@ const RicaricaCreditiPage: React.FC = () => {
                 <div
                   key={pkg.id}
                   onClick={() => handleSelectPackage(pkg)}
-                  className="p-4 rounded-lg border-2 cursor-pointer transition-all hover:scale-105 border-gray-600 bg-gray-800/50 hover:border-gray-500"
+                  className="p-4 rounded-xl border-2 cursor-pointer transition-all hover:scale-105 border-slate-600 bg-slate-700/30 hover:border-purple-500 hover:bg-slate-700/50"
                 >
                   <div className="flex justify-between items-center">
                     <div>
                       <h3 className="text-lg font-bold text-white">
                         {pkg.credits} Crediti
                       </h3>
-                      <p className="text-gray-400">
+                      <p className="text-slate-400">
                         {pkg.pricePerCredit.toFixed(2)} € per credito
                       </p>
                     </div>
                     <div className="text-right">
-                      <p className="text-2xl font-bold text-primary">
+                      <p className="text-2xl font-bold text-purple-400">
                         {pkg.totalPrice.toFixed(2)} €
                       </p>
-                      <p className="text-sm text-gray-400">
+                      <p className="text-sm text-slate-400">
                         {pkg.description}
                       </p>
                     </div>
@@ -635,16 +636,16 @@ const RicaricaCreditiPage: React.FC = () => {
           </div>
         )}
 
-        {/* Step 2: Dati di Fatturazione */}
+        {/* Step 2: Dati di Fatturazione - stile AziendaPage */}
         {currentStep === 2 && selectedPackage && (
-          <div className="glass-card rounded-2xl p-6 tech-shadow transform transition-all duration-500 ease-in-out">
+          <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-6 border border-slate-700/50 transform transition-all duration-500 ease-in-out">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                🧾 Dati di Fatturazione
+                Dati di Fatturazione
               </h2>
               <div className="text-right">
-                <p className="text-gray-400">Pacchetto selezionato:</p>
-                <p className="text-primary font-bold">{selectedPackage.credits} crediti - {selectedPackage.totalPrice.toFixed(2)} €</p>
+                <p className="text-slate-400">Pacchetto selezionato:</p>
+                <p className="text-purple-400 font-bold">{selectedPackage.credits} crediti - {selectedPackage.totalPrice.toFixed(2)} €</p>
               </div>
             </div>
             
@@ -653,10 +654,10 @@ const RicaricaCreditiPage: React.FC = () => {
                 <div className="flex justify-between items-center mb-4">
                   <h3 className="text-lg font-semibold text-white">Dati Salvati</h3>
                   <button 
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-lg transition text-sm"
+                    className="bg-purple-600 hover:bg-purple-700 text-white px-3 py-1 rounded-lg transition text-sm"
                     onClick={() => setIsEditingBilling(true)}
                   >
-                    ✏️ Modifica
+                    Modifica
                   </button>
                 </div>
                 
@@ -701,13 +702,13 @@ const RicaricaCreditiPage: React.FC = () => {
                 <div className="flex gap-4">
                   <button
                     onClick={() => setCurrentStep(1)}
-                    className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition"
+                    className="bg-slate-600 hover:bg-slate-700 text-white px-4 py-2 rounded-lg transition"
                   >
                     ← Cambia Pacchetto
                   </button>
                   <button
                     onClick={() => createPaymentIntent(selectedPackage)}
-                    className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg transition font-semibold"
+                    className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-6 py-2 rounded-lg transition font-semibold"
                   >
                     Procedi al Pagamento →
                   </button>
@@ -723,7 +724,7 @@ const RicaricaCreditiPage: React.FC = () => {
                 <div className="flex gap-4 mt-6">
                   <button
                     onClick={() => setCurrentStep(1)}
-                    className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition"
+                    className="bg-slate-600 hover:bg-slate-700 text-white px-4 py-2 rounded-lg transition"
                   >
                     ← Cambia Pacchetto
                   </button>
@@ -733,22 +734,22 @@ const RicaricaCreditiPage: React.FC = () => {
           </div>
         )}
 
-        {/* Step 3: Pagamento */}
+        {/* Step 3: Pagamento - stile AziendaPage */}
         {currentStep === 3 && selectedPackage && clientSecret && (
-          <div className="glass-card rounded-2xl p-6 tech-shadow transform transition-all duration-500 ease-in-out">
+          <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-6 border border-slate-700/50 transform transition-all duration-500 ease-in-out">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                💳 Completa il Pagamento
+                Completa il Pagamento
               </h2>
               <div className="text-right">
-                <p className="text-gray-400">Importo totale:</p>
+                <p className="text-slate-400">Importo totale:</p>
                 <p className="text-2xl font-bold text-green-400">{selectedPackage.totalPrice.toFixed(2)} €</p>
               </div>
             </div>
             
-            <div className="mb-6 p-4 bg-gray-800/50 rounded-lg">
+            <div className="mb-6 p-4 bg-slate-700/30 rounded-lg border border-slate-600/50">
               <h4 className="font-semibold text-white mb-2">Riepilogo Ordine:</h4>
-              <p className="text-gray-300">{selectedPackage.credits} crediti × {selectedPackage.pricePerCredit.toFixed(2)} € = {selectedPackage.totalPrice.toFixed(2)} €</p>
+              <p className="text-slate-300">{selectedPackage.credits} crediti × {selectedPackage.pricePerCredit.toFixed(2)} € = {selectedPackage.totalPrice.toFixed(2)} €</p>
             </div>
             
             <Elements options={{ clientSecret }} stripe={stripePromise}>
@@ -758,13 +759,13 @@ const RicaricaCreditiPage: React.FC = () => {
             <div className="flex gap-4 mt-6">
               <button
                 onClick={() => setCurrentStep(2)}
-                className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition"
+                className="bg-slate-600 hover:bg-slate-700 text-white px-4 py-2 rounded-lg transition"
               >
                 ← Modifica Dati
               </button>
               <button
                 onClick={() => setCurrentStep(1)}
-                className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition"
+                className="bg-slate-600 hover:bg-slate-700 text-white px-4 py-2 rounded-lg transition"
               >
                 ← Cambia Pacchetto
               </button>
@@ -772,11 +773,11 @@ const RicaricaCreditiPage: React.FC = () => {
           </div>
         )}
 
-        {/* Tasto Torna Indietro in fondo */}
+        {/* Tasto Torna Indietro in fondo - stile AziendaPage */}
         <div className="flex justify-center pt-8">
           <button
             onClick={() => navigate('/azienda')}
-            className="bg-gray-600 hover:bg-gray-700 text-white px-8 py-3 rounded-2xl font-semibold hover:scale-105 transition flex items-center gap-2"
+            className="bg-slate-600 hover:bg-slate-700 text-white px-8 py-3 rounded-2xl font-semibold hover:scale-105 transition flex items-center gap-2"
           >
             ← Torna alla Dashboard
           </button>
@@ -790,10 +791,15 @@ const RicaricaCreditiPage: React.FC = () => {
     return (
       <>
         <RicaricaCreditiStyles />
-        <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 flex items-center justify-center p-6">
-          <div className="glass-card rounded-3xl p-8 text-center max-w-md">
-            <h1 className="text-3xl font-bold text-white mb-4">🔗 Connetti Wallet</h1>
-            <p className="text-gray-300 mb-6">Per ricaricare i crediti, connetti il tuo wallet.</p>
+        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center p-6">
+          <div className="bg-slate-800/50 backdrop-blur-sm rounded-3xl p-8 text-center max-w-md border border-slate-700/50">
+            <div className="flex items-center justify-center mb-4">
+              <div className="w-12 h-12 bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl flex items-center justify-center">
+                <span className="text-white font-bold text-xl">S</span>
+              </div>
+            </div>
+            <h1 className="text-3xl font-bold text-white mb-4">Connetti Wallet</h1>
+            <p className="text-slate-300 mb-6">Per ricaricare i crediti, connetti il tuo wallet.</p>
             <ConnectButton
               client={client}
               wallets={wallets}
@@ -809,63 +815,82 @@ const RicaricaCreditiPage: React.FC = () => {
   return (
     <>
       <RicaricaCreditiStyles />
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 p-6">
-        <div className="container mx-auto max-w-6xl">
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
         
-        {/* Header Bar - Uguale alle altre pagine */}
-        <div className="glass-card rounded-3xl p-6 tech-shadow flex flex-col md:flex-row justify-between items-center gap-6 mb-6">
-          <div>
-            <div className="flex items-center gap-4 flex-wrap">
-              <h2 className="text-2xl md:text-3xl font-extrabold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-                💳 Ricarica Crediti
-              </h2>
-            </div>
-            
-            <div className="flex flex-col md:flex-row gap-4 items-center">
-              <div className="flex flex-col md:flex-row gap-4 items-center-item">
-                <span style={{ color: '#ffffff' }}>
-                  Crediti Attuali: <strong>{userData?.credits || 0}</strong>
-                </span>
+        {/* Header identico ad AziendaPage */}
+        <header className="sticky top-0 z-40 backdrop-blur-xl bg-slate-900/80 border-b border-slate-700/50">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center justify-between h-16 lg:h-20">
+              
+              {/* Logo e titolo */}
+              <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl flex items-center justify-center">
+                    <span className="text-white font-bold text-lg">S</span>
+                  </div>
+                  <div>
+                    <h1 className="text-xl lg:text-2xl font-bold text-white">SimplyChain</h1>
+                    <p className="text-sm text-slate-400 hidden sm:block">Ricarica Crediti</p>
+                  </div>
+                </div>
               </div>
-              <div className="flex flex-col md:flex-row gap-4 items-center-item">
-                <span>Stato: <strong className={userData?.status === 'active' ? 'status-active-text' : 'status-inactive-text'}>
-                  {userData?.status === 'active' ? 'ATTIVO' : 'NON ATTIVO'}
-                </strong></span>
+
+              {/* Info azienda e Connect Button */}
+              <div className="flex items-center space-x-4">
+                {userData && (
+                  <div className="hidden md:flex items-center space-x-6 text-sm">
+                    <div className="text-center">
+                      <p className="text-slate-400">Azienda</p>
+                      <p className="text-white font-semibold">{userData.companyName}</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-slate-400">Crediti</p>
+                      <p className="text-white font-semibold">{userData.credits}</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-slate-400">Stato</p>
+                      <p className={`font-semibold ${userData.status === 'active' ? 'text-green-400' : 'text-yellow-400'}`}>
+                        {userData.status === 'active' ? 'ATTIVO' : 'NON ATTIVO'}
+                      </p>
+                    </div>
+                  </div>
+                )}
+                
+                <ConnectButton
+                  client={client}
+                  wallets={wallets}
+                  chain={polygon}
+                  accountAbstraction={{ chain: polygon, sponsorGas: true }}
+                />
+                
+                <button
+                  onClick={() => navigate('/azienda')}
+                  className="bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-xl font-semibold hover:scale-105 transition"
+                >
+                  ← Dashboard
+                </button>
               </div>
             </div>
           </div>
+        </header>
 
-          <div className="flex items-center gap-4">
-            <ConnectButton
-              client={client}
-              wallets={wallets}
-              chain={polygon}
-              accountAbstraction={{ chain: polygon, sponsorGas: true }}
-            />
-            <button
-              onClick={() => navigate('/azienda')}
-              className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-2xl font-semibold hover:scale-105 transition"
-            >
-              ← Torna Indietro
-            </button>
-          </div>
-        </div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
-        {/* Content */}
+        {/* Content - stile AziendaPage */}
         <main>
           {loading ? (
-            <div className="glass-card rounded-2xl p-8 text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-              <p className="text-gray-300">Caricamento dati utente...</p>
+            <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-8 text-center border border-slate-700/50">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+              <p className="text-slate-300">Caricamento dati utente...</p>
             </div>
           ) : error ? (
-            <div className="glass-card rounded-2xl p-8 text-center">
+            <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-8 text-center border border-slate-700/50">
               <div className="text-red-400 text-6xl mb-4">⚠️</div>
               <h3 className="text-xl font-semibold text-red-300 mb-2">Errore</h3>
               <p className="text-red-200">{error}</p>
             </div>
           ) : !userData ? (
-            <div className="glass-card rounded-2xl p-8 text-center">
+            <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-8 text-center border border-slate-700/50">
               <div className="text-yellow-400 text-6xl mb-4">📭</div>
               <h3 className="text-xl font-semibold text-yellow-300 mb-2">Nessun Dato</h3>
               <p className="text-yellow-200">Nessun dato utente trovato per questo wallet.</p>
@@ -876,6 +901,10 @@ const RicaricaCreditiPage: React.FC = () => {
         </main>
         
         </div>
+
+        {/* Footer identico ad AziendaPage */}
+        <Footer />
+
       </div>
     </>
   );
