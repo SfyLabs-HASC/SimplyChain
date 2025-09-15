@@ -2881,12 +2881,12 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
     }
     
     .company-name-box {
-      background: linear-gradient(135deg, #06b6d4 0%, #8b5cf6 100%);
+      background: transparent;
       padding: 20px 30px;
       border-radius: 15px;
       margin-bottom: 20px;
-      box-shadow: 0 10px 25px rgba(139, 92, 246, 0.3);
-      border: 2px solid rgba(255, 255, 255, 0.1);
+      border: 2px solid rgba(139, 92, 246, 0.6);
+      box-shadow: none;
     }
     
     .company-name {

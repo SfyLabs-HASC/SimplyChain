@@ -432,15 +432,8 @@ function generateCertificateHTML(certificateData) {
           padding-bottom: 30px;
         }
         
-        .title {
-          font-size: 2.5rem;
-          font-weight: bold;
-          background: linear-gradient(135deg, #8b5cf6 0%, #06b6d4 100%);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          background-clip: text;
-          margin-bottom: 10px;
-        }
+        .company-name-box { border: 2px solid rgba(139, 92, 246, 0.6); border-radius: 15px; padding: 20px 30px; margin-bottom: 20px; }
+        .title { font-size: 2.5rem; font-weight: bold; color: #ffffff; margin: 0; }
         
         .subtitle {
           font-size: 1.2rem;
@@ -657,7 +650,7 @@ function generateCertificateHTML(certificateData) {
     <body>
       <div class="certificate-container">
         <div class="header">
-          <h1 class="title">${certificateData.companyName}</h1>
+          <div class="company-name-box"><h1 class="title">${certificateData.companyName}</h1></div>
           <p class="subtitle">Certificato di Tracciabilità Blockchain</p>
           <p class="creator-badge">Creato con SimplyChain</p>
         </div>
