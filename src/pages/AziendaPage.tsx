@@ -3381,7 +3381,18 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
 
         // Per PDF (che è HTML), apri in nuova finestra invece di scaricare
         if (exportType === 'pdf') {
-          const htmlContent = await response.text();
+          // Fai una nuova richiesta per ottenere il testo
+          const textResponse = await fetch('/api/export-batch', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              batch,
+              exportType,
+              companyName: currentCompanyData.companyName
+            }),
+          });
+          
+          const htmlContent = await textResponse.text();
           const newWindow = window.open('', '_blank');
           if (newWindow) {
             newWindow.document.write(htmlContent);
