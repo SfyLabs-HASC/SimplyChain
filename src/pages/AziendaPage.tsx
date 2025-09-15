@@ -5492,24 +5492,24 @@ const StepsModal: React.FC<{
 
               batch.steps.map((step, index) => (
 
-                <div key={index} className="bg-slate-700/40 p-5 rounded-xl border border-slate-600/30 mb-4">
+                <div key={index} className="bg-purple-500/10 p-5 rounded-xl border border-purple-500/30 mb-4 pl-5 border-l-4">
 
                   <div className="flex items-center justify-between mb-3">
-                    <h4 className="text-white font-semibold">Step {index + 1}</h4>
-                    <div className="text-sm text-slate-300"><span className="material-symbols-outlined align-middle mr-1">inventory_2</span> Nome: {step.eventName}</div>
+                    <h4 className="text-purple-300 font-semibold">Step {index + 1}</h4>
+                    <div className="text-sm text-slate-200"><span className="material-symbols-outlined align-middle mr-1 text-purple-300">inventory_2</span> Nome: {step.eventName}</div>
                   </div>
 
-                  <p className="text-slate-300"><strong><span className="material-symbols-outlined mr-1 align-middle">description</span> Descrizione:</strong> {step.description || "N/D"}</p>
+                  <p className="text-slate-200"><strong className="text-purple-300"><span className="material-symbols-outlined mr-1 align-middle">description</span> Descrizione:</strong> {step.description || "N/D"}</p>
 
-                  <p className="text-slate-300"><strong><span className="material-symbols-outlined mr-1 align-middle">calendar_month</span> Data:</strong> {formatItalianDate(step.date)}</p>
+                  <p className="text-slate-200"><strong className="text-purple-300"><span className="material-symbols-outlined mr-1 align-middle">calendar_month</span> Data:</strong> {formatItalianDate(step.date)}</p>
 
-                  <p className="text-slate-300"><strong><span className="material-symbols-outlined mr-1 align-middle">location_on</span> Luogo:</strong> {step.location || "N/D"}</p>
+                  <p className="text-slate-200"><strong className="text-purple-300"><span className="material-symbols-outlined mr-1 align-middle">location_on</span> Luogo:</strong> {step.location || "N/D"}</p>
 
                   {step.attachmentsIpfsHash && step.attachmentsIpfsHash !== "N/A" && (
 
-                    <p className="text-slate-300">
+                    <p className="text-slate-200">
 
-                      <strong><span className="material-symbols-outlined mr-1 align-middle">attachment</span> Allegati:</strong>
+                      <strong className="text-purple-300"><span className="material-symbols-outlined mr-1 align-middle">attachment</span> Allegati:</strong>
 
                       <a
 
@@ -5533,9 +5533,9 @@ const StepsModal: React.FC<{
 
                   )}
 
-                  <p className="text-slate-300">
+                  <p className="text-slate-200">
 
-                    <strong><span className="material-symbols-outlined mr-1 align-middle">travel_explore</span> Verifica su Blockchain:</strong>
+                    <strong className="text-purple-300"><span className="material-symbols-outlined mr-1 align-middle">travel_explore</span> Verifica su Blockchain:</strong>
 
                     <a
 
