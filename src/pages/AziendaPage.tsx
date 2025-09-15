@@ -5465,37 +5465,51 @@ const StepsModal: React.FC<{
 
     <>
 
-      <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4" onClick={onClose}>
+      <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={onClose}>
 
-        <div className="bg-card p-4 rounded-2xl border border-border max-w-3xl w-full max-h-[80vh] overflow-auto text-foreground" onClick={(e) => e.stopPropagation()}>
+        <div className="bg-slate-800 rounded-2xl shadow-2xl max-w-3xl w-full max-h-[85vh] overflow-y-auto border border-slate-700/50" onClick={(e) => e.stopPropagation()}>
 
-          <div className="steps-p-4 border-b border-border">
-
-            <h2>Steps - {batch.name}</h2>
-
+          {/* Header */}
+          <div className="sticky top-0 z-10 bg-slate-800/95 backdrop-blur-sm border-b border-slate-700/50 p-5 rounded-t-2xl flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl flex items-center justify-center">
+                <span className="material-symbols-outlined text-white">inventory_2</span>
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-white">Steps</h2>
+                <p className="text-sm text-slate-400">Batch: {batch.name}</p>
+              </div>
+            </div>
+            <button onClick={onClose} className="text-slate-400 hover:text-white transition-colors p-2 hover:bg-slate-700 rounded-lg">
+              <span className="material-symbols-outlined">close</span>
+            </button>
           </div>
 
-          <div className="steps-p-4">
+          {/* Content */}
+          <div className="p-5">
 
             {batch.steps && batch.steps.length > 0 ? (
 
               batch.steps.map((step, index) => (
 
-                <div key={index} className="bg-gray-800 p-4 rounded-xl border border-gray-700 mb-4">
+                <div key={index} className="bg-slate-700/40 p-5 rounded-xl border border-slate-600/30 mb-4">
 
-                  <h4>Step {index + 1}: {step.eventName}</h4>
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="text-white font-semibold">Step {index + 1}</h4>
+                    <div className="text-sm text-slate-300"><span className="material-symbols-outlined align-middle mr-1">inventory_2</span> Nome: {step.eventName}</div>
+                  </div>
 
-                  <p><strong><span className="material-symbols-outlined mr-1 align-middle">description</span> Descrizione:</strong> {step.description || "N/D"}</p>
+                  <p className="text-slate-300"><strong><span className="material-symbols-outlined mr-1 align-middle">description</span> Descrizione:</strong> {step.description || "N/D"}</p>
 
-                  <p><strong><span className="material-symbols-outlined mr-1 align-middle">calendar_month</span> Data:</strong> {formatItalianDate(step.date)}</p>
+                  <p className="text-slate-300"><strong><span className="material-symbols-outlined mr-1 align-middle">calendar_month</span> Data:</strong> {formatItalianDate(step.date)}</p>
 
-                  <p><strong><span className="material-symbols-outlined mr-1 align-middle">location_on</span> Luogo:</strong> {step.location || "N/D"}</p>
+                  <p className="text-slate-300"><strong><span className="material-symbols-outlined mr-1 align-middle">location_on</span> Luogo:</strong> {step.location || "N/D"}</p>
 
                   {step.attachmentsIpfsHash && step.attachmentsIpfsHash !== "N/A" && (
 
-                    <p>
+                    <p className="text-slate-300">
 
-                      <strong>📎 Allegati:</strong>
+                      <strong><span className="material-symbols-outlined mr-1 align-middle">attachment</span> Allegati:</strong>
 
                       <a
 
@@ -5519,7 +5533,7 @@ const StepsModal: React.FC<{
 
                   )}
 
-                  <p>
+                  <p className="text-slate-300">
 
                     <strong><span className="material-symbols-outlined mr-1 align-middle">travel_explore</span> Verifica su Blockchain:</strong>
 
@@ -5553,14 +5567,8 @@ const StepsModal: React.FC<{
 
             )}
 
-            <div style={{ textAlign: 'center', marginTop: '2rem' }}>
-
-              <button onClick={onClose} className="primary-gradient text-white px-4 py-2 rounded-2xl font-semibold hover:scale-105 transition">
-
-                Indietro
-
-              </button>
-
+            <div className="sticky bottom-0 bg-slate-800/95 backdrop-blur-sm border-t border-slate-700/50 p-5 rounded-b-2xl flex justify-end">
+              <button onClick={onClose} className="bg-slate-600 hover:bg-slate-700 text-white px-4 py-2 rounded-lg transition-colors font-medium">Chiudi</button>
             </div>
 
           </div>
