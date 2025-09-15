@@ -1159,13 +1159,24 @@ async function generatePDFWithPDFLib(batch, companyName, res) {
     const pdfDoc = await PDFDocument.create();
     const page = pdfDoc.addPage([595, 842]); // A4 size
     
-    // Colori del tema
+    // Colori del tema (come AziendaPage)
     const primaryColor = rgb(0.545, 0.361, 0.965); // #8b5cf6
+    const cardBg = rgb(0.05, 0.05, 0.15); // #0d0d26 (background card)
     const lightGray = rgb(0.973, 0.980, 0.988); // #f8fafc
     const darkGray = rgb(0.122, 0.161, 0.216); // #1f2937
     const white = rgb(1, 1, 1);
+    const textGray = rgb(0.6, 0.6, 0.6); // #999999
     
-    // Header con sfondo viola
+    // Background scuro come AziendaPage
+    page.drawRectangle({
+      x: 0,
+      y: 0,
+      width: 595,
+      height: 842,
+      color: cardBg,
+    });
+    
+    // Header con gradiente viola (come AziendaPage)
     page.drawRectangle({
       x: 0,
       y: 742,
@@ -1174,7 +1185,7 @@ async function generatePDFWithPDFLib(batch, companyName, res) {
       color: primaryColor,
     });
     
-    // Logo (S) - cerchio bianco
+    // Logo Simply Chain (come nell'header)
     page.drawCircle({
       x: 50,
       y: 792,
@@ -1182,7 +1193,6 @@ async function generatePDFWithPDFLib(batch, companyName, res) {
       color: white,
     });
     
-    // Testo S nel cerchio
     const font = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
     const regularFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
     
@@ -1194,7 +1204,7 @@ async function generatePDFWithPDFLib(batch, companyName, res) {
       color: primaryColor,
     });
     
-    // Titolo principale
+    // Titolo principale (come nell'header)
     page.drawText('CERTIFICATO DI TRACCIABILITÀ', {
       x: 0,
       y: 762,
@@ -1204,7 +1214,7 @@ async function generatePDFWithPDFLib(batch, companyName, res) {
       align: 'center',
     });
     
-    // Simply Chain
+    // Simply Chain (come nell'header)
     page.drawText('SIMPLY CHAIN', {
       x: 0,
       y: 737,
@@ -1214,7 +1224,7 @@ async function generatePDFWithPDFLib(batch, companyName, res) {
       align: 'center',
     });
     
-    // Azienda
+    // Azienda (come nell'header)
     page.drawText(`Prodotto da: ${companyName}`, {
       x: 0,
       y: 712,
@@ -1224,13 +1234,15 @@ async function generatePDFWithPDFLib(batch, companyName, res) {
       align: 'center',
     });
     
-    // Sezione Informazioni Batch
+    // Sezione Informazioni Batch (come card AziendaPage)
     page.drawRectangle({
       x: 50,
       y: 600,
       width: 495,
       height: 100,
-      color: lightGray,
+      color: cardBg,
+      borderColor: primaryColor,
+      borderWidth: 1,
     });
     
     page.drawText('📦 INFORMAZIONI ISCRIZIONE', {
@@ -1260,7 +1272,7 @@ async function generatePDFWithPDFLib(batch, companyName, res) {
         y: y,
         size: 10,
         font: font,
-        color: darkGray,
+        color: textGray, // Come nelle card
       });
       
       page.drawText(value, {
@@ -1268,20 +1280,22 @@ async function generatePDFWithPDFLib(batch, companyName, res) {
         y: y,
         size: 10,
         font: regularFont,
-        color: darkGray,
+        color: white, // Testo bianco come nelle card
       });
     });
     
     let yPosition = 480;
     
-    // Descrizione se presente
+    // Descrizione se presente (come card AziendaPage)
     if (batch.description) {
       page.drawRectangle({
         x: 50,
         y: yPosition,
         width: 495,
         height: 40,
-        color: white,
+        color: cardBg,
+        borderColor: primaryColor,
+        borderWidth: 1,
       });
       
       page.drawText('Descrizione:', {
@@ -1315,19 +1329,20 @@ async function generatePDFWithPDFLib(batch, companyName, res) {
           y: yPosition + 5 - (index * 12),
           size: 10,
           font: regularFont,
-          color: darkGray,
+          color: white, // Testo bianco come nelle card
         });
       });
       
       yPosition -= 60;
     }
     
-    // QR Code per batch (placeholder)
+    // QR Code per batch (come card AziendaPage)
     page.drawRectangle({
       x: 60,
       y: yPosition,
       width: 60,
       height: 60,
+      color: cardBg,
       borderColor: primaryColor,
       borderWidth: 1,
     });
@@ -1373,7 +1388,7 @@ async function generatePDFWithPDFLib(batch, companyName, res) {
       y: yPosition + 15,
       size: 8,
       font: font,
-      color: darkGray,
+      color: textGray, // Come nelle card
     });
     
     // Dividi l'hash in righe se troppo lungo
@@ -1389,7 +1404,7 @@ async function generatePDFWithPDFLib(batch, companyName, res) {
         y: yPosition - (index * 10),
         size: 8,
         font: regularFont,
-        color: darkGray,
+        color: white, // Testo bianco come nelle card
       });
     });
     
@@ -1408,7 +1423,9 @@ async function generatePDFWithPDFLib(batch, companyName, res) {
         y: yPosition,
         width: 495,
         height: 20,
-        color: lightGray,
+        color: cardBg,
+        borderColor: primaryColor,
+        borderWidth: 1,
       });
       
       page.drawText('🔄 FASI DI LAVORAZIONE', {
