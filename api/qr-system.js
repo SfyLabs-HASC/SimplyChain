@@ -4,6 +4,8 @@ export default async function handler(req, res) {
 
   try {
     switch (action) {
+      case 'test':
+        return await handleTest(req, res);
       case 'create':
         return await handleCreateQR(req, res);
       case 'view':
@@ -11,7 +13,7 @@ export default async function handler(req, res) {
       case 'update-status':
         return await handleUpdateQRStatus(req, res);
       default:
-        return res.status(400).json({ error: 'Invalid action. Use: create, view, or update-status' });
+        return res.status(400).json({ error: 'Invalid action. Use: test, create, view, or update-status' });
     }
   } catch (error) {
     console.error('❌ Errore QR System API:', error);
@@ -20,6 +22,67 @@ export default async function handler(req, res) {
       details: error.message 
     });
   }
+}
+
+// Gestisce il test delle variabili d'ambiente
+async function handleTest(req, res) {
+  console.log('🧪 Testando variabili d\'ambiente Firebase...');
+  
+  const envVars = {
+    FIREBASE_PROJECT_ID: process.env.FIREBASE_PROJECT_ID,
+    FIREBASE_PRIVATE_KEY: process.env.FIREBASE_PRIVATE_KEY ? 'SET' : 'MISSING',
+    FIREBASE_CLIENT_EMAIL: process.env.FIREBASE_CLIENT_EMAIL,
+    FIREBASE_DATABASE_URL: process.env.FIREBASE_DATABASE_URL,
+    VERCEL_URL: process.env.VERCEL_URL
+  };
+  
+  // Test Firebase Admin SDK
+  let firebaseStatus = 'NOT_INITIALIZED';
+  let firebaseError = null;
+  
+  try {
+    const admin = await import('firebase-admin');
+    
+    if (!admin.apps.length) {
+      const serviceAccount = {
+        projectId: process.env.FIREBASE_PROJECT_ID,
+        privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+      };
+      
+      admin.initializeApp({
+        credential: admin.credential.cert(serviceAccount),
+        databaseURL: process.env.FIREBASE_DATABASE_URL
+      });
+    }
+    
+    firebaseStatus = 'INITIALIZED';
+    
+    // Test connessione database
+    const db = admin.database();
+    const testRef = db.ref('test/connection');
+    await testRef.set({
+      timestamp: Date.now(),
+      message: 'Test connessione server'
+    });
+    
+    firebaseStatus = 'CONNECTED';
+    
+  } catch (error) {
+    firebaseError = error.message;
+    firebaseStatus = 'ERROR';
+  }
+  
+  res.json({
+    status: 'success',
+    environment: process.env.NODE_ENV,
+    timestamp: new Date().toISOString(),
+    envVars,
+    firebase: {
+      status: firebaseStatus,
+      error: firebaseError
+    }
+  });
 }
 
 // Gestisce la creazione di QR Code con Realtime Database
@@ -68,15 +131,24 @@ async function handleCreateQR(req, res) {
   }
 
   const realtimeDb = admin.default.database();
-  const certificateId = `${batch.batchId}_${Date.now()}`;
+  const cleanCompanyName = companyName.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+  const certificateId = `${cleanCompanyName}_${batch.batchId}_${Date.now()}`;
   const certificateRef = realtimeDb.ref(`certificates/${certificateId}`);
   
   await certificateRef.set(certificateData);
   console.log('💾 Dati certificato salvati in Realtime Database:', certificateId);
 
   // Step 3: Genera URL per visualizzare il certificato
-  const baseUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000';
+  // Usa l'URL fisso per evitare problemi con VERCEL_URL
+  const baseUrl = 'https://simplychain-kr64t1v59-sfylabs-hascs-projects.vercel.app';
   const certificateUrl = `${baseUrl}/api/qr-system?action=view&id=${certificateId}`;
+  
+  console.log('🌐 Environment info:');
+  console.log('- VERCEL_URL:', process.env.VERCEL_URL);
+  console.log('- NODE_ENV:', process.env.NODE_ENV);
+  console.log('- Base URL:', baseUrl);
+  console.log('- Certificate URL:', certificateUrl);
+  console.log('- Certificate ID:', certificateId);
   
   console.log('🌐 URL certificato generato:', certificateUrl);
 
@@ -131,46 +203,105 @@ async function handleViewCertificate(req, res) {
 
   console.log('🔍 Recuperando certificato dal Realtime Database:', id);
 
-  const admin = await import('firebase-admin');
-  
-  if (!admin.default.apps.length) {
-    admin.default.initializeApp({
-      credential: admin.default.credential.cert({
+  try {
+    const admin = await import('firebase-admin');
+    
+    console.log('📋 Variabili d\'ambiente server:');
+    console.log('- FIREBASE_PROJECT_ID:', process.env.FIREBASE_PROJECT_ID ? 'SET' : 'MISSING');
+    console.log('- FIREBASE_CLIENT_EMAIL:', process.env.FIREBASE_CLIENT_EMAIL ? 'SET' : 'MISSING');
+    console.log('- FIREBASE_PRIVATE_KEY:', process.env.FIREBASE_PRIVATE_KEY ? 'SET' : 'MISSING');
+    console.log('- FIREBASE_DATABASE_URL:', process.env.FIREBASE_DATABASE_URL ? 'SET' : 'MISSING');
+    
+    if (!admin.default.apps.length) {
+      console.log('🔥 Inizializzando Firebase Admin SDK...');
+      
+      // Gestisce sia \n letterali che newline reali
+      let privateKey = process.env.FIREBASE_PRIVATE_KEY;
+      if (privateKey) {
+        // Se contiene \n letterali, li converte in newline reali
+        if (privateKey.includes('\\n')) {
+          privateKey = privateKey.replace(/\\n/g, '\n');
+        }
+        // Se non contiene BEGIN PRIVATE KEY, potrebbe essere che le newline sono già reali
+        // ma sono state convertite in spazi o altri caratteri
+        if (!privateKey.includes('BEGIN PRIVATE KEY')) {
+          // Prova a ricostruire la private key
+          privateKey = privateKey.replace(/\s+/g, '\n');
+        }
+      }
+      
+      console.log('🔑 Private Key info:', {
+        originalLength: process.env.FIREBASE_PRIVATE_KEY?.length || 0,
+        processedLength: privateKey?.length || 0,
+        startsWith: privateKey?.substring(0, 20) || 'UNDEFINED',
+        endsWith: privateKey?.substring(privateKey.length - 20) || 'UNDEFINED'
+      });
+      
+      if (!privateKey || !privateKey.includes('BEGIN PRIVATE KEY')) {
+        throw new Error('FIREBASE_PRIVATE_KEY non è valida. Deve contenere "BEGIN PRIVATE KEY"');
+      }
+      
+      const serviceAccount = {
         projectId: process.env.FIREBASE_PROJECT_ID,
         clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-        privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-      }),
-      databaseURL: process.env.FIREBASE_DATABASE_URL
+        privateKey: privateKey,
+      };
+      
+      console.log('🔑 Service Account config:', {
+        projectId: serviceAccount.projectId,
+        clientEmail: serviceAccount.clientEmail,
+        privateKeyLength: serviceAccount.privateKey?.length || 0
+      });
+      
+      admin.default.initializeApp({
+        credential: admin.default.credential.cert(serviceAccount),
+        databaseURL: process.env.FIREBASE_DATABASE_URL
+      });
+      
+      console.log('✅ Firebase Admin SDK inizializzato');
+    } else {
+      console.log('✅ Firebase Admin SDK già inizializzato');
+    }
+
+    console.log('🔥 Connessione al Realtime Database...');
+    const realtimeDb = admin.default.database();
+    const certificateRef = realtimeDb.ref(`certificates/${id}`);
+    
+    console.log('🔍 Recuperando certificato dal database...');
+    const snapshot = await certificateRef.once('value');
+    const certificateData = snapshot.val();
+    
+    console.log('📄 Dati certificato:', certificateData ? 'TROVATO' : 'NON TROVATO');
+
+    if (!certificateData) {
+      return res.status(404).send(generateErrorPage('Certificato non trovato', 'Il certificato richiesto non esiste o è stato rimosso.', '🔍'));
+    }
+
+    if (!certificateData.isActive) {
+      return res.status(410).send(generateErrorPage('Certificato non disponibile', 'Questo certificato è stato disattivato.', '⚠️'));
+    }
+
+    // Incrementa contatore visualizzazioni
+    try {
+      await certificateRef.child('viewCount').transaction((current) => (current || 0) + 1);
+      await certificateRef.child('lastViewed').set(new Date().toISOString());
+    } catch (viewError) {
+      console.warn('⚠️ Errore aggiornamento contatore:', viewError.message);
+    }
+
+    console.log('✅ Certificato trovato e visualizzato:', id);
+
+    const certificateHTML = generateCertificateHTML(certificateData);
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.send(certificateHTML);
+    
+  } catch (error) {
+    console.error('❌ Errore durante la visualizzazione del certificato:', error);
+    res.status(500).json({ 
+      error: 'Errore interno del server',
+      details: error.message 
     });
   }
-
-  const realtimeDb = admin.default.database();
-  const certificateRef = realtimeDb.ref(`certificates/${id}`);
-  
-  const snapshot = await certificateRef.once('value');
-  const certificateData = snapshot.val();
-
-  if (!certificateData) {
-    return res.status(404).send(generateErrorPage('Certificato non trovato', 'Il certificato richiesto non esiste o è stato rimosso.', '🔍'));
-  }
-
-  if (!certificateData.isActive) {
-    return res.status(410).send(generateErrorPage('Certificato non disponibile', 'Questo certificato è stato disattivato.', '⚠️'));
-  }
-
-  // Incrementa contatore visualizzazioni
-  try {
-    await certificateRef.child('viewCount').transaction((current) => (current || 0) + 1);
-    await certificateRef.child('lastViewed').set(new Date().toISOString());
-  } catch (viewError) {
-    console.warn('⚠️ Errore aggiornamento contatore:', viewError.message);
-  }
-
-  console.log('✅ Certificato trovato e visualizzato:', id);
-
-  const certificateHTML = generateCertificateHTML(certificateData);
-  res.setHeader('Content-Type', 'text/html; charset=utf-8');
-  res.send(certificateHTML);
 }
 
 // Gestisce l'aggiornamento dello stato QR
@@ -257,6 +388,7 @@ function generateErrorPage(title, message, icon) {
 }
 
 function generateCertificateHTML(certificateData) {
+  const siteUrl = process.env.PUBLIC_SITE_URL || 'https://simplychain-kr64t1v59-sfylabs-hascs-projects.vercel.app';
   return `
     <!DOCTYPE html>
     <html lang="it">
@@ -264,6 +396,7 @@ function generateCertificateHTML(certificateData) {
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <title>${certificateData.name} - Certificato di Tracciabilità</title>
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@400&display=swap">
       
       <meta property="og:title" content="${certificateData.name} - Certificato SimplyChain">
       <meta property="og:description" content="Certificato di tracciabilità blockchain prodotto da ${certificateData.companyName}">
@@ -271,6 +404,7 @@ function generateCertificateHTML(certificateData) {
       <meta name="twitter:card" content="summary_large_image">
       
       <style>
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; vertical-align: middle; }
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { 
           font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
@@ -299,30 +433,18 @@ function generateCertificateHTML(certificateData) {
           padding-bottom: 30px;
         }
         
-        .title {
-          font-size: 2.5rem;
-          font-weight: bold;
-          background: linear-gradient(135deg, #8b5cf6 0%, #06b6d4 100%);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          background-clip: text;
-          margin-bottom: 10px;
-        }
+        .company-name-box { border: 2px solid rgba(139, 92, 246, 0.6); border-radius: 15px; padding: 20px 30px; margin-bottom: 20px; }
+        .title { font-size: 2.5rem; font-weight: bold; color: #ffffff; margin: 0; }
         
         .subtitle {
           font-size: 1.2rem;
           color: #94a3b8;
-          margin-bottom: 10px;
+          margin-bottom: 5px;
         }
         
-        .company-badge {
-          display: inline-block;
-          background: rgba(139, 92, 246, 0.2);
-          color: #a78bfa;
-          padding: 8px 16px;
-          border-radius: 20px;
-          font-weight: 600;
-          border: 1px solid rgba(139, 92, 246, 0.3);
+        .creator-badge {
+          font-size: 1rem;
+          color: #94a3b8;
         }
         
         .info-grid {
@@ -381,11 +503,7 @@ function generateCertificateHTML(certificateData) {
           box-shadow: 0 4px 15px rgba(6, 182, 212, 0.2);
         }
         
-        .steps-section {
-          margin-top: 40px;
-        }
-        
-        .steps-title {
+        .section-title {
           font-size: 1.8rem;
           font-weight: bold;
           color: #8b5cf6;
@@ -395,6 +513,10 @@ function generateCertificateHTML(certificateData) {
           align-items: center;
           justify-content: center;
           gap: 10px;
+        }
+        
+        .steps-section {
+          margin-top: 40px;
         }
         
         .step {
@@ -529,10 +651,12 @@ function generateCertificateHTML(certificateData) {
     <body>
       <div class="certificate-container">
         <div class="header">
-          <h1 class="title">🔗 SimplyChain</h1>
+          <div class="company-name-box"><h1 class="title">${certificateData.companyName}</h1></div>
           <p class="subtitle">Certificato di Tracciabilità Blockchain</p>
-          <div class="company-badge">🏢 ${certificateData.companyName}</div>
+          <p class="creator-badge">Creato con SimplyChain</p>
         </div>
+
+        <h2 class="section-title">📋 Informazioni Iscrizione</h2>
 
         <div class="info-grid">
           <div class="info-item">
@@ -555,14 +679,22 @@ function generateCertificateHTML(certificateData) {
             <div class="info-value">✅ Certificato Attivo</div>
           </div>
           
+          ${certificateData.description ? `
+            <div class="info-item">
+              <div class="info-label">📝 Descrizione</div>
+              <div class="info-value">${certificateData.description}</div>
+            </div>
+          ` : ''}
+          
           ${certificateData.imageIpfsHash && certificateData.imageIpfsHash !== "N/A" ? `
             <div class="info-item">
               <div class="info-label">🖼️ Immagine Prodotto</div>
               <div class="info-value">
-                <img src="https://musical-emerald-partridge.myfilebase.com/ipfs/${certificateData.imageIpfsHash}" 
-                     alt="Immagine prodotto" 
-                     class="image-preview"
-                     onclick="openImageModal(this.src)">
+                <a href="https://musical-emerald-partridge.myfilebase.com/ipfs/${certificateData.imageIpfsHash}" 
+                   target="_blank" 
+                   class="blockchain-link">
+                  🖼️ Apri Immagine
+                </a>
               </div>
             </div>
           ` : ''}
@@ -573,22 +705,16 @@ function generateCertificateHTML(certificateData) {
               <a href="https://polygonscan.com/inputdatadecoder?tx=${certificateData.transactionHash}" 
                  target="_blank" 
                  class="blockchain-link">
-                🔍 Verifica su PolygonScan
+                🔍 Verifica su Polygon
               </a>
             </div>
           </div>
         </div>
         
-        ${certificateData.description ? `
-          <div class="info-item" style="margin-bottom: 30px;">
-            <div class="info-label">📝 Descrizione</div>
-            <div class="info-value">${certificateData.description}</div>
-          </div>
-        ` : ''}
 
         ${certificateData.steps && certificateData.steps.length > 0 ? `
           <div class="steps-section">
-            <h2 class="steps-title">🔄 Fasi di Lavorazione</h2>
+            <h2 class="section-title">🔄 Fasi di Lavorazione</h2>
             ${certificateData.steps.map((step, index) => `
               <div class="step">
                 <div class="step-number">${index + 1}</div>
@@ -635,10 +761,10 @@ function generateCertificateHTML(certificateData) {
         ` : ''}
 
         <div class="footer">
-          <p>🔗 <strong>SimplyChain</strong> - Tracciabilità Blockchain per le imprese italiane</p>
+          <p><span class="material-symbols-outlined">link</span> <a href="${siteUrl}" target="_blank" rel="noopener noreferrer" style="color:#a78bfa;text-decoration:none"><strong>SimplyChain</strong></a> - Tracciabilità Blockchain per le imprese italiane</p>
           <p>Certificato generato il ${new Date(certificateData.createdAt).toLocaleDateString('it-IT')}</p>
-          <p>Servizio Gratuito prodotto da <strong>SFY s.r.l.</strong></p>
-          <p>📧 Contattaci: sfy.startup@gmail.com</p>
+          <p>Servizio prodotto da <a href="https://www.stickyfactory.it/" target="_blank" rel="noopener noreferrer" style="color:#a78bfa;text-decoration:none"><strong>SFY s.r.l.</strong></a></p>
+          <p><span class="material-symbols-outlined">mail</span> Contattaci: sfy.startup@gmail.com</p>
         </div>
       </div>
       

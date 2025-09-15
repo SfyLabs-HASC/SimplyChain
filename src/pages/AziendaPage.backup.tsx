@@ -17,7 +17,6 @@
 import React, { useState, useEffect } from "react";
 
 import { ConnectButton, useActiveAccount, useReadContract, useSendTransaction } from "thirdweb/react";
-import Footer from '../components/Footer';
 
 import { useNavigate } from "react-router-dom";
 
@@ -2379,31 +2378,7 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
 
   const [showQRCodeModal, setShowQRCodeModal] = useState(false);
 
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
-  const [successMessage, setSuccessMessage] = useState('');
-
-  // Funzione helper per ottenere il timestamp corretto per un batch
-  const getBatchTimestamp = (batch: Batch) => {
-    if (batch.qrCodeGenerated && batch.qrCodeTimestamp) {
-      return batch.qrCodeTimestamp;
-    } else if (batch.qrCodeGenerated && !batch.qrCodeTimestamp) {
-      // Controlla se esiste un timestamp salvato in localStorage
-      const savedTimestamp = localStorage.getItem(`qr_timestamp_${batch.batchId}`);
-      if (savedTimestamp) {
-        return parseInt(savedTimestamp);
-      } else {
-        // Per QR generati prima di questa modifica, usa un timestamp fisso
-        const fixedTimestamp = 1757772000000 + batch.batchId;
-        localStorage.setItem(`qr_timestamp_${batch.batchId}`, fixedTimestamp.toString());
-        return fixedTimestamp;
-      }
-    } else {
-      const newTimestamp = Date.now();
-      localStorage.setItem(`qr_timestamp_${batch.batchId}`, newTimestamp.toString());
-      return newTimestamp;
-    }
-  };
 
   // State per i filtri
 
@@ -2697,11 +2672,6 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
   const handleGenerateQRCode = async (batch: Batch) => {
     try {
       console.log('🔥 Generando QR Code con Firebase Realtime Database per batch:', batch.batchId);
-      console.log('🔍 DEBUG Batch state:', {
-        batchId: batch.batchId,
-        qrCodeGenerated: batch.qrCodeGenerated,
-        qrCodeTimestamp: batch.qrCodeTimestamp
-      });
       
       // Verifica la configurazione Firebase prima di procedere
       const { realtimeDb } = await import('../firebaseConfig');
@@ -2713,18 +2683,15 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
       const { ref, set, push } = await import('firebase/database');
       const QRCode = await import('qrcode');
       
-      // Step 1: Log per QR già generato (ma permette rigenerazione)
+      // Step 1: Controlla se il QR code è già stato generato
       if (batch.qrCodeGenerated) {
-        console.log('🔄 Rigenerando QR Code per batch:', batch.batchId);
+        console.log('⚠️ QR Code già generato per questo batch:', batch.batchId);
+        return { success: false, error: 'QR Code già generato per questo batch' };
       }
       
       // Step 2: Prepara i dati del certificato
       const cleanCompanyName = currentCompanyData.companyName.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
-      // Usa la funzione helper per ottenere il timestamp corretto
-      const timestamp = getBatchTimestamp(batch);
-      console.log('🔍 DEBUG Final timestamp for batch', batch.batchId, ':', timestamp);
-      
-      const certificateId = `${cleanCompanyName}_${batch.batchId}_${timestamp}`;
+      const certificateId = `${cleanCompanyName}_${batch.batchId}_${Date.now()}`;
       const certificateData = {
         batchId: batch.batchId,
         name: batch.name,
@@ -2780,12 +2747,8 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
       
       console.log('✅ QR Code scaricato con successo');
       
-      // Step 6: Aggiorna lo stato del batch (preserva il timestamp originale)
-      const updatedBatch = { 
-        ...batch, 
-        qrCodeGenerated: true, 
-        qrCodeTimestamp: batch.qrCodeTimestamp || timestamp // Usa il timestamp originale o quello generato
-      };
+      // Step 6: Aggiorna lo stato del batch
+      const updatedBatch = { ...batch, qrCodeGenerated: true };
       setBatches(prevBatches => 
         prevBatches.map(b => 
           b.batchId === batch.batchId ? updatedBatch : b
@@ -2800,8 +2763,7 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
           body: JSON.stringify({
             walletAddress: account?.address,
             batchId: batch.batchId,
-            qrCodeGenerated: true,
-            qrCodeTimestamp: batch.qrCodeTimestamp || timestamp
+            qrCodeGenerated: true
           })
         });
         console.log('✅ Stato QR salvato in Firestore');
@@ -2809,8 +2771,7 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
         console.warn('⚠️ Errore salvando stato QR (non critico):', saveError);
       }
       
-      setSuccessMessage('QR Code generato con successo!');
-      setShowSuccessModal(true);
+      alert('🎉 QR Code generato con successo!\n\n🔥 Certificato salvato nel Firebase Realtime Database!\n📱 Il QR code è pronto per l\'uso.');
       
     } catch (error) {
       console.error('❌ Errore durante la generazione QR Code:', error);
@@ -2824,480 +2785,23 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
     }
   };
 
-  // Funzione helper per generare ID certificato consistente
-  const generateCertificateId = (batch: Batch, companyName: string) => {
-    const cleanCompanyName = companyName.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
-    // Se il QR è già generato, usa un ID fisso per mantenere lo stesso QR
-    if (batch.qrCodeGenerated) {
-      return `${cleanCompanyName}_${batch.batchId}_existing`;
-    }
-    return `${cleanCompanyName}_${batch.batchId}_${Date.now()}`;
-  };
-
-  // Funzione per generare HTML certificato (versione client)
-  const generateCertificateHTMLClient = (certificateData: any) => {
-    const siteUrl = window.location.origin;
-    return `<!DOCTYPE html>
-<html lang="it">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${certificateData.companyName} - Certificato di Tracciabilità</title>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@400&display=swap">
-  <meta property="og:title" content="${certificateData.companyName} - Certificato SimplyChain">
-  <meta property="og:description" content="Certificato di tracciabilità blockchain prodotto da ${certificateData.companyName}">
-  <meta property="og:type" content="website">
-  <meta name="twitter:card" content="summary_large_image">
-  
-  <style>
-    .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; vertical-align: middle; }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { 
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-      background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
-      color: #f1f5f9;
-      min-height: 100vh;
-      padding: 20px;
-      line-height: 1.6;
-    }
-    
-    .certificate-container {
-      max-width: 900px;
-      margin: 0 auto;
-      background: rgba(30, 41, 59, 0.95);
-      border-radius: 20px;
-      padding: 40px;
-      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
-      border: 1px solid rgba(139, 92, 246, 0.3);
-      backdrop-filter: blur(10px);
-      position: relative;
-    }
-    
-    
-    .header {
-      text-align: center;
-      margin-bottom: 40px;
-      border-bottom: 2px solid rgba(139, 92, 246, 0.3);
-      padding-bottom: 30px;
-    }
-    
-    .company-name-box {
-      background: transparent;
-      padding: 20px 30px;
-      border-radius: 15px;
-      margin-bottom: 20px;
-      border: 2px solid rgba(139, 92, 246, 0.6);
-      box-shadow: none;
-    }
-    
-    .company-name {
-      font-size: 2.5rem;
-      font-weight: bold;
-      color: #ffffff;
-      margin: 0;
-      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-    }
-    
-    .subtitle {
-      font-size: 1.2rem;
-      color: #94a3b8;
-      margin-bottom: 5px;
-    }
-    
-    .info-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 20px;
-      margin-bottom: 30px;
-    }
-    
-    .info-item {
-      background: rgba(139, 92, 246, 0.1);
-      padding: 20px;
-      border-radius: 12px;
-      border: 1px solid rgba(139, 92, 246, 0.2);
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }
-    
-    .info-item:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 25px rgba(139, 92, 246, 0.15);
-    }
-    
-    .info-label {
-      font-weight: 600;
-      color: #8b5cf6;
-      margin-bottom: 8px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    
-    .info-value {
-      color: #f1f5f9;
-      font-size: 1.1rem;
-      word-break: break-word;
-    }
-    
-    .blockchain-link {
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      color: #06b6d4;
-      text-decoration: none;
-      font-weight: 500;
-      padding: 10px 16px;
-      background: rgba(6, 182, 212, 0.1);
-      border-radius: 25px;
-      border: 1px solid rgba(6, 182, 212, 0.3);
-      transition: all 0.3s ease;
-      margin-top: 10px;
-    }
-    
-    .blockchain-link:hover {
-      background: rgba(6, 182, 212, 0.2);
-      transform: translateY(-1px);
-      box-shadow: 0 4px 15px rgba(6, 182, 212, 0.2);
-    }
-    
-    .section-title {
-      font-size: 1.8rem;
-      font-weight: bold;
-      color: #8b5cf6;
-      margin-bottom: 20px;
-      text-align: center;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-    }
-    
-    .description-section {
-      margin-top: 40px;
-      background: rgba(139, 92, 246, 0.1);
-      border: 1px solid rgba(139, 92, 246, 0.3);
-      border-radius: 15px;
-      padding: 25px;
-    }
-    
-    .description-title {
-      font-size: 1.5rem;
-      font-weight: bold;
-      color: #8b5cf6;
-      margin-bottom: 15px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    
-    .description-content {
-      font-size: 1.1rem;
-      color: #f1f5f9;
-      line-height: 1.7;
-      text-align: justify;
-    }
-    
-    .steps-section {
-      margin-top: 40px;
-    }
-    
-    .step {
-      background: rgba(6, 182, 212, 0.1);
-      border: 1px solid rgba(6, 182, 212, 0.2);
-      border-radius: 12px;
-      padding: 25px;
-      margin-bottom: 20px;
-      position: relative;
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }
-    
-    .step:hover {
-      transform: translateX(5px);
-      box-shadow: 0 8px 25px rgba(6, 182, 212, 0.15);
-    }
-    
-    .step-number-circle {
-      position: absolute;
-      top: -10px;
-      left: 20px;
-      background: #06b6d4;
-      color: #0f172a;
-      width: 30px;
-      height: 30px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: bold;
-      font-size: 0.9rem;
-    }
-    
-    .step-header {
-      font-size: 1.3rem;
-      font-weight: bold;
-      color: #06b6d4;
-      margin-bottom: 15px;
-      margin-left: 20px;
-    }
-    
-    .step-details {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 15px;
-      margin-left: 20px;
-    }
-    
-    .step-detail {
-      font-size: 0.95rem;
-      color: #cbd5e1;
-      background: rgba(15, 23, 42, 0.3);
-      padding: 12px;
-      border-radius: 8px;
-      border: 1px solid rgba(6, 182, 212, 0.1);
-    }
-    
-    .step-detail strong {
-      color: #06b6d4;
-    }
-    
-    .step-description {
-      margin-top: 20px;
-      padding: 15px;
-      background: rgba(6, 182, 212, 0.05);
-      border: 1px solid rgba(6, 182, 212, 0.2);
-      border-radius: 8px;
-    }
-    
-    .step-description strong {
-      color: #06b6d4;
-      font-size: 1rem;
-    }
-    
-    .step-description-content {
-      margin-top: 8px;
-      color: #f1f5f9;
-      line-height: 1.6;
-      text-align: justify;
-    }
-    
-    .footer {
-      text-align: center;
-      margin-top: 40px;
-      padding-top: 20px;
-      border-top: 1px solid rgba(139, 92, 246, 0.3);
-      color: #94a3b8;
-    }
-    
-    @media (max-width: 768px) {
-      .certificate-container {
-        padding: 20px;
-        margin: 10px;
-      }
-      
-      .title {
-        font-size: 2rem;
-      }
-      
-      .info-grid {
-        grid-template-columns: 1fr;
-      }
-      
-      .step-details {
-        grid-template-columns: 1fr;
-      }
-    }
-  </style>
-</head>
-<body>
-  <div class="certificate-container">
-    <div class="header">
-      <div class="company-name-box">
-        <h1 class="company-name">${certificateData.companyName}</h1>
-      </div>
-      <p class="subtitle">Certificato di Tracciabilità Blockchain</p>
-    </div>
-
-    <h2 class="section-title"><span class="material-symbols-outlined">info</span> Informazioni Iscrizione</h2>
-    <div class="info-grid">
-      <div class="info-item">
-        <div class="info-label"><span class="material-symbols-outlined">inventory_2</span> Nome Prodotto</div>
-        <div class="info-value">${certificateData.name}</div>
-      </div>
-      
-      <div class="info-item">
-        <div class="info-label"><span class="material-symbols-outlined">calendar_month</span> Data di Origine</div>
-        <div class="info-value">${certificateData.date || 'N/D'}</div>
-      </div>
-      
-      <div class="info-item">
-        <div class="info-label"><span class="material-symbols-outlined">location_on</span> Luogo di Produzione</div>
-        <div class="info-value">${certificateData.location || 'N/D'}</div>
-      </div>
-      
-      <div class="info-item">
-        <div class="info-label"><span class="material-symbols-outlined">verified</span> Stato</div>
-        <div class="info-value"><span class="material-symbols-outlined">check_circle</span> Certificato Attivo</div>
-      </div>
-      
-      ${certificateData.imageIpfsHash && certificateData.imageIpfsHash !== "N/A" ? `
-        <div class="info-item">
-          <div class="info-label"><span class="material-symbols-outlined">image</span> Immagine Prodotto</div>
-          <div class="info-value">
-            <a href="https://musical-emerald-partridge.myfilebase.com/ipfs/${certificateData.imageIpfsHash}" 
-               target="_blank" 
-               class="blockchain-link">
-              <span class="material-symbols-outlined">open_in_new</span> Apri Immagine
-            </a>
-          </div>
-        </div>
-      ` : ''}
-      
-      <div class="info-item">
-        <div class="info-label"><span class="material-symbols-outlined">link</span> Verifica Blockchain</div>
-        <div class="info-value">
-          <a href="https://polygonscan.com/inputdatadecoder?tx=${certificateData.transactionHash}" 
-             target="_blank" 
-             class="blockchain-link">
-            <span class="material-symbols-outlined">travel_explore</span> Verifica su Polygon
-          </a>
-        </div>
-      </div>
-    </div>
-
-    ${certificateData.description ? `
-      <div class="description-section">
-        <h3 class="description-title"><span class="material-symbols-outlined">description</span> Descrizione</h3>
-        <div class="description-content">${certificateData.description}</div>
-      </div>
-    ` : ''}
-
-    ${certificateData.steps && certificateData.steps.length > 0 ? `
-      <div class="steps-section">
-        <h2 class="section-title"><span class="material-symbols-outlined">sync</span> Fasi di Lavorazione</h2>
-        ${certificateData.steps.map((step, index) => `
-          <div class="step">
-            <div class="step-number-circle">${index + 1}</div>
-            <h3 class="step-header">Step ${index + 1}</h3>
-            <div class="step-details">
-              <div class="step-detail">
-                <strong><span class="material-symbols-outlined">inventory_2</span> Nome:</strong><br>
-                ${step.eventName}
-              </div>
-              <div class="step-detail">
-                <strong><span class="material-symbols-outlined">calendar_month</span> Data:</strong><br>
-                ${step.date || 'N/D'}
-              </div>
-              <div class="step-detail">
-                <strong><span class="material-symbols-outlined">location_on</span> Luogo:</strong><br>
-                ${step.location || 'N/D'}
-              </div>
-              ${step.attachmentsIpfsHash && step.attachmentsIpfsHash !== "N/A" ? `
-                <div class="step-detail">
-                  <strong><span class="material-symbols-outlined">attachment</span> Allegati:</strong><br>
-                  <a href="https://musical-emerald-partridge.myfilebase.com/ipfs/${step.attachmentsIpfsHash}" 
-                     target="_blank" 
-                     class="blockchain-link" 
-                     style="margin-top: 5px;">
-                    <span class="material-symbols-outlined">folder_open</span> Visualizza File
-                  </a>
-                </div>
-              ` : ''}
-              ${step.transactionHash ? `
-                <div class="step-detail">
-                  <strong><span class="material-symbols-outlined">link</span> Verifica Blockchain:</strong><br>
-                  <a href="https://polygonscan.com/inputdatadecoder?tx=${step.transactionHash}" 
-                     target="_blank" 
-                     class="blockchain-link"
-                     style="margin-top: 5px;">
-                    <span class="material-symbols-outlined">travel_explore</span> Verifica Step
-                  </a>
-                </div>
-              ` : ''}
-            </div>
-            ${step.description ? `
-              <div class="step-description">
-                <strong><span class="material-symbols-outlined">description</span> Descrizione:</strong><br>
-                <div class="step-description-content">${step.description}</div>
-              </div>
-            ` : ''}
-          </div>
-        `).join('')}
-      </div>
-    ` : ''}
-
-    <div class="footer">
-      <p><span class="material-symbols-outlined">link</span> Certificato generato con <a href="${siteUrl}" target="_blank" rel="noopener noreferrer" style="color:#a78bfa;text-decoration:none"><strong>SimplyChain</strong></a> il ${new Date(certificateData.createdAt).toLocaleDateString('it-IT')}</p>
-      <p>Servizio prodotto da <a href="https://www.stickyfactory.it/" target="_blank" rel="noopener noreferrer" style="color:#a78bfa;text-decoration:none"><strong>SFY s.r.l.</strong></a></p>
-      <p><span class="material-symbols-outlined">mail</span> Contattaci: sfy.startup@gmail.com</p>
-    </div>
-  </div>
-</body>
-</html>`;
-  };
-
-  // Funzione per scaricare il file HTML
-  const downloadHTMLFile = async (batch: Batch) => {
-    try {
-      console.log('🔥 Generando file HTML per download per batch:', batch.batchId);
-      
-      // Genera i dati del certificato (stesso formato del QR)
-      const cleanCompanyName = currentCompanyData.companyName.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
-      // Usa la funzione helper per ottenere il timestamp corretto
-      const timestamp = getBatchTimestamp(batch);
-      console.log('🔍 DEBUG Final timestamp for batch', batch.batchId, ':', timestamp);
-      
-      const certificateId = `${cleanCompanyName}_${batch.batchId}_${timestamp}`;
-      
-      const certificateData = {
-        batchId: batch.batchId,
-        name: batch.name,
-        companyName: currentCompanyData.companyName,
-        walletAddress: account?.address,
-        date: batch.date,
-        location: batch.location,
-        description: batch.description,
-        transactionHash: batch.transactionHash,
-        imageIpfsHash: batch.imageIpfsHash,
-        steps: batch.steps || [],
-        createdAt: new Date().toISOString(),
-        isActive: true,
-        viewCount: 0
-      };
-
-      // Genera l'HTML del certificato
-      const certificateHTML = generateCertificateHTMLClient(certificateData);
-      
-      // Crea e scarica il file
-      const blob = new Blob([certificateHTML], { type: 'text/html' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      const cleanName = batch.name.replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, '_');
-      a.download = `${cleanName}_certificato.html`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      
-      console.log('✅ File HTML scaricato con successo');
-      setSuccessMessage('File HTML scaricato con successo!');
-      setShowSuccessModal(true);
-      
-    } catch (error: any) {
-      console.error('❌ Errore durante il download del file HTML:', error);
-      alert('❌ Errore durante il download del file HTML. Riprova più tardi.\n\nDettagli: ' + error.message);
-    }
-  };
-
   const handleExport = async (batch: Batch, exportType: 'pdf' | 'html', bannerId: string) => {
 
     try {
 
       console.log('Iniziando export per batch:', batch.batchId, 'tipo:', exportType);
 
-      // Per HTML, scarica il file HTML
+      // Per HTML, usa il sistema Realtime Database
       if (exportType === 'html') {
-        await downloadHTMLFile(batch);
+        const qrResult = await generateQRCode(batch);
+        
+        if (qrResult.success) {
+          // Apri il certificato in una nuova finestra
+          window.open(qrResult.certUrl, '_blank');
+          alert('🎉 Certificato HTML generato e aperto!');
+        } else {
+          throw new Error(qrResult.error);
+        }
         return;
       }
 
@@ -3690,46 +3194,20 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
 
         <>
 
-          {/* Paginazione superiore */}
-          {filteredBatches.length > itemsPerPage && (
-            <div className="flex items-center justify-center gap-3 mb-6 p-4">
-              <button
-                className="primary-gradient text-white px-3 py-2 rounded-md hover:scale-105 transition"
-                onClick={handlePreviousPage}
-                disabled={currentPage === 1}
-                style={{ opacity: currentPage === 1 ? 0.5 : 1 }}
-              >
-                ← Precedente
-              </button>
-              
-              <span className="text-white font-medium">
-                Pagina {currentPage} di {totalPages}
-              </span>
-              
-              <button
-                className="primary-gradient text-white px-3 py-2 rounded-md hover:scale-105 transition"
-                onClick={handleNextPage}
-                disabled={currentPage === totalPages}
-                style={{ opacity: currentPage === totalPages ? 0.5 : 1 }}
-              >
-                Successiva →
-              </button>
-            </div>
-          )}
-
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
 
             {currentItems.length > 0 ? (
 
               currentItems.map((batch) => (
 
-                <div key={batch.batchId} className="rounded-2xl p-6 h-full flex flex-col bg-slate-800/60 border border-slate-700/50 hover:bg-slate-800/80 transition-colors shadow-sm">
+                <div key={batch.batchId} className="batch-card glass-card rounded-2xl p-6 tech-shadow hover:shadow-lg transition h-full flex flex-col">
 
                   <div className="flex-1 flex flex-col">
 
-                    <h3 className="text-white text-xl font-semibold flex items-center gap-2 border-b border-slate-700/50 pb-3 mb-4 min-w-0">
-                      <span className="inline-flex items-center justify-center w-7 h-7 rounded-md border border-purple-500/60 text-purple-300 text-sm shrink-0">{getBatchDisplayNumber(batch.batchId)}</span>
-                      <span className="flex-1 truncate whitespace-nowrap" title={batch.name}>{batch.name}</span>
+                    <h3 className="batch-title">
+
+                      <span className="batch-number">#{getBatchDisplayNumber(batch.batchId)}</span> - {batch.name}
+
                     </h3>
 
                     <p><strong className="label-violet">Descrizione:</strong> {batch.description ? truncateText(batch.description, window.innerWidth < 768 ? 80 : 100) : "N/D"}</p>
@@ -3738,10 +3216,14 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
 
                     <p><strong className="label-violet">Luogo:</strong> {batch.location || "N/D"}</p>
 
-                    <p className="text-slate-300">
-                      <strong className="text-purple-300">Stato:</strong> <span className={batch.isClosed ? 'text-red-400 font-semibold' : 'text-green-400 font-semibold'}>
+                    <p>
+
+                      <strong>Stato:</strong> <span className={batch.isClosed ? 'text-red-500 font-semibold' : 'text-green-500 font-semibold'}>
+
                         {batch.isClosed ? ' Chiuso' : ' Aperto'}
+
                       </span>
+
                     </p>
 
                     <p><strong className="label-violet">Tx Hash:</strong>
@@ -3796,59 +3278,105 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
 
 
 
-                    <div className="mt-auto pt-4 border-t border-gray-600" style={{marginTop: '1rem'}}>
+                    <div className="mt-auto pt-4 border-t border-gray-600 flex justify-between items-center" style={{marginTop: '1rem'}}>
+
+                    <div className="text-sm text-muted-foreground">
+
+                      {batch.steps && batch.steps.length > 0 ? (
+
+                        <button
+
+                          className="accent-gradient text-white px-3 py-2 rounded-md hover:scale-105 transition"
+
+                          onClick={() => setSelectedBatchForSteps(batch)}
+
+                        >
+
+                          {batch.steps.length} steps
+
+                        </button>
+
+                      ) : (
+
+                        <button
+
+                          className="accent-gradient text-white px-3 py-2 rounded-md hover:scale-105 transition disabled"
+
+                          disabled={true}
+
+                        >
+
+                          0 steps
+
+                        </button>
+
+                      )}
 
                     </div>
 
-                  {/* Spacer element che riempie tutto lo spazio disponibile - posizionato dopo la linea */}
+
+                  </div>
+
+                  {/* Spacer element che riempie tutto lo spazio disponibile */}
                   <div style={{ flex: '1' }}></div>
 
                   {/* Pulsanti spostati fuori dal contenuto per allineamento corretto */}
-                  <div className="pt-4" style={{ display: 'flex', flexDirection: 'row', gap: '0.5rem', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap' }}>
+                  <div className="pt-4" style={{ display: 'flex', flexDirection: 'row', gap: '0.5rem', alignItems: 'center', justifyContent: 'space-between' }}>
 
-                    {/* Pulsante Steps - sempre visibile */}
-                    <div>
-                      {batch.steps && batch.steps.length > 0 ? (
-                        <button
-                          className="accent-gradient text-white px-4 py-2 rounded-md hover:scale-105 transition text-sm font-medium whitespace-nowrap"
-                          onClick={() => setSelectedBatchForSteps(batch)}
-                        >
-                          {batch.steps.length} Steps
-                        </button>
-                      ) : (
-                        <button
-                          className="accent-gradient text-white px-4 py-2 rounded-md hover:scale-105 transition disabled text-sm font-medium whitespace-nowrap"
-                          disabled={true}
-                        >
-                          0 Steps
-                        </button>
-                      )}
-                    </div>
+                    {/* Pulsante Esporta - mostrato solo per batch chiusi con QR generato */}
 
-                    {/* Pulsante Esporta - mostrato solo per batch chiusi */}
-                    {batch.isClosed && (
+                    {batch.isClosed && batch.qrCodeGenerated && (
+
                       <button
-                        className="bg-gradient-to-r from-fuchsia-600 to-violet-700 hover:from-fuchsia-700 hover:to-violet-800 text-white px-4 py-2 rounded-md hover:scale-105 transition text-sm font-medium whitespace-nowrap"
+
+                        className="primary-gradient text-white px-3 py-2 rounded-md hover:scale-105 transition"
+
                         onClick={() => {
+
                           setSelectedBatchForExport(batch);
+
                           setShowExportModal(true);
+
                         }}
+
                       >
+
                         Esporta
+
                       </button>
+
                     )}
 
-                    {/* Pulsante Genera QR Code - mostrato solo per batch chiusi */}
+                    {/* Pulsante QR Code - mostrato solo per batch chiusi */}
+
                     {batch.isClosed && (
+
                       <button
-                        className="bg-gradient-to-r from-purple-600 to-indigo-700 hover:from-purple-700 hover:to-indigo-800 text-white px-4 py-2 rounded-md hover:scale-105 transition text-sm font-medium whitespace-nowrap"
+
+                        className="bg-gradient-to-r from-purple-600 to-purple-700 text-white px-3 py-2 rounded-md hover:scale-105 transition"
+
                         onClick={() => {
+
+                          if (batch.qrCodeGenerated) {
+
+                            // Mostra messaggio di attenzione per scarica QR
+
+                            alert('⚠️ Attenzione!\n\nIl QR Code è già stato generato per questo batch.\n\nCliccando su "Scarica QR Code" scaricherai nuovamente lo stesso QR Code associato a questo batch.\n\nQuesto è importante per mantenere la coerenza e non riempire inutilmente lo spazio del database.');
+
+                          }
+
                           setSelectedBatchForExport(batch);
+
                           setShowQRModal(true);
+
                         }}
+
                       >
-                        QR Code
+
+                        {batch.qrCodeGenerated ? 'Scarica QR Code' : 'Crea QR Code'}
+
                       </button>
+
                     )}
 
 
@@ -3886,7 +3414,9 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
                       </>
 
                     ) : (
-                      <span className="material-symbols-outlined text-gray-400">lock</span>
+
+                      <span className="text-gray-400">🔒</span>
+
                     )}
 
                   </div>
@@ -4083,14 +3613,6 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
 
           }}
 
-          onBatchUpdate={(updatedBatch) => {
-            setBatches(prevBatches => 
-              prevBatches.map(b => 
-                b.batchId === updatedBatch.batchId ? updatedBatch : b
-              )
-            );
-          }}
-
           onCreditsUpdate={(newCredits: number) => {
 
             setCurrentCompanyData(prev => ({ ...prev, credits: newCredits }));
@@ -4171,8 +3693,7 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
           }}
           onExportPDF={() => {
             // Per ora non fa nulla, come richiesto
-            setSuccessMessage('Funzionalità PDF in sviluppo');
-            setShowSuccessModal(true);
+            alert('Funzionalità PDF in sviluppo');
             setShowExportModal(false);
           }}
           onExportHTML={() => {
@@ -4239,17 +3760,6 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
 
       )}
 
-      {/* Modale di successo */}
-      {showSuccessModal && (
-        <SuccessModal
-          message={successMessage}
-          onClose={() => {
-            setShowSuccessModal(false);
-            setSuccessMessage('');
-          }}
-        />
-      )}
-
     </>
 
   );
@@ -4293,7 +3803,6 @@ const AddStepModal: React.FC<{
   });
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [fileError, setFileError] = useState<string | null>(null);
 
   const [txResult, setTxResult] = useState<{ status: "success" | "error"; message: string; } | null>(null);
 
@@ -4310,15 +3819,9 @@ const AddStepModal: React.FC<{
 
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0] || null;
-    if (file && file.size > 5 * 1024 * 1024) {
-      setFileError("Il file supera i 5 MB. Scegli un'immagine più leggera.");
-      setSelectedFile(null);
-      e.currentTarget.value = '';
-      return;
-    }
-    setFileError(null);
-    setSelectedFile(file);
+
+    setSelectedFile(e.target.files?.[0] || null);
+
   };
 
 
@@ -4673,13 +4176,11 @@ const AddStepModal: React.FC<{
 
                 <div className="mb-4">
 
-                  <label className="text-slate-200 font-medium">
-
-                    <span className="material-symbols-outlined align-middle mr-1 text-purple-300">description</span>
+                  <label>
 
                     Descrizione
 
-                    <span style={{ color: "#9ca3af" }}> Non obbligatorio</span>
+                    <span style={{ color: "#6c757d" }}> Non obbligatorio</span>
 
                   </label>
 
@@ -4691,7 +4192,7 @@ const AddStepModal: React.FC<{
 
                     onChange={handleInputChange}
 
-                    className="w-full p-3 rounded-lg bg-slate-900 border border-purple-500/30 text-foreground focus:outline-none focus:ring-2 focus:ring-purple-500/50"
+                    className="w-full p-3 rounded-lg bg-gray-800 border border-gray-700 text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
 
                     rows={4}
 
@@ -4721,13 +4222,11 @@ const AddStepModal: React.FC<{
 
                 <div className="mb-4">
 
-                  <label className="text-slate-200 font-medium">
-
-                    <span className="material-symbols-outlined align-middle mr-1 text-purple-300">location_on</span>
+                  <label>
 
                     Luogo
 
-                    <span style={{ color: "#9ca3af" }}> Non obbligatorio</span>
+                    <span style={{ color: "#6c757d" }}> Non obbligatorio</span>
 
                   </label>
 
@@ -4741,7 +4240,7 @@ const AddStepModal: React.FC<{
 
                     onChange={handleInputChange}
 
-                    className="w-full p-3 rounded-lg bg-slate-900 border border-purple-500/30 text-foreground focus:outline-none focus:ring-2 focus:ring-purple-500/50"
+                    className="w-full p-3 rounded-lg bg-gray-800 border border-gray-700 text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
 
                     maxLength={50}
 
@@ -4769,13 +4268,11 @@ const AddStepModal: React.FC<{
 
                 <div className="mb-4">
 
-                  <label className="text-slate-200 font-medium">
-
-                    <span className="material-symbols-outlined align-middle mr-1 text-purple-300">calendar_month</span>
+                  <label>
 
                     Data
 
-                    <span style={{ color: "#9ca3af" }}> Non obbligatorio</span>
+                    <span style={{ color: "#6c757d" }}> Non obbligatorio</span>
 
                   </label>
 
@@ -4789,7 +4286,7 @@ const AddStepModal: React.FC<{
 
                     onChange={handleInputChange}
 
-                    className="w-full p-3 rounded-lg bg-slate-900 border border-purple-500/30 text-foreground focus:outline-none focus:ring-2 focus:ring-purple-500/50"
+                    className="w-full p-3 rounded-lg bg-gray-800 border border-gray-700 text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
 
                     max={today}
 
@@ -4845,11 +4342,10 @@ const AddStepModal: React.FC<{
 
                   </small>
 
-                  {fileError && (
-                    <p className="text-red-400 mt-2">{fileError}</p>
-                  )}
-                  {selectedFile && !fileError && (
-                    <p className="text-purple-300 underline mt-2 block">File: {selectedFile.name}</p>
+                  {selectedFile && (
+
+                    <p className="text-primary underline mt-2 block">File: {selectedFile.name}</p>
+
                   )}
 
                 </div>
@@ -4958,11 +4454,7 @@ const AddStepModal: React.FC<{
 
           message={txResult?.message || loadingMessage}
 
-          onClose={() => {
-            setTxResult(null);
-            setLoadingMessage("");
-            onClose();
-          }}
+          onClose={() => {}}
 
         />
 
@@ -4986,13 +4478,11 @@ const FinalizeModal: React.FC<{
 
   onSuccess: () => void;
 
-  onBatchUpdate: (updatedBatch: Batch) => void;
-
   onCreditsUpdate: (credits: number) => void;
 
   currentCompanyData: any;
 
-}> = ({ batch, onClose, onSuccess, onBatchUpdate, onCreditsUpdate, currentCompanyData }) => {
+}> = ({ batch, onClose, onSuccess, onCreditsUpdate, currentCompanyData }) => {
 
   const account = useActiveAccount();
 
@@ -5009,28 +4499,6 @@ const FinalizeModal: React.FC<{
   const [certificateUrl, setCertificateUrl] = useState<string>("");
 
   // Funzione per generare QR Code automaticamente
-  // Funzione helper per ottenere il timestamp corretto per un batch
-  const getBatchTimestamp = (batch: Batch) => {
-    if (batch.qrCodeGenerated && batch.qrCodeTimestamp) {
-      return batch.qrCodeTimestamp;
-    } else if (batch.qrCodeGenerated && !batch.qrCodeTimestamp) {
-      // Controlla se esiste un timestamp salvato in localStorage
-      const savedTimestamp = localStorage.getItem(`qr_timestamp_${batch.batchId}`);
-      if (savedTimestamp) {
-        return parseInt(savedTimestamp);
-      } else {
-        // Per QR generati prima di questa modifica, usa un timestamp fisso
-        const fixedTimestamp = 1757772000000 + batch.batchId;
-        localStorage.setItem(`qr_timestamp_${batch.batchId}`, fixedTimestamp.toString());
-        return fixedTimestamp;
-      }
-    } else {
-      const newTimestamp = Date.now();
-      localStorage.setItem(`qr_timestamp_${batch.batchId}`, newTimestamp.toString());
-      return newTimestamp;
-    }
-  };
-
   const generateQRCode = async (batch: Batch) => {
     try {
       console.log('🔥 Generando QR Code automaticamente per batch:', batch.batchId);
@@ -5045,18 +4513,15 @@ const FinalizeModal: React.FC<{
       const { ref, set } = await import('firebase/database');
       const QRCode = await import('qrcode');
       
-      // Step 1: Log per QR già generato (ma permette rigenerazione)
+      // Step 1: Controlla se il QR code è già stato generato
       if (batch.qrCodeGenerated) {
-        console.log('🔄 Rigenerando QR Code per batch:', batch.batchId);
+        console.log('⚠️ QR Code già generato per questo batch:', batch.batchId);
+        return { success: false, error: 'QR Code già generato per questo batch' };
       }
       
       // Step 2: Prepara i dati del certificato
       const cleanCompanyName = currentCompanyData.companyName.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
-      // Usa la funzione helper per ottenere il timestamp corretto
-      const timestamp = getBatchTimestamp(batch);
-      console.log('🔍 DEBUG Final timestamp for batch', batch.batchId, ':', timestamp);
-      
-      const certificateId = `${cleanCompanyName}_${batch.batchId}_${timestamp}`;
+      const certificateId = `${cleanCompanyName}_${batch.batchId}_${Date.now()}`;
       const certificateData = {
         batchId: batch.batchId,
         name: batch.name,
@@ -5113,8 +4578,7 @@ const FinalizeModal: React.FC<{
           body: JSON.stringify({
             walletAddress: account?.address,
             batchId: batch.batchId,
-            qrCodeGenerated: true,
-            qrCodeTimestamp: batch.qrCodeTimestamp || timestamp
+            qrCodeGenerated: true
           })
         });
         console.log('✅ Stato QR salvato in Firestore');
@@ -5179,30 +4643,40 @@ const FinalizeModal: React.FC<{
 
         clearTimeout(timeoutId);
 
+        setTxResult({ status: "success", message: "Iscrizione finalizzata con successo!" });
+
         // Salva il transaction hash della finalizzazione
         console.log("Transaction hash per finalizzazione:", result.transactionHash);
 
-        // Genera automaticamente il QR Code dopo la finalizzazione (in background)
+        // Genera automaticamente il QR Code dopo la finalizzazione
+        setLoadingMessage("Generazione QR Code in corso...");
         const qrResult = await generateQRCode(batch);
         
         if (qrResult.success) {
           console.log('✅ QR Code generato automaticamente con successo');
+          setLoadingMessage("Finalizzazione completata! QR Code generato.");
           
           // Aggiorna lo stato del batch per mostrare che il QR è stato generato
-          onBatchUpdate({ ...batch, qrCodeGenerated: true, qrCodeTimestamp: batch.qrCodeTimestamp || Date.now(), isClosed: true });
+          setBatches(prevBatches => 
+            prevBatches.map(b => 
+              b.batchId === batch.batchId 
+                ? { ...b, qrCodeGenerated: true, isClosed: true }
+                : b
+            )
+          );
         } else {
           console.warn('⚠️ Errore nella generazione automatica del QR Code:', qrResult.error);
+          setLoadingMessage("Finalizzazione completata! (QR Code non generato)");
           
           // Chiudi comunque il batch anche se il QR non è stato generato
-          onBatchUpdate({ ...batch, isClosed: true });
+          setBatches(prevBatches => 
+            prevBatches.map(b => 
+              b.batchId === batch.batchId 
+                ? { ...b, isClosed: true }
+                : b
+            )
+          );
         }
-
-        // Chiudi automaticamente il modale dopo la finalizzazione
-        setTimeout(() => {
-          onSuccess();
-          setTxResult(null);
-          setLoadingMessage("");
-        }, 1000);
 
 
 
@@ -5396,7 +4870,7 @@ const FinalizeModal: React.FC<{
                           fontWeight: '500'
                         }}
                       >
-                        <span className="material-symbols-outlined mr-1 align-middle">link</span> Visualizza Certificato
+                        🔗 Visualizza Certificato
                       </button>
                     </div>
                   </div>
@@ -5438,11 +4912,7 @@ const FinalizeModal: React.FC<{
 
           message={txResult?.message || loadingMessage}
 
-          onClose={() => {
-            setTxResult(null);
-            setLoadingMessage("");
-            onClose();
-          }}
+          onClose={() => {}}
 
         />
 
@@ -5474,51 +4944,37 @@ const StepsModal: React.FC<{
 
     <>
 
-      <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={onClose}>
+      <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4" onClick={onClose}>
 
-        <div className="bg-slate-800 rounded-2xl shadow-2xl max-w-3xl w-full max-h-[85vh] overflow-y-auto border border-slate-700/50" onClick={(e) => e.stopPropagation()}>
+        <div className="bg-card p-4 rounded-2xl border border-border max-w-3xl w-full max-h-[80vh] overflow-auto text-foreground" onClick={(e) => e.stopPropagation()}>
 
-          {/* Header */}
-          <div className="sticky top-0 z-10 bg-slate-800/95 backdrop-blur-sm border-b border-slate-700/50 p-5 rounded-t-2xl flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl flex items-center justify-center">
-                <span className="material-symbols-outlined text-white">inventory_2</span>
-              </div>
-              <div>
-                <h2 className="text-xl font-bold text-white">Steps</h2>
-                <p className="text-sm text-slate-400">Batch: {batch.name}</p>
-              </div>
-            </div>
-            <button onClick={onClose} className="text-slate-400 hover:text-white transition-colors p-2 hover:bg-slate-700 rounded-lg">
-              <span className="material-symbols-outlined">close</span>
-            </button>
+          <div className="steps-p-4 border-b border-border">
+
+            <h2>Steps - {batch.name}</h2>
+
           </div>
 
-          {/* Content */}
-          <div className="p-5">
+          <div className="steps-p-4">
 
             {batch.steps && batch.steps.length > 0 ? (
 
               batch.steps.map((step, index) => (
 
-                <div key={index} className="bg-purple-500/10 p-5 rounded-xl border border-purple-500/30 mb-4 pl-5 border-l-4">
+                <div key={index} className="bg-gray-800 p-4 rounded-xl border border-gray-700 mb-4">
 
-                  <div className="flex items-center justify-between mb-3">
-                    <h4 className="text-purple-300 font-semibold">Step {index + 1}</h4>
-                    <div className="text-sm text-slate-200"><span className="material-symbols-outlined align-middle mr-1 text-purple-300">inventory_2</span> Nome: {step.eventName}</div>
-                  </div>
+                  <h4>Step {index + 1}: {step.eventName}</h4>
 
-                  <p className="text-slate-200"><strong className="text-purple-300"><span className="material-symbols-outlined mr-1 align-middle">description</span> Descrizione:</strong> {step.description || "N/D"}</p>
+                  <p><strong>📄 Descrizione:</strong> {step.description || "N/D"}</p>
 
-                  <p className="text-slate-200"><strong className="text-purple-300"><span className="material-symbols-outlined mr-1 align-middle">calendar_month</span> Data:</strong> {formatItalianDate(step.date)}</p>
+                  <p><strong>📅 Data:</strong> {formatItalianDate(step.date)}</p>
 
-                  <p className="text-slate-200"><strong className="text-purple-300"><span className="material-symbols-outlined mr-1 align-middle">location_on</span> Luogo:</strong> {step.location || "N/D"}</p>
+                  <p><strong>📍 Luogo:</strong> {step.location || "N/D"}</p>
 
                   {step.attachmentsIpfsHash && step.attachmentsIpfsHash !== "N/A" && (
 
-                    <p className="text-slate-200">
+                    <p>
 
-                      <strong className="text-purple-300"><span className="material-symbols-outlined mr-1 align-middle">attachment</span> Allegati:</strong>
+                      <strong>📎 Allegati:</strong>
 
                       <a
 
@@ -5542,9 +4998,9 @@ const StepsModal: React.FC<{
 
                   )}
 
-                  <p className="text-slate-200">
+                  <p>
 
-                    <strong className="text-purple-300"><span className="material-symbols-outlined mr-1 align-middle">travel_explore</span> Verifica su Blockchain:</strong>
+                    <strong>🔗 Verifica su Blockchain:</strong>
 
                     <a
 
@@ -5576,8 +5032,14 @@ const StepsModal: React.FC<{
 
             )}
 
-            <div className="sticky bottom-0 bg-slate-800/95 backdrop-blur-sm border-t border-slate-700/50 p-5 rounded-b-2xl flex justify-end">
-              <button onClick={onClose} className="bg-slate-600 hover:bg-slate-700 text-white px-4 py-2 rounded-lg transition-colors font-medium">Chiudi</button>
+            <div style={{ textAlign: 'center', marginTop: '2rem' }}>
+
+              <button onClick={onClose} className="primary-gradient text-white px-4 py-2 rounded-2xl font-semibold hover:scale-105 transition">
+
+                Indietro
+
+              </button>
+
             </div>
 
           </div>
@@ -5924,26 +5386,17 @@ const NewInscriptionModal: React.FC<{
 
     <>
 
-      <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={onClose}>
+      <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4" onClick={onClose}>
 
-        <div className="bg-slate-800 rounded-2xl shadow-2xl max-w-2xl w-full text-foreground border border-slate-700/50" onClick={(e) => e.stopPropagation()}>
+        <div className="bg-card p-6 rounded-2xl border border-border max-w-2xl w-full text-foreground" onClick={(e) => e.stopPropagation()}>
 
-          <div className="sticky top-0 z-10 bg-slate-800/95 backdrop-blur-sm border-b border-slate-700/50 p-5 rounded-t-2xl flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl flex items-center justify-center">
-                <span className="material-symbols-outlined text-white">edit_square</span>
-              </div>
-              <div>
-                <h2 className="text-xl font-bold text-white">Inizializza Nuova Iscrizione</h2>
-                <p className="text-sm text-slate-400">Passo {currentStep} di 6</p>
-              </div>
-            </div>
-            <button onClick={onClose} className="text-slate-400 hover:text-white transition-colors p-2 hover:bg-slate-700 rounded-lg">
-              <span className="material-symbols-outlined">close</span>
-            </button>
+          <div className="p-4 border-b border-border">
+
+            <h2>Nuova Iscrizione ({currentStep}/6)</h2>
+
           </div>
 
-          <div className="p-5" style={{ minHeight: "350px" }}>
+          <div className="p-4" style={{ minHeight: "350px" }}>
 
             {currentStep === 1 && (
 
@@ -5951,13 +5404,11 @@ const NewInscriptionModal: React.FC<{
 
                 <div className="mb-4">
 
-                  <label className="text-slate-200 font-medium">
-
-                    <span className="material-symbols-outlined align-middle mr-1 text-purple-300">badge</span>
+                  <label>
 
                     Nome Iscrizione 
 
-                    <span style={{ color: "#ef4444", fontWeight: "bold" }}> * Obbligatorio</span>
+                    <span style={{ color: "red", fontWeight: "bold" }}> * Obbligatorio</span>
 
                   </label>
 
@@ -5983,7 +5434,7 @@ const NewInscriptionModal: React.FC<{
 
                 <div style={helpTextStyle}>
 
-                  <p><strong><span className="material-symbols-outlined align-middle mr-1">info</span> Come scegliere il Nome Iscrizione</strong></p>
+                  <p><strong>ℹ️ Come scegliere il Nome Iscrizione</strong></p>
 
                   <p>Il Nome Iscrizione è un'etichetta descrittiva che ti aiuta a identificare in modo chiaro ciò che stai registrando on-chain. Ad esempio:</p>
 
@@ -5997,7 +5448,7 @@ const NewInscriptionModal: React.FC<{
 
                   </ul>
 
-                  <p style={{ marginTop: "1rem" }}><strong><span className="material-symbols-outlined align-middle mr-1">push_pin</span> Consiglio:</strong> scegli un nome breve ma significativo, che ti permetta di ritrovare facilmente l'iscrizione anche dopo mesi o anni.</p>
+                  <p style={{ marginTop: "1rem" }}><strong>📌 Consiglio:</strong> scegli un nome breve ma significativo, che ti permetta di ritrovare facilmente l'iscrizione anche dopo mesi o anni.</p>
 
                 </div>
 
@@ -6059,13 +5510,11 @@ const NewInscriptionModal: React.FC<{
 
                 <div className="mb-4">
 
-                  <label className="text-slate-200 font-medium">
-
-                    <span className="material-symbols-outlined align-middle mr-1 text-purple-300">location_on</span>
+                  <label>
 
                     Luogo di Produzione
 
-                    <span style={{ color: "#9ca3af" }}> Non obbligatorio</span>
+                    <span style={{ color: "#6c757d" }}> Non obbligatorio</span>
 
                   </label>
 
@@ -6079,7 +5528,7 @@ const NewInscriptionModal: React.FC<{
 
                     onChange={handleInputChange}
 
-                    className="w-full p-3 rounded-lg bg-slate-900 border border-purple-500/30 text-foreground focus:outline-none focus:ring-2 focus:ring-purple-500/50"
+                    className="w-full p-3 rounded-lg bg-gray-800 border border-gray-700 text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
 
                     maxLength={50}
 
@@ -6107,13 +5556,11 @@ const NewInscriptionModal: React.FC<{
 
                 <div className="mb-4">
 
-                  <label className="text-slate-200 font-medium">
-
-                    <span className="material-symbols-outlined align-middle mr-1 text-purple-300">calendar_month</span>
+                  <label>
 
                     Data di Origine
 
-                    <span style={{ color: "#9ca3af" }}> Non obbligatorio</span>
+                    <span style={{ color: "#6c757d" }}> Non obbligatorio</span>
 
                   </label>
 
@@ -6127,7 +5574,7 @@ const NewInscriptionModal: React.FC<{
 
                     onChange={handleInputChange}
 
-                    className="w-full p-3 rounded-lg bg-slate-900 border border-purple-500/30 text-foreground focus:outline-none focus:ring-2 focus:ring-purple-500/50"
+                    className="w-full p-3 rounded-lg bg-gray-800 border border-gray-700 text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
 
                     max={today}
 
@@ -6153,13 +5600,11 @@ const NewInscriptionModal: React.FC<{
 
                 <div className="mb-4">
 
-                  <label className="text-slate-200 font-medium">
-
-                    <span className="material-symbols-outlined align-middle mr-1 text-purple-300">image</span>
+                  <label>
 
                     Immagine Prodotto
 
-                    <span style={{ color: "#9ca3af" }}> Non obbligatorio</span>
+                    <span style={{ color: "#6c757d" }}> Non obbligatorio</span>
 
                   </label>
 
@@ -6171,7 +5616,7 @@ const NewInscriptionModal: React.FC<{
 
                     onChange={handleFileChange}
 
-                    className="w-full p-3 rounded-lg bg-slate-900 border border-purple-500/30 text-foreground focus:outline-none focus:ring-2 focus:ring-purple-500/50"
+                    className="w-full p-3 rounded-lg bg-gray-800 border border-gray-700 text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
 
                     accept="image/png, image/jpeg, image/webp"
 
@@ -6659,50 +6104,6 @@ const InfoModal: React.FC<{
 
       )
 
-    },
-
-    {
-
-      title: "Genera QR Code",
-
-      icon: "📱",
-
-      content: (
-
-        <div>
-
-          <div style={{ background: 'rgba(139, 92, 246, 0.1)', padding: '1.5rem', borderRadius: '1rem', border: '1px solid rgba(139, 92, 246, 0.3)', marginBottom: '1rem' }}>
-
-            <h5 style={{ color: '#8b5cf6', margin: '0 0 1rem 0', fontWeight: '600', fontSize: '1.1rem' }}>📱 QR Code per Certificati</h5>
-
-            <p style={{ margin: '0 0 1rem 0', color: '#d1d5db' }}>Genera un QR Code che riporta al tuo certificato online.</p>
-
-            <p style={{ margin: '0 0 1rem 0', color: '#d1d5db' }}>Il QR Code può essere stampato sulle etichette del prodotto per permettere ai clienti di verificare l'autenticità e la tracciabilità.</p>
-
-            <div style={{ background: 'rgba(139, 92, 246, 0.2)', padding: '1rem', borderRadius: '0.75rem', border: '1px solid rgba(139, 92, 246, 0.4)' }}>
-
-              <p style={{ margin: '0 0 0.5rem 0', color: '#a78bfa', fontWeight: '600' }}>💡 Come funziona:</p>
-
-              <ul style={{ paddingLeft: '1.5rem', color: '#d1d5db', margin: 0, fontSize: '0.9rem' }}>
-
-                <li>Il QR Code punta al certificato online</li>
-
-                <li>I clienti possono scansionarlo per verificare</li>
-
-                <li>Mostra tutte le informazioni di tracciabilità</li>
-
-                <li>Aggiornato in tempo reale</li>
-
-              </ul>
-
-            </div>
-
-          </div>
-
-        </div>
-
-      )
-
     }
 
   ];
@@ -7136,7 +6537,6 @@ const AziendaPage: React.FC = () => {
     <>
 
       <AziendaPageStyles />
-      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@400&display=swap" />
 
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
         
@@ -7205,9 +6605,6 @@ const AziendaPage: React.FC = () => {
           </div>
         </main>
 
-        {/* Footer */}
-        <Footer />
-
       </div>
 
     </>
@@ -7234,9 +6631,7 @@ const QRInfoModal: React.FC<{
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl flex items-center justify-center">
-                <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M3 11h8V3H3v8zm2-6h4v4H5V5zm8 12h8v8h-8v-8zm2-6h4v4h-4v-4zM3 21h8v-8H3v8zm2-6h4v4H5v-4zm8-8v2h2V3h-2zm0 8v2h2v-2h-2zm8 0v2h2v-2h-2zM7 7h2v2H7V7zm0 8h2v2H7v-2zm8-8h2v2h-2V7zm0 8h2v2h-2v-2z"/>
-                </svg>
+                <span className="text-white font-bold">📱</span>
               </div>
               <div>
                 <h2 className="text-xl font-bold text-white">Generazione QR Code</h2>
@@ -7343,41 +6738,9 @@ const QRInfoModal: React.FC<{
               onClick={onGenerateQR}
               className="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-4 py-3 rounded-lg transition-all font-medium shadow-lg hover:shadow-purple-500/25"
             >
-              Genera QR Code
+              📱 Genera QR Code
             </button>
           </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// Componente Modale di Successo
-const SuccessModal: React.FC<{
-  message: string;
-  onClose: () => void;
-}> = ({ message, onClose }) => {
-  return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={onClose}>
-      <div 
-        className="bg-slate-800 rounded-2xl shadow-2xl max-w-md w-full" 
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="p-8 text-center">
-          <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
-            <svg className="w-8 h-8 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-            </svg>
-          </div>
-          
-          <h2 className="text-2xl font-bold text-white mb-4">{message}</h2>
-          
-          <button
-            onClick={onClose}
-            className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white px-8 py-3 rounded-lg transition-all font-medium shadow-lg hover:shadow-green-500/25"
-          >
-            Chiudi
-          </button>
         </div>
       </div>
     </div>
@@ -7423,7 +6786,7 @@ const ExportModal: React.FC<{
         {/* Content */}
         <div className="p-6 space-y-6">
           <div className="bg-green-500/10 border border-green-500/20 rounded-xl p-6 text-center">
-            <div className="text-green-400 text-3xl mb-3"><span className="material-symbols-outlined">celebration</span></div>
+            <div className="text-green-400 text-3xl mb-3">🎉</div>
             <h3 className="text-green-300 font-semibold text-lg mb-2">Iscrizione Finalizzata.</h3>
             <p className="text-slate-300">
               Hai chiuso con successo la tua iscrizione. Adesso potrai esportare:
@@ -7435,7 +6798,7 @@ const ExportModal: React.FC<{
             <div className="bg-slate-700/50 border border-slate-600/30 rounded-xl p-6 hover:bg-slate-700/70 transition-colors">
               <div className="flex items-center space-x-3 mb-4">
                 <div className="w-12 h-12 bg-red-500/20 rounded-xl flex items-center justify-center">
-                  <span className="material-symbols-outlined text-red-400 text-xl">picture_as_pdf</span>
+                  <span className="text-red-400 text-xl">📄</span>
                 </div>
                 <div>
                   <h3 className="font-semibold text-white text-lg">Certificato PDF</h3>
@@ -7456,7 +6819,7 @@ const ExportModal: React.FC<{
             <div className="bg-slate-700/50 border border-slate-600/30 rounded-xl p-6 hover:bg-slate-700/70 transition-colors">
               <div className="flex items-center space-x-3 mb-4">
                 <div className="w-12 h-12 bg-green-500/20 rounded-xl flex items-center justify-center">
-                  <span className="material-symbols-outlined text-green-400 text-xl">language</span>
+                  <span className="text-green-400 text-xl">🌐</span>
                 </div>
                 <div>
                   <h3 className="font-semibold text-white text-lg">Certificato HTML</h3>
@@ -7501,13 +6864,13 @@ const ExportModal: React.FC<{
               onClick={onExportPDF}
               className="flex-1 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white px-4 py-3 rounded-lg transition-all font-medium shadow-lg hover:shadow-red-500/25"
             >
-              <span className="material-symbols-outlined mr-2">picture_as_pdf</span> Genera PDF
+              📄 Genera PDF
             </button>
             <button
               onClick={onExportHTML}
               className="flex-1 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white px-4 py-3 rounded-lg transition-all font-medium shadow-lg hover:shadow-green-500/25"
             >
-              <span className="material-symbols-outlined mr-2">language</span> Genera HTML
+              🌐 Genera HTML
             </button>
           </div>
         </div>
