@@ -3891,9 +3891,7 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
                       </>
 
                     ) : (
-
-                      <span className="text-gray-400">🔒</span>
-
+                      <span className="material-symbols-outlined text-gray-400">lock</span>
                     )}
 
                   </div>
@@ -5389,7 +5387,7 @@ const FinalizeModal: React.FC<{
                           fontWeight: '500'
                         }}
                       >
-                        🔗 Visualizza Certificato
+                        <span className="material-symbols-outlined mr-1 align-middle">link</span> Visualizza Certificato
                       </button>
                     </div>
                   </div>
@@ -5487,11 +5485,11 @@ const StepsModal: React.FC<{
 
                   <h4>Step {index + 1}: {step.eventName}</h4>
 
-                  <p><strong>📄 Descrizione:</strong> {step.description || "N/D"}</p>
+                  <p><strong><span className="material-symbols-outlined mr-1 align-middle">description</span> Descrizione:</strong> {step.description || "N/D"}</p>
 
-                  <p><strong>📅 Data:</strong> {formatItalianDate(step.date)}</p>
+                  <p><strong><span className="material-symbols-outlined mr-1 align-middle">calendar_month</span> Data:</strong> {formatItalianDate(step.date)}</p>
 
-                  <p><strong>📍 Luogo:</strong> {step.location || "N/D"}</p>
+                  <p><strong><span className="material-symbols-outlined mr-1 align-middle">location_on</span> Luogo:</strong> {step.location || "N/D"}</p>
 
                   {step.attachmentsIpfsHash && step.attachmentsIpfsHash !== "N/A" && (
 
@@ -5523,7 +5521,7 @@ const StepsModal: React.FC<{
 
                   <p>
 
-                    <strong>🔗 Verifica su Blockchain:</strong>
+                    <strong><span className="material-symbols-outlined mr-1 align-middle">travel_explore</span> Verifica su Blockchain:</strong>
 
                     <a
 
@@ -7104,6 +7102,7 @@ const AziendaPage: React.FC = () => {
     <>
 
       <AziendaPageStyles />
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@400&display=swap" />
 
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
         
@@ -7390,7 +7389,7 @@ const ExportModal: React.FC<{
         {/* Content */}
         <div className="p-6 space-y-6">
           <div className="bg-green-500/10 border border-green-500/20 rounded-xl p-6 text-center">
-            <div className="text-green-400 text-3xl mb-3">🎉</div>
+            <div className="text-green-400 text-3xl mb-3"><span className="material-symbols-outlined">celebration</span></div>
             <h3 className="text-green-300 font-semibold text-lg mb-2">Iscrizione Finalizzata.</h3>
             <p className="text-slate-300">
               Hai chiuso con successo la tua iscrizione. Adesso potrai esportare:
@@ -7402,7 +7401,7 @@ const ExportModal: React.FC<{
             <div className="bg-slate-700/50 border border-slate-600/30 rounded-xl p-6 hover:bg-slate-700/70 transition-colors">
               <div className="flex items-center space-x-3 mb-4">
                 <div className="w-12 h-12 bg-red-500/20 rounded-xl flex items-center justify-center">
-                  <span className="text-red-400 text-xl">📄</span>
+                  <span className="material-symbols-outlined text-red-400 text-xl">picture_as_pdf</span>
                 </div>
                 <div>
                   <h3 className="font-semibold text-white text-lg">Certificato PDF</h3>
@@ -7423,7 +7422,7 @@ const ExportModal: React.FC<{
             <div className="bg-slate-700/50 border border-slate-600/30 rounded-xl p-6 hover:bg-slate-700/70 transition-colors">
               <div className="flex items-center space-x-3 mb-4">
                 <div className="w-12 h-12 bg-green-500/20 rounded-xl flex items-center justify-center">
-                  <span className="text-green-400 text-xl">🌐</span>
+                  <span className="material-symbols-outlined text-green-400 text-xl">language</span>
                 </div>
                 <div>
                   <h3 className="font-semibold text-white text-lg">Certificato HTML</h3>
@@ -7468,13 +7467,13 @@ const ExportModal: React.FC<{
               onClick={onExportPDF}
               className="flex-1 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white px-4 py-3 rounded-lg transition-all font-medium shadow-lg hover:shadow-red-500/25"
             >
-              📄 Genera PDF
+              <span className="material-symbols-outlined mr-2">picture_as_pdf</span> Genera PDF
             </button>
             <button
               onClick={onExportHTML}
               className="flex-1 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white px-4 py-3 rounded-lg transition-all font-medium shadow-lg hover:shadow-green-500/25"
             >
-              🌐 Genera HTML
+              <span className="material-symbols-outlined mr-2">language</span> Genera HTML
             </button>
           </div>
         </div>
