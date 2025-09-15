@@ -4671,11 +4671,13 @@ const AddStepModal: React.FC<{
 
                 <div className="mb-4">
 
-                  <label>
+                  <label className="text-slate-200 font-medium">
+
+                    <span className="material-symbols-outlined align-middle mr-1 text-purple-300">description</span>
 
                     Descrizione
 
-                    <span style={{ color: "#6c757d" }}> Non obbligatorio</span>
+                    <span style={{ color: "#9ca3af" }}> Non obbligatorio</span>
 
                   </label>
 
@@ -4687,7 +4689,7 @@ const AddStepModal: React.FC<{
 
                     onChange={handleInputChange}
 
-                    className="w-full p-3 rounded-lg bg-gray-800 border border-gray-700 text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                    className="w-full p-3 rounded-lg bg-slate-900 border border-purple-500/30 text-foreground focus:outline-none focus:ring-2 focus:ring-purple-500/50"
 
                     rows={4}
 
@@ -6050,11 +6052,13 @@ const NewInscriptionModal: React.FC<{
 
                 <div className="mb-4">
 
-                  <label>
+                  <label className="text-slate-200 font-medium">
+
+                    <span className="material-symbols-outlined align-middle mr-1 text-purple-300">location_on</span>
 
                     Luogo di Produzione
 
-                    <span style={{ color: "#6c757d" }}> Non obbligatorio</span>
+                    <span style={{ color: "#9ca3af" }}> Non obbligatorio</span>
 
                   </label>
 
@@ -6068,7 +6072,7 @@ const NewInscriptionModal: React.FC<{
 
                     onChange={handleInputChange}
 
-                    className="w-full p-3 rounded-lg bg-gray-800 border border-gray-700 text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                    className="w-full p-3 rounded-lg bg-slate-900 border border-purple-500/30 text-foreground focus:outline-none focus:ring-2 focus:ring-purple-500/50"
 
                     maxLength={50}
 
@@ -6096,11 +6100,13 @@ const NewInscriptionModal: React.FC<{
 
                 <div className="mb-4">
 
-                  <label>
+                  <label className="text-slate-200 font-medium">
+
+                    <span className="material-symbols-outlined align-middle mr-1 text-purple-300">calendar_month</span>
 
                     Data di Origine
 
-                    <span style={{ color: "#6c757d" }}> Non obbligatorio</span>
+                    <span style={{ color: "#9ca3af" }}> Non obbligatorio</span>
 
                   </label>
 
@@ -6114,7 +6120,7 @@ const NewInscriptionModal: React.FC<{
 
                     onChange={handleInputChange}
 
-                    className="w-full p-3 rounded-lg bg-gray-800 border border-gray-700 text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                    className="w-full p-3 rounded-lg bg-slate-900 border border-purple-500/30 text-foreground focus:outline-none focus:ring-2 focus:ring-purple-500/50"
 
                     max={today}
 
@@ -6140,11 +6146,13 @@ const NewInscriptionModal: React.FC<{
 
                 <div className="mb-4">
 
-                  <label>
+                  <label className="text-slate-200 font-medium">
+
+                    <span className="material-symbols-outlined align-middle mr-1 text-purple-300">image</span>
 
                     Immagine Prodotto
 
-                    <span style={{ color: "#6c757d" }}> Non obbligatorio</span>
+                    <span style={{ color: "#9ca3af" }}> Non obbligatorio</span>
 
                   </label>
 
@@ -6156,7 +6164,7 @@ const NewInscriptionModal: React.FC<{
 
                     onChange={handleFileChange}
 
-                    className="w-full p-3 rounded-lg bg-gray-800 border border-gray-700 text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                    className="w-full p-3 rounded-lg bg-slate-900 border border-purple-500/30 text-foreground focus:outline-none focus:ring-2 focus:ring-purple-500/50"
 
                     accept="image/png, image/jpeg, image/webp"
 
