@@ -12,14 +12,8 @@ export default async function handler(req, res) {
       return await handleQRCodeGenerationRealtime(batch, companyName, res);
       
     } else if (exportType === 'pdf') {
-      // Per ora PDF non è supportato in ambiente serverless
-      // Generiamo invece un HTML che può essere convertito in PDF dal browser
-      const pdfHtml = generatePrintableHTML(batch, companyName);
-      
-      res.setHeader('Content-Type', 'text/html; charset=utf-8');
-      res.setHeader('Content-Disposition', `attachment; filename="CERTIFICATO_TRACCIABILITA_${batch.name.replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, '_')}.html"`);
-      res.setHeader('Cache-Control', 'no-cache');
-      res.send(pdfHtml);
+      // Genera un vero PDF usando puppeteer
+      return await generatePDF(batch, companyName, res);
 
     } else if (exportType === 'html') {
       const html = `
@@ -1139,4 +1133,400 @@ async function deployToFirebaseHosting(htmlContent, fileName, companyName, batch
       throw new Error(`Errore nel deploy HTML: ${error.message}`);
     }
   }
+}
+
+// Funzione per generare PDF usando puppeteer
+async function generatePDF(batch, companyName, res) {
+  try {
+    console.log('🔥 Generando PDF per batch:', batch.batchId);
+    
+    const puppeteer = await import('puppeteer');
+    const browser = await puppeteer.default.launch({
+      headless: true,
+      args: ['--no-sandbox', '--disable-setuid-sandbox']
+    });
+    
+    const page = await browser.newPage();
+    
+    // Genera l'HTML per il PDF
+    const htmlContent = generatePDFHTML(batch, companyName);
+    
+    await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
+    
+    // Genera il PDF
+    const pdfBuffer = await page.pdf({
+      format: 'A4',
+      printBackground: true,
+      margin: {
+        top: '20mm',
+        right: '20mm',
+        bottom: '20mm',
+        left: '20mm'
+      }
+    });
+    
+    await browser.close();
+    
+    // Invia il PDF
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="CERTIFICATO_TRACCIABILITA_${batch.name.replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, '_')}.pdf"`);
+    res.setHeader('Cache-Control', 'no-cache');
+    res.send(pdfBuffer);
+    
+    console.log('✅ PDF generato con successo');
+    
+  } catch (error) {
+    console.error('❌ Errore generazione PDF:', error);
+    res.status(500).json({ 
+      error: 'Errore nella generazione del PDF',
+      details: error.message 
+    });
+  }
+}
+
+// Funzione per generare HTML ottimizzato per PDF
+function generatePDFHTML(batch, companyName) {
+  return `
+    <!DOCTYPE html>
+    <html lang="it">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>CERTIFICATO DI TRACCIABILITÀ - ${batch.name}</title>
+      <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { 
+          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+          line-height: 1.6; 
+          color: #1f2937;
+          background: white;
+          padding: 0;
+        }
+        .certificate-container {
+          max-width: 100%;
+          background: white;
+          border: 3px solid #8b5cf6;
+          border-radius: 12px;
+          overflow: hidden;
+          box-shadow: 0 10px 25px rgba(139, 92, 246, 0.1);
+        }
+        .certificate-header {
+          background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+          color: white;
+          padding: 30px;
+          text-align: center;
+          position: relative;
+        }
+        .logo {
+          width: 60px;
+          height: 60px;
+          background: white;
+          border-radius: 50%;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 24px;
+          font-weight: bold;
+          color: #8b5cf6;
+          margin-bottom: 15px;
+        }
+        .certificate-title {
+          font-size: 28px;
+          font-weight: 800;
+          margin-bottom: 8px;
+          text-transform: uppercase;
+          letter-spacing: 1px;
+        }
+        .company-info {
+          font-size: 18px;
+          opacity: 0.95;
+          font-weight: 500;
+        }
+        .certificate-content {
+          padding: 30px;
+        }
+        .section {
+          margin-bottom: 35px;
+          background: #f8fafc;
+          border-radius: 12px;
+          padding: 25px;
+          border-left: 5px solid #8b5cf6;
+          page-break-inside: avoid;
+        }
+        .section-title {
+          color: #8b5cf6;
+          font-size: 20px;
+          font-weight: 700;
+          margin-bottom: 20px;
+          display: flex;
+          align-items: center;
+          gap: 10px;
+        }
+        .info-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+          gap: 20px;
+          margin-bottom: 20px;
+        }
+        .info-item {
+          background: white;
+          padding: 15px;
+          border-radius: 8px;
+          border: 1px solid #e5e7eb;
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        .info-label {
+          font-weight: 600;
+          color: #6b7280;
+          font-size: 14px;
+          margin-bottom: 5px;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+        }
+        .info-value {
+          color: #1f2937;
+          font-size: 16px;
+          font-weight: 500;
+        }
+        .description-box {
+          background: white;
+          padding: 20px;
+          border-radius: 8px;
+          border: 1px solid #e5e7eb;
+          margin-top: 15px;
+        }
+        .steps-container {
+          display: flex;
+          flex-direction: column;
+          gap: 20px;
+        }
+        .step-item {
+          background: white;
+          border-radius: 10px;
+          padding: 20px;
+          border: 1px solid #e5e7eb;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+          position: relative;
+          page-break-inside: avoid;
+        }
+        .step-number {
+          position: absolute;
+          top: -10px;
+          left: 20px;
+          background: #8b5cf6;
+          color: white;
+          width: 30px;
+          height: 30px;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-weight: bold;
+          font-size: 14px;
+        }
+        .step-title {
+          color: #8b5cf6;
+          font-size: 18px;
+          font-weight: 700;
+          margin-bottom: 15px;
+          margin-top: 5px;
+        }
+        .step-details {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+          gap: 15px;
+        }
+        .step-detail {
+          display: flex;
+          flex-direction: column;
+          gap: 5px;
+        }
+        .step-detail-label {
+          font-weight: 600;
+          color: #6b7280;
+          font-size: 14px;
+        }
+        .step-detail-value {
+          color: #1f2937;
+          font-size: 15px;
+        }
+        .qr-container {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          margin-top: 10px;
+        }
+        .qr-code {
+          width: 80px;
+          height: 80px;
+          border: 1px solid #e5e7eb;
+          border-radius: 8px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: #f9fafb;
+          font-size: 12px;
+          color: #6b7280;
+          text-align: center;
+        }
+        .blockchain-link {
+          color: #8b5cf6;
+          text-decoration: none;
+          font-weight: 500;
+          font-size: 14px;
+        }
+        .footer {
+          background: #f8fafc;
+          padding: 20px;
+          text-align: center;
+          color: #6b7280;
+          font-size: 14px;
+          border-top: 1px solid #e5e7eb;
+        }
+        .status-badge {
+          display: inline-block;
+          padding: 6px 12px;
+          background: #10b981;
+          color: white;
+          border-radius: 20px;
+          font-size: 14px;
+          font-weight: 600;
+        }
+        .tx-hash {
+          font-family: monospace;
+          font-size: 12px;
+          word-break: break-all;
+          background: #f3f4f6;
+          padding: 8px;
+          border-radius: 4px;
+          margin: 5px 0;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="certificate-container">
+        <div class="certificate-header">
+          <div class="logo">S</div>
+          <div class="certificate-title">Certificato di Tracciabilità</div>
+          <div class="company-info">SIMPLY CHAIN</div>
+          <div style="margin-top: 10px; font-size: 16px; opacity: 0.9;">Prodotto da: ${companyName}</div>
+        </div>
+
+        <div class="certificate-content">
+          <!-- Informazioni Batch -->
+          <div class="section">
+            <div class="section-title">📦 Informazioni Iscrizione</div>
+            <div class="info-grid">
+              <div class="info-item">
+                <div class="info-label">Nome Prodotto</div>
+                <div class="info-value">${batch.name}</div>
+              </div>
+              <div class="info-item">
+                <div class="info-label">Data di Origine</div>
+                <div class="info-value">${batch.date || 'N/D'}</div>
+              </div>
+              <div class="info-item">
+                <div class="info-label">Luogo di Produzione</div>
+                <div class="info-value">${batch.location || 'N/D'}</div>
+              </div>
+              <div class="info-item">
+                <div class="info-label">Stato</div>
+                <div class="info-value">
+                  <span class="status-badge">✅ Finalizzato</span>
+                </div>
+              </div>
+              <div class="info-item">
+                <div class="info-label">Batch ID</div>
+                <div class="info-value">${batch.batchId}</div>
+              </div>
+              <div class="info-item">
+                <div class="info-label">Data Generazione</div>
+                <div class="info-value">${new Date().toLocaleDateString('it-IT')}</div>
+              </div>
+            </div>
+            
+            ${batch.description ? `
+              <div class="description-box">
+                <div class="info-label">Descrizione</div>
+                <div class="info-value">${batch.description}</div>
+              </div>
+            ` : ''}
+            
+            <div class="info-item" style="margin-top: 20px;">
+              <div class="info-label">Verifica su Blockchain</div>
+              <div class="qr-container">
+                <div class="qr-code">
+                  <div style="text-align: center;">
+                    <div style="font-size: 10px; margin-bottom: 5px;">QR CODE</div>
+                    <div style="font-size: 8px;">Blockchain</div>
+                    <div style="font-size: 8px;">Verification</div>
+                  </div>
+                </div>
+                <div>
+                  <div class="step-detail-value">Transaction Hash:</div>
+                  <div class="tx-hash">${batch.transactionHash}</div>
+                  <div class="blockchain-link">
+                    🔗 https://polygonscan.com/inputdatadecoder?tx=${batch.transactionHash}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          ${batch.steps && batch.steps.length > 0 ? `
+            <div class="section">
+              <div class="section-title">🔄 Fasi di Lavorazione</div>
+              <div class="steps-container">
+                ${batch.steps.map((step, index) => `
+                  <div class="step-item">
+                    <div class="step-number">${index + 1}</div>
+                    <div class="step-title">${step.eventName}</div>
+                    <div class="step-details">
+                      <div class="step-detail">
+                        <div class="step-detail-label">Descrizione</div>
+                        <div class="step-detail-value">${step.description || 'Nessuna descrizione'}</div>
+                      </div>
+                      <div class="step-detail">
+                        <div class="step-detail-label">Data</div>
+                        <div class="step-detail-value">${step.date || 'N/D'}</div>
+                      </div>
+                      <div class="step-detail">
+                        <div class="step-detail-label">Luogo</div>
+                        <div class="step-detail-value">${step.location || 'N/D'}</div>
+                      </div>
+                      <div class="step-detail">
+                        <div class="step-detail-label">Verifica Blockchain</div>
+                        <div class="qr-container">
+                          <div class="qr-code">
+                            <div style="text-align: center;">
+                              <div style="font-size: 10px; margin-bottom: 5px;">QR CODE</div>
+                              <div style="font-size: 8px;">Step ${index + 1}</div>
+                              <div style="font-size: 8px;">Verification</div>
+                            </div>
+                          </div>
+                          <div>
+                            <div class="tx-hash">${step.transactionHash}</div>
+                            <div class="blockchain-link">
+                              🔗 https://polygonscan.com/inputdatadecoder?tx=${step.transactionHash}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          ` : ''}
+        </div>
+
+        <div class="footer">
+          <strong>SIMPLY CHAIN</strong> - Tracciabilità Blockchain per le imprese italiane<br>
+          Servizio Gratuito prodotto da SFY s.r.l.<br>
+          Contattaci: sfy.startup@gmail.com | Generato il ${new Date().toLocaleString('it-IT')}
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
 }
