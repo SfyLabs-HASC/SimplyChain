@@ -3226,7 +3226,7 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
     ` : ''}
 
     <div class="footer">
-      <p><span class="material-symbols-outlined">link</span> Certificato generato con <a href="${siteUrl}" target="_blank" rel="noopener noreferrer"><strong>SimplyChain</strong></a> il ${new Date(certificateData.createdAt).toLocaleDateString('it-IT')}</p>
+      <p><span class="material-symbols-outlined">link</span> Certificato generato con <a href="${siteUrl}" target="_blank" rel="noopener noreferrer" style="color:#a78bfa;text-decoration:none"><strong>SimplyChain</strong></a> il ${new Date(certificateData.createdAt).toLocaleDateString('it-IT')}</p>
       <p>Servizio prodotto da <strong>SFY s.r.l.</strong></p>
       <p><span class="material-symbols-outlined">mail</span> Contattaci: sfy.startup@gmail.com</p>
     </div>
