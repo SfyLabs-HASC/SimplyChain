@@ -3728,7 +3728,7 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
                   <div className="flex-1 flex flex-col">
 
                     <h3 className="text-white text-xl font-semibold flex items-center gap-2 border-b border-slate-700/50 pb-3 mb-4 min-w-0">
-                      <span className="inline-flex items-center justify-center w-7 h-7 rounded-md bg-gradient-to-r from-purple-600 to-blue-600 text-white text-sm shrink-0">{getBatchDisplayNumber(batch.batchId)}</span>
+                      <span className="inline-flex items-center justify-center w-7 h-7 rounded-md border border-purple-500/60 text-purple-300 text-sm shrink-0">{getBatchDisplayNumber(batch.batchId)}</span>
                       <span className="flex-1 truncate whitespace-nowrap" title={batch.name}>{batch.name}</span>
                     </h3>
 
