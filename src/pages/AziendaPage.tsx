@@ -1467,7 +1467,7 @@ const AziendaPageStyles = () => (
 
         padding: 1rem;
 
-        background-color: #1a1a1a;
+        background-color: #1e1e2a; /* blu scuro come le card */
 
         border-radius: 0.75rem;
 
@@ -1879,7 +1879,7 @@ const AziendaPageStyles = () => (
 
       .batch-number {
 
-        color: #7c3aed;
+        color: #a78bfa;
 
         font-weight: bold;
 
@@ -1887,7 +1887,7 @@ const AziendaPageStyles = () => (
 
         padding: 0.25rem 0.5rem;
 
-        border: 1px solid #7c3aed;
+        border: 1px solid #a78bfa;
 
         border-radius: 0.5rem;
 
@@ -1953,13 +1953,13 @@ const AziendaPageStyles = () => (
 
       .batch-number {
 
-        color: #7c3aed;
+        color: #a78bfa;
 
         display: inline-block;
 
         padding: 0.25rem 0.5rem;
 
-        border: 1px solid #7c3aed;
+        border: 1px solid #a78bfa;
 
         border-radius: 0.5rem;
 
@@ -6582,11 +6582,11 @@ const InfoModal: React.FC<{
 
             </div>
 
-            <div style={{ background: 'rgba(139, 92, 246, 0.1)', padding: '1rem', borderRadius: '0.75rem', border: '1px solid rgba(139, 92, 246, 0.3)' }}>
+            <div style={{ background: 'rgba(99, 102, 241, 0.1)', padding: '1rem', borderRadius: '0.75rem', border: '1px solid rgba(99, 102, 241, 0.3)' }}>
 
-              <h5 style={{ color: '#8b5cf6', margin: '0 0 0.5rem 0', fontWeight: '600' }}>📱 QR Code per Certificati</h5>
+              <h5 style={{ color: '#6366f1', margin: '0 0 0.5rem 0', fontWeight: '600' }}>📱 QR Code per Certificati</h5>
 
-              <p style={{ margin: 0, color: '#d1d5db', fontSize: '0.9rem' }}>Genera un QR Code che riporta al tuo certificato online.</p>
+              <p style={{ margin: 0, color: '#e5e7eb', fontSize: '0.9rem' }}>Genera un QR Code che riporta al tuo certificato online.</p>
 
             </div>
 
