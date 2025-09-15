@@ -3718,7 +3718,8 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
           {filteredBatches.length > itemsPerPage && (
             <div className="flex items-center justify-center gap-3 mb-6 p-4">
               <button
-                className="primary-gradient text-white px-3 py-2 rounded-md hover:scale-105 transition"
+                className="px-3 py-2 rounded-md hover:scale-105 transition border"
+                style={{ background: 'transparent', color: '#ffffff', borderColor: '#7c3aed' }}
                 onClick={handlePreviousPage}
                 disabled={currentPage === 1}
                 style={{ opacity: currentPage === 1 ? 0.5 : 1 }}
@@ -3727,11 +3728,12 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
               </button>
               
               <span className="text-white font-medium">
-                Pagina {currentPage} di {totalPages}
+                {currentPage} di {totalPages}
               </span>
               
               <button
-                className="primary-gradient text-white px-3 py-2 rounded-md hover:scale-105 transition"
+                className="px-3 py-2 rounded-md hover:scale-105 transition border"
+                style={{ background: 'transparent', color: '#ffffff', borderColor: '#7c3aed' }}
                 onClick={handleNextPage}
                 disabled={currentPage === totalPages}
                 style={{ opacity: currentPage === totalPages ? 0.5 : 1 }}
@@ -3870,7 +3872,8 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
                     {/* Pulsante Genera QR Code - mostrato solo per batch chiusi */}
                     {batch.isClosed && (
                       <button
-                        className="bg-gradient-to-r from-purple-600 to-purple-700 text-white px-4 py-2 rounded-md hover:scale-105 transition text-sm font-medium whitespace-nowrap"
+                        className="text-white px-4 py-2 rounded-md hover:scale-105 transition text-sm font-medium whitespace-nowrap"
+                        style={{ backgroundColor: '#6368F7' }}
                         onClick={() => {
                           setSelectedBatchForExport(batch);
                           setShowQRModal(true);
