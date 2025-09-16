@@ -7145,16 +7145,10 @@ const AziendaPage: React.FC = () => {
       return <Dashboard companyData={companyStatus.data} />;
     }
 
-    if (account) {
-      return (
-        <div className="flex flex-col items-center justify-center min-h-[60vh] text-center p-6">
-          <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-6 max-w-md">
-            <div className="text-amber-400 text-2xl mb-2">🔒</div>
-            <p className="text-amber-300 text-lg">Account non attivato</p>
-            <p className="text-slate-400 text-sm mt-2">Contatta l'amministratore per attivare il tuo account</p>
-          </div>
-        </div>
-      );
+    // Se connesso ma account non attivo, reindirizza al form
+    if (account && !companyStatus.isActive) {
+      navigate('/form');
+      return null;
     }
 
     return (
