@@ -6973,6 +6973,7 @@ const AziendaPage: React.FC = () => {
 
   // Auto-apri il modal di connessione istantaneamente quando arrivi qui non loggato
   React.useLayoutEffect(() => {
+    console.log('AziendaPage: useLayoutEffect triggered', { accountCheckDelay, account: !!account, connectPrompted });
     if (accountCheckDelay || account || connectPrompted) return;
     let stopped = false;
     let tries = 0;
@@ -6985,8 +6986,10 @@ const AziendaPage: React.FC = () => {
         const txt = (btn.textContent || '').toLowerCase();
         const testId = btn.getAttribute('data-testid') || '';
         if (txt.includes('connect') || txt.includes('connetti') || txt.includes('accedi') || testId.includes('connect')) {
+          console.log('AziendaPage: Trovato pulsante connessione:', { txt, testId, btn });
           try {
             (btn as HTMLButtonElement).click();
+            console.log('AziendaPage: Pulsante cliccato con successo');
             setConnectPrompted(true);
             stopped = true;
             break;
