@@ -7164,8 +7164,13 @@ const AziendaPage: React.FC = () => {
     // Se non connesso: mostra solo background + header + footer, nessun contenuto
     if (!account) {
       return (
-        <div className="text-center text-slate-400">
-          {/* Vuoto: solo layout */}
+        <div className="flex flex-col items-center justify-center min-h-[60vh] text-center p-6">
+          <div className="bg-slate-800/50 border border-slate-700/50 rounded-lg p-6 max-w-lg w-full">
+            <div className="text-slate-300 text-2xl mb-2">Benvenuto in SimplyChain</div>
+            <p className="text-slate-400 text-base">
+              Per accedere alla tua area privata, <span className="text-white font-semibold">accedi con i social o con la tua email</span> tramite il pulsante <span className="font-semibold">"Accedi"</span> in alto a destra.
+            </p>
+          </div>
         </div>
       );
     }
