@@ -3743,8 +3743,8 @@ const Dashboard: React.FC<{ companyData: CompanyData; onLoadingChange?: (isLoadi
           {filteredBatches.length > itemsPerPage && (
             <div className="flex items-center justify-center gap-3 mb-6 p-4">
               <button
-                className="px-3 py-2 rounded-md hover:scale-105 transition border-2"
-                style={{ background: 'transparent', color: '#ffffff', borderColor: '#8b5cf6' }}
+                className="px-3 py-2 rounded-md hover:scale-105 transition border-4"
+                style={{ background: 'transparent', color: '#ffffff', borderColor: '#6368F7' }}
                 onClick={handlePreviousPage}
                 disabled={currentPage === 1}
                 style={{ opacity: currentPage === 1 ? 0.5 : 1 }}
@@ -3757,8 +3757,8 @@ const Dashboard: React.FC<{ companyData: CompanyData; onLoadingChange?: (isLoadi
               </span>
               
               <button
-                className="px-3 py-2 rounded-md hover:scale-105 transition border-2"
-                style={{ background: 'transparent', color: '#ffffff', borderColor: '#8b5cf6' }}
+                className="px-3 py-2 rounded-md hover:scale-105 transition border-4"
+                style={{ background: 'transparent', color: '#ffffff', borderColor: '#6368F7' }}
                 onClick={handleNextPage}
                 disabled={currentPage === totalPages}
                 style={{ opacity: currentPage === totalPages ? 0.5 : 1 }}
