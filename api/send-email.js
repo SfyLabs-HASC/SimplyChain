@@ -93,7 +93,7 @@ async function handleSaveBillingDetails(req, res) {
 // --- AGGIUNTO: 4. Logica per inviare email di contatto custom ---
 async function handleCustomContact(req, res) {
   try {
-    const { email, companyName, message, userEmail } = req.body;
+    const { email, companyName, message, userEmail, walletAddress } = req.body;
     
     if (!email || !companyName || !message) {
       return res.status(400).json({ error: 'Email, nome azienda e messaggio sono obbligatori.' });
@@ -124,6 +124,9 @@ async function handleCustomContact(req, res) {
             </li>
             <li style="margin: 10px 0; padding: 10px; background: white; border-radius: 5px; border-left: 4px solid #8b5cf6;">
               <strong>Email Utente:</strong> ${userEmail}
+            </li>
+            <li style="margin: 10px 0; padding: 10px; background: white; border-radius: 5px; border-left: 4px solid #8b5cf6;">
+              <strong>Wallet:</strong> ${walletAddress || 'N/D'}
             </li>
           </ul>
           

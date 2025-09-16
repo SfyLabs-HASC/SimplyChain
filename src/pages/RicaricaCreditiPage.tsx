@@ -120,7 +120,7 @@ const creditPackages: CreditPackage[] = [
 ];
 
 // --- Componente Form Contatto Custom ---
-const CustomContactModal: React.FC<{ isOpen: boolean, onClose: () => void, userData: UserData | null }> = ({ isOpen, onClose, userData }) => {
+const CustomContactModal: React.FC<{ isOpen: boolean, onClose: () => void, userData: UserData | null, walletAddress?: string | undefined }> = ({ isOpen, onClose, userData, walletAddress }) => {
   const [formData, setFormData] = useState<CustomContactForm>({
     email: '',
     companyName: userData?.companyName || '',
@@ -169,7 +169,8 @@ const CustomContactModal: React.FC<{ isOpen: boolean, onClose: () => void, userD
           email: formData.email,
           companyName: formData.companyName,
           message: formData.message,
-          userEmail: userData?.email || 'N/A'
+          userEmail: userData?.email || 'N/A',
+          walletAddress: walletAddress || null
         })
       });
       
@@ -569,12 +570,14 @@ const RicaricaCreditiPage: React.FC = () => {
   const [currentStep, setCurrentStep] = useState(1); // 1: Pacchetti, 2: Dati, 3: Pagamento
   const [showCustomModal, setShowCustomModal] = useState(false);
 
-  // Guard: se non loggato, reindirizza subito alla homepage
+  // Redirect: se non loggato non può stare su questa pagina.
+  // Attende un breve delay per evitare redirect mentre il wallet si inizializza quando sei loggato.
   useEffect(() => {
-    if (!account) {
-      navigate('/');
-      return;
-    }
+    if (account) return;
+    const timer = setTimeout(() => {
+      if (!account) navigate('/');
+    }, 800);
+    return () => clearTimeout(timer);
   }, [account, navigate]);
 
   useEffect(() => {
@@ -823,7 +826,7 @@ const RicaricaCreditiPage: React.FC = () => {
                 <div className="flex justify-between items-center">
                   <div>
                     <h3 className="text-lg font-bold text-white">
-                      Prezzo Personalizzato
+                      Servizio Personalizzato
                     </h3>
                     <p className="text-slate-300">
                       Contatta per un preventivo su misura
@@ -1086,6 +1089,7 @@ const RicaricaCreditiPage: React.FC = () => {
           isOpen={showCustomModal} 
           onClose={() => setShowCustomModal(false)} 
           userData={userData} 
+          walletAddress={account?.address}
         />
 
       </div>
