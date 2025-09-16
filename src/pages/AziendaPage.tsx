@@ -3703,9 +3703,7 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
 
 
       {isLoadingBatches && !showFullPageLoading ? (
-
-        <div className="bg-card p-6 rounded-xl border border-border text-muted-foreground text-center"><p>Caricamento delle tue iscrizioni...</p></div>
-
+        null
       ) : errorBatches ? (
 
         <div className="bg-card p-6 rounded-xl border border-border text-muted-foreground text-center">
@@ -7138,12 +7136,7 @@ const AziendaPage: React.FC = () => {
     }
 
     if (companyStatus.isLoading) {
-      return (
-        <div className="flex flex-col items-center justify-center min-h-[60vh] text-center p-6">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
-          <p className="text-slate-300 text-lg">Verifica stato account in corso...</p>
-        </div>
-      );
+      return null; // usa solo il modal unico
     }
 
     if (companyStatus.error) {
