@@ -7145,12 +7145,6 @@ const AziendaPage: React.FC = () => {
       <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@400&display=swap" />
 
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-        {/* Toast batch name */}
-        {isMounted && batchNameToast.visible && (
-          <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 bg-slate-800/90 text-white px-4 py-2 rounded-lg border border-slate-600 shadow-lg">
-            {batchNameToast.text}
-          </div>
-        )}
         
         {/* Header moderno con glassmorphism */}
         <header className="sticky top-0 z-40 backdrop-blur-xl bg-slate-900/80 border-b border-slate-700/50">
