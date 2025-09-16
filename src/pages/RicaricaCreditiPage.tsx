@@ -113,7 +113,7 @@ const RicaricaCreditiStyles = () => (
 
 // --- Pacchetti Crediti ---
 const creditPackages: CreditPackage[] = [
-  { id: 'price_1', credits: 10, pricePerCredit: 1.00, totalPrice: 10.00, description: 'Pacchetto 10 crediti', savingsText: '-' },
+  { id: 'price_1', credits: 10, pricePerCredit: 1.00, totalPrice: 10.00, description: 'Pacchetto 10 crediti' },
   { id: 'price_2', credits: 50, pricePerCredit: 0.90, totalPrice: 45.00, description: 'Pacchetto 50 crediti', savingsText: '10% (5 €)' },
   { id: 'price_3', credits: 100, pricePerCredit: 0.85, totalPrice: 85.00, description: 'Pacchetto 100 crediti', savingsText: '15% (15 €)' },
   { id: 'price_4', credits: 500, pricePerCredit: 0.80, totalPrice: 400.00, description: 'Pacchetto 500 crediti', savingsText: '20% (100 €)' },
@@ -574,6 +574,20 @@ const RicaricaCreditiPage: React.FC = () => {
   // Redirect: se non loggato non può stare su questa pagina.
   // Attende un delay più ampio per evitare redirect mentre il wallet si inizializza quando sei loggato.
   useEffect(() => {
+    // Precarica da localStorage le ultime info salvate su AziendaPage
+    try {
+      const cached = localStorage.getItem('simplychain_company_latest');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        setUserData({
+          companyName: parsed.companyName,
+          credits: parsed.credits,
+          status: parsed.status,
+          email: ''
+        });
+      }
+    } catch {}
+
     if (account) return;
     const timer = setTimeout(() => {
       if (!account) navigate('/');
@@ -1037,7 +1051,7 @@ const RicaricaCreditiPage: React.FC = () => {
           <div className="mb-6 bg-slate-800/50 backdrop-blur-sm rounded-2xl p-6 border border-slate-700/50">
             <div className="flex items-center justify-between gap-6 flex-col md:flex-row">
               <div>
-                <h2 className="text-2xl md:text-3xl font-extrabold bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
+                <h2 className="text-2xl md:text-3xl font-extrabold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
                   {userData.companyName}
                 </h2>
                 <div className="flex flex-wrap gap-6 mt-2 text-slate-300">

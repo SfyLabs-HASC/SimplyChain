@@ -7041,6 +7041,21 @@ const AziendaPage: React.FC = () => {
 
         });
 
+        // Persisti i dati per uso in altre pagine (fallback veloce)
+        try {
+          if (data.isActive) {
+            localStorage.setItem(
+              'simplychain_company_latest',
+              JSON.stringify({
+                companyName: data.companyName,
+                credits: data.credits,
+                status: data.status || 'active',
+                updatedAt: Date.now()
+              })
+            );
+          }
+        } catch {}
+
       } catch (err: any) {
 
         setCompanyStatus({
@@ -7118,29 +7133,7 @@ const AziendaPage: React.FC = () => {
 
 
 
-  if (!account) {
-
-    return (
-
-      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center p-6">
-
-        <AziendaPageStyles />
-
-        <div style={{ textAlign: "center" }}>
-
-          <h1>Accesso non autorizzato</h1>
-
-          <p>Devi accedere dalla homepage per utilizzare questa sezione.</p>
-
-          <a href="/" style={{ color: '#3b82f6', textDecoration: 'underline' }}>Torna alla Homepage</a>
-
-        </div>
-
-      </div>
-
-    );
-
-  }
+  // Non facciamo early-return per account mancante; la UI di renderContent gestisce lo stato di connessione
 
 
 
