@@ -7228,7 +7228,11 @@ const AziendaPage: React.FC = () => {
                     size: 'wide',
                     showThirdwebBranding: false,
                     privacyPolicyUrl: 'https://easychain-gamma.vercel.app/privacy',
-                    termsOfServiceUrl: 'https://easychain-gamma.vercel.app/terms'
+                    termsOfServiceUrl: 'https://easychain-gamma.vercel.app/terms',
+                    onClose: () => {
+                      try { disconnect?.(); } catch {}
+                      navigate('/');
+                    }
                   }}
                   onDisconnect={() => {
                     // sempre torna alla home quando si disconnette dal profilo
