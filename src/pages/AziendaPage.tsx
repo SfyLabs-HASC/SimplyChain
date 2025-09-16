@@ -3698,7 +3698,7 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
 
 
 
-      {isLoadingBatches && !showFullPageLoading ? (
+      {(typeof isLoadingBatches !== 'undefined' && isLoadingBatches) && !showFullPageLoading ? (
         null
       ) : errorBatches ? (
 
@@ -7235,7 +7235,7 @@ const AziendaPage: React.FC = () => {
       </div>
 
       {/* Themed loading modal while batches are loading */}
-      {isLoadingBatches && (
+      {(typeof isLoadingBatches !== 'undefined' && isLoadingBatches) && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[9999]" role="dialog" aria-modal="true" aria-label="Caricamento iscrizioni">
           <div className="bg-slate-800 rounded-2xl p-8 max-w-md w-full mx-4 text-center shadow-2xl border border-slate-700/50">
             <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-gradient-to-r from-purple-600 to-blue-600 animate-pulse"></div>
