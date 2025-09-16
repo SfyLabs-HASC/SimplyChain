@@ -96,10 +96,11 @@ export default function HomePage() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background flex flex-col">
       {/* Nessun ConnectButton nascosto: il flow avviene su /azienda */}
       
-      {/* Hero Section */}
+      <div className="flex-1">
+        {/* Hero Section */}
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
         {/* Modern Animated Background */}
         <div className="absolute inset-0">
@@ -446,6 +447,7 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+      </div>
 
       {/* Footer */}
       <footer className="bg-gradient-to-b from-card/30 via-card/50 to-card/70 border-t border-border/30 py-24 relative overflow-hidden">

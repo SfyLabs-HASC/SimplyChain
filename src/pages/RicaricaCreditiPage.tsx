@@ -1011,7 +1011,7 @@ const RicaricaCreditiPage: React.FC = () => {
   return (
     <>
       <RicaricaCreditiStyles />
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex flex-col">
         
         {/* Header identico ad AziendaPage */}
         <header className="sticky top-0 z-40 backdrop-blur-xl bg-slate-900/80 border-b border-slate-700/50">
@@ -1072,7 +1072,7 @@ const RicaricaCreditiPage: React.FC = () => {
         )}
 
         {/* Content - stile AziendaPage */}
-        <main>
+        <main className="flex-1">
           {loading ? (
             <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-8 text-center border border-slate-700/50">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>

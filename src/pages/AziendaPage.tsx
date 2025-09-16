@@ -7237,7 +7237,7 @@ const AziendaPage: React.FC = () => {
       <AziendaPageStyles />
       <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@400&display=swap" />
 
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex flex-col">
         
         {/* Header moderno con glassmorphism */}
         <header className="sticky top-0 z-40 backdrop-blur-xl bg-slate-900/80 border-b border-slate-700/50">
@@ -7289,7 +7289,7 @@ const AziendaPage: React.FC = () => {
         {/* Rimosso loader infinito: lasciamo solo il contenuto */}
 
         {/* Contenuto principale */}
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1">
           <div className="space-y-8">
             {renderContent()}
           </div>
