@@ -6963,19 +6963,15 @@ const AziendaPage: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    // Solo reindirizza se non c'è account E abbiamo aspettato il caricamento
-    // E non siamo già sulla home page
-    if (!account && !accountCheckDelay && window.location.pathname !== '/') {
-      console.log('🔄 Reindirizzamento alla home per mancanza account');
-      navigate('/');
-      return;
+    // Se l'utente non completa il login e chiude il popup, torna alla home
+    if (!account && !accountCheckDelay && document.visibilityState === 'visible') {
+      // Non forzare subito: lascia visibile solo layout su /azienda
     }
-    
-    // Resetta il loading quando l'account viene caricato
+    // Se connesso, nascondi overlay
     if (account) {
       setIsConnecting(false);
     }
-  }, [account, navigate, accountCheckDelay]);
+  }, [account, accountCheckDelay]);
 
   // Gestisce il tasto indietro del browser
   useEffect(() => {
@@ -7084,6 +7080,15 @@ const AziendaPage: React.FC = () => {
 
   const renderContent = () => {
 
+    // Se non connesso: mostra solo background + header + footer, nessun contenuto
+    if (!account) {
+      return (
+        <div className="text-center text-slate-400">
+          {/* Vuoto: solo layout */}
+        </div>
+      );
+    }
+
     if (companyStatus.isLoading) {
       return (
         <div className="flex flex-col items-center justify-center min-h-[60vh] text-center p-6">
@@ -7171,6 +7176,12 @@ const AziendaPage: React.FC = () => {
                   wallets={wallets}
                   chain={polygon}
                   accountAbstraction={{ chain: polygon, sponsorGas: true }}
+                  connectModal={{
+                    size: 'wide',
+                    showThirdwebBranding: false,
+                    privacyPolicyUrl: 'https://easychain-gamma.vercel.app/privacy',
+                    termsOfServiceUrl: 'https://easychain-gamma.vercel.app/terms',
+                  }}
                   onConnect={() => {
                     setIsConnecting(true);
                   }}

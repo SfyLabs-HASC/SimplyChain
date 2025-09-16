@@ -91,35 +91,13 @@ export default function HomePage() {
   };
 
   const handleAuthButtonClick = () => {
-    // Attiva il flag per indicare che l'utente ha cliccato intenzionalmente
     setUserClickedButton(true);
-    
-    // Trova il ConnectButton nascosto e simula un click
-    setTimeout(() => {
-      const connectButtons = document.querySelectorAll('button');
-      for (let button of connectButtons) {
-        if (button.textContent?.includes('Connect Wallet') || 
-            button.textContent?.includes('Connetti') ||
-            button.getAttribute('data-testid')?.includes('connect') ||
-            button.closest('[style*="left: -9999px"]')) {
-          button.click();
-          break;
-        }
-      }
-    }, 100);
+    navigate('/azienda');
   };
 
   return (
     <div className="min-h-screen bg-background">
-      {/* ConnectButton nascosto per triggare il popup */}
-      <div style={{ position: 'absolute', left: '-9999px', opacity: 0, pointerEvents: 'none' }}>
-        <ConnectButton 
-          client={client} 
-          wallets={wallets}
-          chain={polygon}
-          accountAbstraction={{ chain: polygon, sponsorGas: true }}
-        />
-      </div>
+      {/* Nessun ConnectButton nascosto: il flow avviene su /azienda */}
       
       {/* Hero Section */}
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
