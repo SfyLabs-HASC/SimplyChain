@@ -16,7 +16,7 @@
 
 import React, { useState, useEffect } from "react";
 
-import { ConnectButton, useActiveAccount, useReadContract, useSendTransaction } from "thirdweb/react";
+import { ConnectButton, useActiveAccount, useReadContract, useSendTransaction, useDisconnect } from "thirdweb/react";
 import Footer from '../components/Footer';
 
 import { useNavigate } from "react-router-dom";
@@ -6915,6 +6915,7 @@ const AziendaPage: React.FC = () => {
   const account = useActiveAccount();
 
   const navigate = useNavigate();
+  const { disconnect } = useDisconnect();
 
 
 
@@ -6985,19 +6986,22 @@ const AziendaPage: React.FC = () => {
 
     // Intercetta il click sul pulsante di chiusura del modal di thirdweb
     const onDocumentClick = (e: MouseEvent) => {
-      if (account) return;
       const target = e.target as HTMLElement | null;
       if (!target) return;
       const closeButton = target.closest('button[aria-label="Close"], button[aria-label="Chiudi"], [data-close-button]');
       const dialog = target.closest('[aria-modal="true"], [role="dialog"]');
       if (closeButton && dialog) {
         e.preventDefault();
+        try { disconnect?.(); } catch {}
         navigate('/');
       }
     };
     document.addEventListener('click', onDocumentClick, true);
     const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && !account) navigate('/');
+      if (e.key === 'Escape') {
+        try { disconnect?.(); } catch {}
+        navigate('/');
+      }
     };
     window.addEventListener('keydown', onKeyDown);
     return () => {
