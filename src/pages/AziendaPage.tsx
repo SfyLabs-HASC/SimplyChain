@@ -6985,15 +6985,36 @@ const AziendaPage: React.FC = () => {
         const txt = (btn.textContent || '').toLowerCase();
         const testId = btn.getAttribute('data-testid') || '';
         if (txt.includes('connect') || txt.includes('connetti') || txt.includes('accedi') || testId.includes('connect')) {
-          (btn as HTMLButtonElement).click();
-          setConnectPrompted(true);
-          stopped = true;
-          break;
+          try {
+            (btn as HTMLButtonElement).click();
+            setConnectPrompted(true);
+            stopped = true;
+            break;
+          } catch (error) {
+            console.warn('Errore cliccando pulsante connessione:', error);
+          }
         }
       }
       if (!stopped && tries < maxTries) requestAnimationFrame(tryOpen);
     };
-    requestAnimationFrame(tryOpen);
+    // Aggiungi un piccolo delay per assicurarsi che il DOM sia pronto
+    setTimeout(() => requestAnimationFrame(tryOpen), 100);
+    
+    // Fallback: se dopo 2 secondi non trova il pulsante, prova a forzare l'apertura
+    setTimeout(() => {
+      if (!connectPrompted && !account) {
+        console.log('Fallback: forzando apertura modal connessione');
+        const connectBtn = document.querySelector('[data-testid*="connect"], button[class*="connect"]') as HTMLButtonElement;
+        if (connectBtn) {
+          try {
+            connectBtn.click();
+            setConnectPrompted(true);
+          } catch (error) {
+            console.warn('Errore fallback connessione:', error);
+          }
+        }
+      }
+    }, 2000);
 
     // Osserva chiusura del modal: alla chiusura forza disconnect e redirect
     const observer = new MutationObserver(() => {
