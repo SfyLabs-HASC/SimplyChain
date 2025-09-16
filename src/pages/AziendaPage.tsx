@@ -6944,17 +6944,10 @@ const AziendaPage: React.FC = () => {
 
   // Effect per gestire il disconnect e reindirizzare alla homepage
   // Solo dopo che il sistema ha avuto tempo di caricare l'account
-  const [accountCheckDelay, setAccountCheckDelay] = useState(true);
+  const [accountCheckDelay, setAccountCheckDelay] = useState(false);
   const [connectPrompted, setConnectPrompted] = useState(false);
 
-  useEffect(() => {
-    // Dai tempo al sistema di caricare l'account dopo F5
-    const timer = setTimeout(() => {
-      setAccountCheckDelay(false);
-    }, 2000); // 2 secondi di delay per essere più sicuri
-
-    return () => clearTimeout(timer);
-  }, []);
+  // Nessun ritardo: vogliamo apertura immediata del modal
 
   // Auto-apri il modal di connessione istantaneamente quando arrivi qui non loggato
   React.useLayoutEffect(() => {
@@ -7207,8 +7200,8 @@ const AziendaPage: React.FC = () => {
                     termsOfServiceUrl: 'https://easychain-gamma.vercel.app/terms'
                   }}
                   onDisconnect={() => {
-                    // se l'utente esce/chiude senza connettersi, torna alla home
-                    if (!account) navigate('/');
+                    // sempre torna alla home quando si disconnette dal profilo
+                    navigate('/');
                   }}
                 />
               </div>
