@@ -2408,6 +2408,8 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
   // Toast per mostrare il nome completo del batch
   const [batchNameToast, setBatchNameToast] = useState<{ text: string; visible: boolean }>({ text: '', visible: false });
   const batchNameToastTimerRef = React.useRef<number | null>(null);
+  const [isMounted, setIsMounted] = useState(false);
+  useEffect(() => { setIsMounted(true); }, []);
 
   const showBatchNameToast = (batchId: number, name: string) => {
     const full = `Iscrizione ${getBatchDisplayNumber(batchId)} - ${name}`;
@@ -7151,7 +7153,7 @@ const AziendaPage: React.FC = () => {
 
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
         {/* Toast batch name */}
-        {batchNameToast.visible && (
+        {isMounted && batchNameToast.visible && (
           <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 bg-slate-800/90 text-white px-4 py-2 rounded-lg border border-slate-600 shadow-lg">
             {batchNameToast.text}
           </div>
