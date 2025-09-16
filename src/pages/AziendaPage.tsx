@@ -7318,18 +7318,13 @@ const AziendaPage: React.FC = () => {
           </div>
         )}
 
-        {/* Full-screen loader: appare subito dopo login e durante refresh */}
-        {account && isLoadingBatches && (
-          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[10000]" role="dialog" aria-modal="true" aria-label="Caricamento">
-            <div className="mx-auto w-20 h-20 border-4 border-slate-600 border-t-transparent rounded-full animate-spin" style={{ borderTopColor: '#6366F1' }}></div>
-          </div>
-        )}
-
-      </div>
-
-    </>
-
-  );
+        {/* Loader full-screen rimosso: manteniamo solo il popup con spinner */}
+ 
+       </div>
+ 
+     </>
+ 
+   );
 
 };
 
