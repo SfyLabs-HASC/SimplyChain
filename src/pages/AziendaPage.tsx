@@ -3460,11 +3460,7 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
 
     <>
 
-      {showFullPageLoading && (
-
-        <FullPageLoading />
-
-      )}
+      {showFullPageLoading && null}
 
 
 
@@ -7251,9 +7247,9 @@ const AziendaPage: React.FC = () => {
             <div className="bg-slate-800 rounded-2xl p-8 max-w-md w-full mx-4 text-center shadow-2xl border border-slate-700/50">
               <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-gradient-to-r from-purple-600 to-blue-600 animate-pulse"></div>
               <h3 className="text-xl font-semibold text-white mb-2">
-                {messageIndex === 0 && 'Connessione effettuata'}
-                {messageIndex === 1 && 'Stiamo preparando la tua dashboard'}
-                {messageIndex === 2 && 'Carichiamo le tue iscrizioni'}
+                {messageIndex === 0 && 'Stiamo preparando la tua dashboard'}
+                {messageIndex === 1 && 'Carichiamo le tue iscrizioni'}
+                {messageIndex === 2 && 'Ottimizzazione dei dati in corso'}
               </h3>
               <p className="text-slate-400">Attendi qualche secondo…</p>
             </div>
