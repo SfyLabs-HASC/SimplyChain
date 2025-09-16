@@ -6992,20 +6992,50 @@ const AziendaPage: React.FC = () => {
 
     // Intercetta il click sul pulsante di chiusura del modal di thirdweb
     const onDocumentClick = (e: MouseEvent) => {
-      const target = e.target as HTMLElement | null;
-      if (!target) return;
-      const dialog = target.closest('[aria-modal="true"], [role="dialog"]');
-      const closeSelector = [
-        '[data-close-button]',
-        '[data-close]',
-        '[data-testid*="close" i]',
-        '[aria-label*="close" i]',
-        '[aria-label*="chiudi" i]',
-        'button[class*="close" i]',
-        'div[role="button"][class*="close" i]'
-      ].join(',');
-      const closeButton = target.closest(closeSelector);
-      if (dialog && closeButton) {
+      const checkEl = (el: EventTarget | null): HTMLElement | null => {
+        const node = el as HTMLElement | null;
+        if (!node) return null;
+        const aria = (node.getAttribute && (node.getAttribute('aria-label') || '')) || '';
+        const testId = (node.getAttribute && (node.getAttribute('data-testid') || '')) || '';
+        const hasDataClose = !!(node as any).dataset && (((node as any).dataset.close) || ((node as any).dataset.closeButton));
+        const className = (node as HTMLElement).className || '';
+        if (
+          (aria && /close|chiudi/i.test(aria)) ||
+          (testId && /close/i.test(testId)) ||
+          hasDataClose ||
+          (typeof className === 'string' && /close/i.test(className))
+        ) {
+          return node;
+        }
+        return null;
+      };
+      const path = (typeof (e as any).composedPath === 'function') ? (e as any).composedPath() : [];
+      let foundClose: HTMLElement | null = null;
+      for (const el of path) {
+        const match = checkEl(el);
+        if (match) { foundClose = match; break; }
+      }
+      if (!foundClose) {
+        // Fallback to target.closest selectors in light DOM
+        const target = e.target as HTMLElement | null;
+        if (target) {
+          const dialog = target.closest('[aria-modal="true"], [role="dialog"]');
+          const closeSelector = [
+            '[data-close-button]',
+            '[data-close]',
+            '[data-testid*="close" i]',
+            '[aria-label*="close" i]',
+            '[aria-label*="chiudi" i]',
+            'button[class*="close" i]',
+            'div[role="button"][class*="close" i]'
+          ].join(',');
+          const closeButton = target.closest(closeSelector);
+          if (dialog && closeButton) {
+            foundClose = closeButton as HTMLElement;
+          }
+        }
+      }
+      if (foundClose) {
         e.preventDefault();
         forceDisconnectAndRedirectHome();
       }
