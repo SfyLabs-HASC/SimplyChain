@@ -6917,6 +6917,13 @@ const AziendaPage: React.FC = () => {
   const navigate = useNavigate();
   const { disconnect } = useDisconnect();
 
+  const forceDisconnectAndRedirectHome = React.useCallback(() => {
+    try { disconnect?.(); } catch {}
+    try { navigate('/'); } catch {}
+    // Hard fallback in case SPA routing is blocked
+    try { setTimeout(() => { if (window.location.pathname !== '/') window.location.href = '/'; }, 50); } catch {}
+  }, [disconnect, navigate]);
+
 
 
   const [companyStatus, setCompanyStatus] = useState<{
@@ -6978,8 +6985,7 @@ const AziendaPage: React.FC = () => {
     const observer = new MutationObserver(() => {
       const anyModal = document.querySelector('[aria-modal="true"], [role="dialog"]');
       if (!anyModal && connectPrompted) {
-        try { disconnect?.(); } catch {}
-        navigate('/');
+        forceDisconnectAndRedirectHome();
       }
     });
     observer.observe(document.body, { childList: true, subtree: true });
@@ -7001,8 +7007,7 @@ const AziendaPage: React.FC = () => {
       const closeButton = target.closest(closeSelector);
       if (dialog && closeButton) {
         e.preventDefault();
-        try { disconnect?.(); } catch {}
-        navigate('/');
+        forceDisconnectAndRedirectHome();
       }
     };
     document.addEventListener('click', onDocumentClick, true);
@@ -7010,8 +7015,7 @@ const AziendaPage: React.FC = () => {
       if (e.key === 'Escape') {
         const anyModal = document.querySelector('[aria-modal="true"], [role="dialog"]');
         if (anyModal) {
-          try { disconnect?.(); } catch {}
-          navigate('/');
+          forceDisconnectAndRedirectHome();
         }
       }
     };
@@ -7230,13 +7234,12 @@ const AziendaPage: React.FC = () => {
                     privacyPolicyUrl: 'https://easychain-gamma.vercel.app/privacy',
                     termsOfServiceUrl: 'https://easychain-gamma.vercel.app/terms',
                     onClose: () => {
-                      try { disconnect?.(); } catch {}
-                      navigate('/');
+                      forceDisconnectAndRedirectHome();
                     }
                   }}
                   onDisconnect={() => {
                     // sempre torna alla home quando si disconnette dal profilo
-                    navigate('/');
+                    forceDisconnectAndRedirectHome();
                   }}
                 />
               </div>
