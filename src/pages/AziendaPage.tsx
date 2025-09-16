@@ -6951,7 +6951,7 @@ const AziendaPage: React.FC = () => {
   // Effect per gestire il disconnect e reindirizzare alla homepage
   // Solo dopo che il sistema ha avuto tempo di caricare l'account
   const [accountCheckDelay, setAccountCheckDelay] = useState(true);
-  const [isConnecting, setIsConnecting] = useState(false);
+  const [connectPrompted, setConnectPrompted] = useState(false);
 
   useEffect(() => {
     // Dai tempo al sistema di caricare l'account dopo F5
@@ -6962,16 +6962,46 @@ const AziendaPage: React.FC = () => {
     return () => clearTimeout(timer);
   }, []);
 
+  // Auto-apri il modal di connessione quando arrivi qui non loggato
   useEffect(() => {
-    // Se l'utente non completa il login e chiude il popup, torna alla home
-    if (!account && !accountCheckDelay && document.visibilityState === 'visible') {
-      // Non forzare subito: lascia visibile solo layout su /azienda
-    }
-    // Se connesso, nascondi overlay
-    if (account) {
-      setIsConnecting(false);
-    }
-  }, [account, accountCheckDelay]);
+    if (accountCheckDelay) return;
+    if (account) return;
+    if (connectPrompted) return;
+    // prova a clickare il pulsante di connect presente nell'header
+    const clickConnect = () => {
+      const buttons = document.querySelectorAll('button');
+      for (const btn of Array.from(buttons)) {
+        const txt = (btn.textContent || '').toLowerCase();
+        const testId = btn.getAttribute('data-testid') || '';
+        if (txt.includes('connect') || txt.includes('connetti') || testId.includes('connect')) {
+          (btn as HTMLButtonElement).click();
+          setConnectPrompted(true);
+          break;
+        }
+      }
+    };
+    // slight delay to ensure header rendered
+    const t = setTimeout(clickConnect, 250);
+
+    // se l'utente chiude il popup senza connettersi, torna alla home
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && !account) {
+        navigate('/');
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+
+    // timeout di sicurezza: se dopo 15s non c'è account, torna alla home
+    const backTimer = setTimeout(() => {
+      if (!account) navigate('/');
+    }, 15000);
+
+    return () => {
+      clearTimeout(t);
+      clearTimeout(backTimer);
+      window.removeEventListener('keydown', onKeyDown);
+    };
+  }, [account, accountCheckDelay, connectPrompted, navigate]);
 
   // Gestisce il tasto indietro del browser
   useEffect(() => {
@@ -7180,13 +7210,11 @@ const AziendaPage: React.FC = () => {
                     size: 'wide',
                     showThirdwebBranding: false,
                     privacyPolicyUrl: 'https://easychain-gamma.vercel.app/privacy',
-                    termsOfServiceUrl: 'https://easychain-gamma.vercel.app/terms',
-                  }}
-                  onConnect={() => {
-                    setIsConnecting(true);
+                    termsOfServiceUrl: 'https://easychain-gamma.vercel.app/terms'
                   }}
                   onDisconnect={() => {
-                    setIsConnecting(false);
+                    // se l'utente esce/chiude senza connettersi, torna alla home
+                    if (!account) navigate('/');
                   }}
                 />
               </div>
@@ -7194,26 +7222,7 @@ const AziendaPage: React.FC = () => {
           </div>
         </header>
 
-        {/* Overlay di loading per la connessione */}
-        {isConnecting && (
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
-            <div className="bg-slate-800 rounded-2xl p-8 max-w-md w-full mx-4 text-center shadow-2xl border border-slate-700/50">
-              <div className="relative">
-                <div className="animate-spin rounded-full h-16 w-16 border-4 border-slate-600 border-t-purple-600 mx-auto mb-6"></div>
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="w-8 h-8 bg-gradient-to-r from-purple-600 to-blue-600 rounded-full animate-pulse"></div>
-                </div>
-              </div>
-              <h3 className="text-xl font-semibold text-white mb-2">Connessione in corso...</h3>
-              <p className="text-slate-400">Stai per accedere all'area privata</p>
-              <div className="mt-4 flex justify-center space-x-1">
-                <div className="w-2 h-2 bg-purple-600 rounded-full animate-bounce"></div>
-                <div className="w-2 h-2 bg-purple-600 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                <div className="w-2 h-2 bg-purple-600 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-              </div>
-            </div>
-          </div>
-        )}
+        {/* Rimosso loader infinito: lasciamo solo il contenuto */}
 
         {/* Contenuto principale */}
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -7222,8 +7231,8 @@ const AziendaPage: React.FC = () => {
           </div>
         </main>
 
-        {/* Footer */}
-        <Footer />
+        {/* Footer: visibile solo quando loggato */}
+        {account && <Footer />}
 
       </div>
 
