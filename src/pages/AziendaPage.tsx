@@ -7010,6 +7010,11 @@ const AziendaPage: React.FC = () => {
         return null;
       };
       const path = (typeof (e as any).composedPath === 'function') ? (e as any).composedPath() : [];
+      const hasDialogInPath = path.some((el: any) => {
+        try {
+          return el && el.getAttribute && (el.getAttribute('role') === 'dialog' || el.getAttribute('aria-modal') === 'true');
+        } catch { return false; }
+      });
       let foundClose: HTMLElement | null = null;
       for (const el of path) {
         const match = checkEl(el);
@@ -7024,12 +7029,9 @@ const AziendaPage: React.FC = () => {
         return;
       }
       // 2) Click fuori dal dialog: se esiste un modal, chiudi
-      if (target && !dialog) {
-        const anyModal = document.querySelector('[aria-modal="true"], [role="dialog"]');
-        if (anyModal) {
-          e.preventDefault();
-          forceDisconnectAndRedirectHome();
-        }
+      if (target && !dialog && (hasDialogInPath || document.querySelector('[aria-modal="true"], [role="dialog"]'))) {
+        e.preventDefault();
+        forceDisconnectAndRedirectHome();
       }
     };
     document.addEventListener('click', onDocumentClick, true);
