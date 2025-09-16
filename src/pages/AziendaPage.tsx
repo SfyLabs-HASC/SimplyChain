@@ -6970,7 +6970,7 @@ const AziendaPage: React.FC = () => {
       for (const btn of Array.from(buttons)) {
         const txt = (btn.textContent || '').toLowerCase();
         const testId = btn.getAttribute('data-testid') || '';
-        if (txt.includes('connect') || txt.includes('connetti') || testId.includes('connect')) {
+        if (txt.includes('connect') || txt.includes('connetti') || txt.includes('accedi') || testId.includes('connect')) {
           (btn as HTMLButtonElement).click();
           setConnectPrompted(true);
           stopped = true;
@@ -7015,29 +7015,21 @@ const AziendaPage: React.FC = () => {
         const match = checkEl(el);
         if (match) { foundClose = match; break; }
       }
-      if (!foundClose) {
-        // Fallback to target.closest selectors in light DOM
-        const target = e.target as HTMLElement | null;
-        if (target) {
-          const dialog = target.closest('[aria-modal="true"], [role="dialog"]');
-          const closeSelector = [
-            '[data-close-button]',
-            '[data-close]',
-            '[data-testid*="close" i]',
-            '[aria-label*="close" i]',
-            '[aria-label*="chiudi" i]',
-            'button[class*="close" i]',
-            'div[role="button"][class*="close" i]'
-          ].join(',');
-          const closeButton = target.closest(closeSelector);
-          if (dialog && closeButton) {
-            foundClose = closeButton as HTMLElement;
-          }
-        }
-      }
-      if (foundClose) {
+      const target = e.target as HTMLElement | null;
+      const dialog = target ? target.closest('[aria-modal="true"], [role="dialog"]') : null;
+      // 1) Click su X: chiudi
+      if (foundClose && dialog) {
         e.preventDefault();
         forceDisconnectAndRedirectHome();
+        return;
+      }
+      // 2) Click fuori dal dialog: se esiste un modal, chiudi
+      if (target && !dialog) {
+        const anyModal = document.querySelector('[aria-modal="true"], [role="dialog"]');
+        if (anyModal) {
+          e.preventDefault();
+          forceDisconnectAndRedirectHome();
+        }
       }
     };
     document.addEventListener('click', onDocumentClick, true);
