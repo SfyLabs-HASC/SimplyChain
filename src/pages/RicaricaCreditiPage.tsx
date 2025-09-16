@@ -571,20 +571,18 @@ const RicaricaCreditiPage: React.FC = () => {
   const [showCustomModal, setShowCustomModal] = useState(false);
 
   // Redirect: se non loggato non può stare su questa pagina.
-  // Attende un breve delay per evitare redirect mentre il wallet si inizializza quando sei loggato.
+  // Attende un delay più ampio per evitare redirect mentre il wallet si inizializza quando sei loggato.
   useEffect(() => {
     if (account) return;
     const timer = setTimeout(() => {
       if (!account) navigate('/');
-    }, 800);
+    }, 2000);
     return () => clearTimeout(timer);
   }, [account, navigate]);
 
   useEffect(() => {
     if (!account) {
-      setLoading(false);
-      setUserData(null);
-      setBillingDetails(null);
+      // Non azzerare subito lo stato: evita flicker e redirect erronei
       return;
     }
 
@@ -593,7 +591,7 @@ const RicaricaCreditiPage: React.FC = () => {
       setError(null);
       try {
         console.log('Fetching company data for wallet:', account.address);
-        const response = await fetch(`/api/get-company-status?walletAddress=${account.address}`);
+        const response = await fetch(`/api/get-company-status?walletAddress=${account.address}`, { cache: 'no-store' as any });
         console.log('Response status:', response.status, 'ok:', response.ok);
         
         if (!response.ok) {
