@@ -6974,11 +6974,11 @@ const AziendaPage: React.FC = () => {
     };
     requestAnimationFrame(tryOpen);
 
-    // Osserva chiusura del modal: se viene chiuso senza connessione, torna alla home subito
+    // Osserva chiusura del modal: alla chiusura forza disconnect e redirect
     const observer = new MutationObserver(() => {
-      if (account) return;
       const anyModal = document.querySelector('[aria-modal="true"], [role="dialog"]');
       if (!anyModal && connectPrompted) {
+        try { disconnect?.(); } catch {}
         navigate('/');
       }
     });
@@ -6988,9 +6988,18 @@ const AziendaPage: React.FC = () => {
     const onDocumentClick = (e: MouseEvent) => {
       const target = e.target as HTMLElement | null;
       if (!target) return;
-      const closeButton = target.closest('button[aria-label="Close"], button[aria-label="Chiudi"], [data-close-button]');
       const dialog = target.closest('[aria-modal="true"], [role="dialog"]');
-      if (closeButton && dialog) {
+      const closeSelector = [
+        '[data-close-button]',
+        '[data-close]',
+        '[data-testid*="close" i]',
+        '[aria-label*="close" i]',
+        '[aria-label*="chiudi" i]',
+        'button[class*="close" i]',
+        'div[role="button"][class*="close" i]'
+      ].join(',');
+      const closeButton = target.closest(closeSelector);
+      if (dialog && closeButton) {
         e.preventDefault();
         try { disconnect?.(); } catch {}
         navigate('/');
@@ -6999,8 +7008,11 @@ const AziendaPage: React.FC = () => {
     document.addEventListener('click', onDocumentClick, true);
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        try { disconnect?.(); } catch {}
-        navigate('/');
+        const anyModal = document.querySelector('[aria-modal="true"], [role="dialog"]');
+        if (anyModal) {
+          try { disconnect?.(); } catch {}
+          navigate('/');
+        }
       }
     };
     window.addEventListener('keydown', onKeyDown);
