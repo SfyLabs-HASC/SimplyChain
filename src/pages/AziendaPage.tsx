@@ -6954,8 +6954,15 @@ const AziendaPage: React.FC = () => {
   });
 
   const [isLoadingBatches, setIsLoadingBatches] = useState(false);
+  const [isPageRefreshing, setIsPageRefreshing] = useState(true);
 
-
+  // Effect per rilevare refresh del browser e nascondere loader quando i dati sono pronti
+  useEffect(() => {
+    // Nascondi il loader di refresh quando i dati sono caricati
+    if (account && companyStatus.isActive && companyStatus.data && !isLoadingBatches) {
+      setIsPageRefreshing(false);
+    }
+  }, [account, companyStatus.isActive, companyStatus.data, isLoadingBatches]);
 
   // Effect per gestire il disconnect e reindirizzare alla homepage
   // Solo dopo che il sistema ha avuto tempo di caricare l'account
@@ -7298,8 +7305,15 @@ const AziendaPage: React.FC = () => {
         {/* Footer: visibile solo quando loggato */}
         {account && <Footer />}
 
+        {/* Loader di refresh del browser - appare subito */}
+        {isPageRefreshing && (
+          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[10000]" role="dialog" aria-modal="true" aria-label="Caricamento">
+            <div className="mx-auto w-20 h-20 border-4 border-slate-600 border-t-transparent rounded-full animate-spin" style={{ borderTopColor: '#6366F1' }}></div>
+          </div>
+        )}
+
         {/* Loading popup per caricamento iscrizioni */}
-        {account && companyStatus.isActive && companyStatus.data && isLoadingBatches && (
+        {account && companyStatus.isActive && companyStatus.data && isLoadingBatches && !isPageRefreshing && (
           <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[9999]" role="dialog" aria-modal="true" aria-label="Caricamento iscrizioni">
             <div className="bg-slate-800 rounded-2xl p-8 max-w-md w-full mx-4 text-center shadow-2xl border border-slate-700/50">
               <div className="mx-auto mb-6 w-16 h-16 border-4 border-slate-600 border-t-transparent rounded-full animate-spin" style={{ borderTopColor: '#6366F1' }}></div>
