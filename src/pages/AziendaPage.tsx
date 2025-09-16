@@ -2405,6 +2405,21 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
 
   const [showSuccessModal, setShowSuccessModal] = useState(false);
 
+  // Toast per mostrare il nome completo del batch
+  const [batchNameToast, setBatchNameToast] = useState<{ text: string; visible: boolean }>({ text: '', visible: false });
+  const batchNameToastTimerRef = React.useRef<number | null>(null);
+
+  const showBatchNameToast = (batchId: number, name: string) => {
+    const full = `Iscrizione ${getBatchDisplayNumber(batchId)} - ${name}`;
+    setBatchNameToast({ text: full, visible: true });
+    if (batchNameToastTimerRef.current) {
+      window.clearTimeout(batchNameToastTimerRef.current);
+    }
+    batchNameToastTimerRef.current = window.setTimeout(() => {
+      setBatchNameToast(prev => ({ ...prev, visible: false }));
+    }, 3000);
+  };
+
   const [successMessage, setSuccessMessage] = useState('');
 
   // Funzione helper per ottenere il timestamp corretto per un batch
@@ -3750,7 +3765,16 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
 
               currentItems.map((batch) => (
 
-                <div key={batch.batchId} className="batch-card glass-card rounded-2xl p-6 tech-shadow hover:shadow-lg transition h-full flex flex-col">
+                <div 
+                  key={batch.batchId} 
+                  className="batch-card glass-card rounded-2xl p-6 tech-shadow hover:shadow-lg transition h-full flex flex-col cursor-pointer"
+                  onClick={(e) => {
+                    const target = e.target as HTMLElement;
+                    const clickableTags = ['A', 'BUTTON', 'INPUT', 'TEXTAREA', 'IMG', 'SVG', 'PATH'];
+                    if (clickableTags.includes(target.tagName)) return;
+                    showBatchNameToast(batch.batchId, batch.name);
+                  }}
+                >
 
                   <div className="flex-1 flex flex-col">
 
@@ -7126,6 +7150,12 @@ const AziendaPage: React.FC = () => {
       <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@400&display=swap" />
 
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+        {/* Toast batch name */}
+        {batchNameToast.visible && (
+          <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 bg-slate-800/90 text-white px-4 py-2 rounded-lg border border-slate-600 shadow-lg">
+            {batchNameToast.text}
+          </div>
+        )}
         
         {/* Header moderno con glassmorphism */}
         <header className="sticky top-0 z-40 backdrop-blur-xl bg-slate-900/80 border-b border-slate-700/50">
