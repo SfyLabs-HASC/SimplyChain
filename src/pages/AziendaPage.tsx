@@ -6952,6 +6952,8 @@ const AziendaPage: React.FC = () => {
   // Solo dopo che il sistema ha avuto tempo di caricare l'account
   const [accountCheckDelay, setAccountCheckDelay] = useState(true);
   const [connectPrompted, setConnectPrompted] = useState(false);
+  const [showPostLoginModal, setShowPostLoginModal] = useState(false);
+  const [messageIndex, setMessageIndex] = useState(0);
 
   useEffect(() => {
     // Dai tempo al sistema di caricare l'account dopo F5
@@ -6962,13 +6964,15 @@ const AziendaPage: React.FC = () => {
     return () => clearTimeout(timer);
   }, []);
 
-  // Auto-apri il modal di connessione quando arrivi qui non loggato
+  // Auto-apri il modal di connessione istantaneamente quando arrivi qui non loggato
   useEffect(() => {
-    if (accountCheckDelay) return;
-    if (account) return;
-    if (connectPrompted) return;
-    // prova a clickare il pulsante di connect presente nell'header
-    const clickConnect = () => {
+    if (accountCheckDelay || account || connectPrompted) return;
+    let stopped = false;
+    let tries = 0;
+    const maxTries = 60; // ~1s a 60fps
+    const tryOpen = () => {
+      if (stopped) return;
+      tries++;
       const buttons = document.querySelectorAll('button');
       for (const btn of Array.from(buttons)) {
         const txt = (btn.textContent || '').toLowerCase();
@@ -6976,32 +6980,46 @@ const AziendaPage: React.FC = () => {
         if (txt.includes('connect') || txt.includes('connetti') || testId.includes('connect')) {
           (btn as HTMLButtonElement).click();
           setConnectPrompted(true);
+          stopped = true;
           break;
         }
       }
+      if (!stopped && tries < maxTries) requestAnimationFrame(tryOpen);
     };
-    // slight delay to ensure header rendered
-    const t = setTimeout(clickConnect, 250);
+    requestAnimationFrame(tryOpen);
 
-    // se l'utente chiude il popup senza connettersi, torna alla home
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && !account) {
+    // Osserva chiusura del modal: se viene chiuso senza connessione, torna alla home subito
+    const observer = new MutationObserver(() => {
+      if (account) return;
+      const anyModal = document.querySelector('[aria-modal="true"], [role="dialog"]');
+      if (!anyModal && connectPrompted) {
         navigate('/');
       }
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && !account) navigate('/');
     };
     window.addEventListener('keydown', onKeyDown);
-
-    // timeout di sicurezza: se dopo 15s non c'è account, torna alla home
-    const backTimer = setTimeout(() => {
-      if (!account) navigate('/');
-    }, 15000);
-
     return () => {
-      clearTimeout(t);
-      clearTimeout(backTimer);
+      observer.disconnect();
       window.removeEventListener('keydown', onKeyDown);
+      stopped = true;
     };
   }, [account, accountCheckDelay, connectPrompted, navigate]);
+
+  // Post-login modal unico con messaggi a loop durante il caricamento dati
+  useEffect(() => {
+    setShowPostLoginModal(!!account && companyStatus.isLoading);
+  }, [account, companyStatus.isLoading]);
+
+  useEffect(() => {
+    if (!showPostLoginModal) return;
+    const interval = setInterval(() => {
+      setMessageIndex((i) => (i + 1) % 3);
+    }, 2500);
+    return () => clearInterval(interval);
+  }, [showPostLoginModal]);
 
   // Gestisce il tasto indietro del browser
   useEffect(() => {
@@ -7233,6 +7251,21 @@ const AziendaPage: React.FC = () => {
 
         {/* Footer: visibile solo quando loggato */}
         {account && <Footer />}
+
+        {/* Modal post-login unico durante caricamento dati */}
+        {showPostLoginModal && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
+            <div className="bg-slate-800 rounded-2xl p-8 max-w-md w-full mx-4 text-center shadow-2xl border border-slate-700/50">
+              <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-gradient-to-r from-purple-600 to-blue-600 animate-pulse"></div>
+              <h3 className="text-xl font-semibold text-white mb-2">
+                {messageIndex === 0 && 'Connessione effettuata'}
+                {messageIndex === 1 && 'Stiamo preparando la tua dashboard'}
+                {messageIndex === 2 && 'Carichiamo le tue iscrizioni'}
+              </h3>
+              <p className="text-slate-400">Attendi qualche secondo…</p>
+            </div>
+          </div>
+        )}
 
       </div>
 
