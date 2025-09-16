@@ -3507,7 +3507,7 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
 
         </div>
 
-        <button onClick={() => setIsModalOpen(true)} className="primary-gradient text-white px-4 py-2 rounded-2xl font-semibold hover:scale-105 transition">+ Inizializza Nuova Iscrizione</button>
+        <button onClick={() => setIsModalOpen(true)} className="primary-gradient text-white px-4 py-2 rounded-2xl font-semibold hover:scale-105 transition">+ Nuova Iscrizione</button>
 
       </div>
 
@@ -3938,7 +3938,7 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
 
                 <p style={{ fontSize: '0.8rem', marginTop: '0.5rem', opacity: 0.7 }}>
 
-                  Clicca su "Inizializza Nuova Iscrizione" per iniziare
+                  Clicca su "Nuova Iscrizione" per iniziare
 
                 </p>
 
@@ -5963,7 +5963,7 @@ const NewInscriptionModal: React.FC<{
                 <span className="material-symbols-outlined text-white">edit_square</span>
               </div>
               <div>
-                <h2 className="text-xl font-bold text-white">Inizializza Nuova Iscrizione</h2>
+                <h2 className="text-xl font-bold text-white">Nuova Iscrizione</h2>
                 <p className="text-sm text-slate-400">Passo {currentStep} di 6</p>
               </div>
             </div>
@@ -6556,7 +6556,7 @@ const InfoModal: React.FC<{
 
             <div style={{ background: 'rgba(99, 102, 241, 0.1)', padding: '1rem', borderRadius: '0.75rem', border: '1px solid rgba(99, 102, 241, 0.3)' }}>
 
-              <h5 style={{ color: '#6366f1', margin: '0 0 0.5rem 0', fontWeight: '600' }}>🔷 Inizializza Nuova Iscrizione</h5>
+              <h5 style={{ color: '#6366f1', margin: '0 0 0.5rem 0', fontWeight: '600' }}>🔷 Nuova Iscrizione</h5>
 
               <p style={{ margin: 0, color: '#d1d5db', fontSize: '0.9rem' }}>Crea una nuova iscrizione con i dati base del prodotto</p>
 
@@ -6666,17 +6666,7 @@ const InfoModal: React.FC<{
 
             <p style={{ margin: '0 0 0.5rem 0', color: '#d1d5db' }}>Dopo l'attivazione del tuo account avrai crediti gratuiti per iniziare.</p>
 
-            <p style={{ margin: '0 0 1rem 0', color: '#d1d5db' }}>Ogni operazione consuma <strong style={{ color: '#ffffff' }}>1 credito</strong>:</p>
-
-            <ul style={{ paddingLeft: '1.5rem', color: '#d1d5db', margin: 0 }}>
-
-              <li>Nuova iscrizione</li>
-
-              <li>Aggiunta step</li>
-
-              <li>Finalizzazione</li>
-
-            </ul>
+            <p style={{ margin: '0 0 1rem 0', color: '#d1d5db' }}>Ogni operazione <strong style={{ color: '#ffffff' }}>Nuova Iscrizione</strong>, <strong style={{ color: '#ffffff' }}>Aggiungi Step</strong> e <strong style={{ color: '#ffffff' }}>Finalizzazione</strong>, consuma <strong style={{ color: '#ffffff' }}>1 credito</strong>.</p>
 
           </div>
 
