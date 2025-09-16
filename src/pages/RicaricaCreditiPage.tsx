@@ -569,15 +569,13 @@ const RicaricaCreditiPage: React.FC = () => {
   const [currentStep, setCurrentStep] = useState(1); // 1: Pacchetti, 2: Dati, 3: Pagamento
   const [showCustomModal, setShowCustomModal] = useState(false);
 
-  // Effect per gestire il disconnect e reindirizzare alla homepage
+  // Guard: se non loggato, reindirizza subito alla homepage
   useEffect(() => {
-    // Solo reindirizza se l'account diventa null DOPO essere stato presente
-    // Evita redirect se l'utente accede direttamente alla pagina senza wallet
-    if (!account && userData !== null) {
+    if (!account) {
       navigate('/');
       return;
     }
-  }, [account, navigate, userData]);
+  }, [account, navigate]);
 
   useEffect(() => {
     if (!account) {
@@ -987,30 +985,7 @@ const RicaricaCreditiPage: React.FC = () => {
     );
   };
 
-  if (!account) {
-    return (
-      <>
-        <RicaricaCreditiStyles />
-        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center p-6">
-          <div className="bg-slate-800/50 backdrop-blur-sm rounded-3xl p-8 text-center max-w-md border border-slate-700/50">
-            <div className="flex items-center justify-center mb-4">
-              <div className="w-12 h-12 bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl flex items-center justify-center">
-                <span className="text-white font-bold text-xl">S</span>
-              </div>
-            </div>
-            <h1 className="text-3xl font-bold text-white mb-4">Connetti Wallet</h1>
-            <p className="text-slate-300 mb-6">Per ricaricare i crediti, connetti il tuo wallet.</p>
-            <ConnectButton
-              client={client}
-              wallets={wallets}
-              chain={polygon}
-              accountAbstraction={{ chain: polygon, sponsorGas: true }}
-            />
-          </div>
-        </div>
-      </>
-    );
-  }
+  // Non mostrare schermate di connect: il redirect sopra gestisce i non loggati
 
   return (
     <>
@@ -1050,6 +1025,31 @@ const RicaricaCreditiPage: React.FC = () => {
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
+        {/* Barra info azienda sotto header, prima dei contenuti */}
+        {userData && (
+          <div className="mb-6 bg-slate-800/50 backdrop-blur-sm rounded-2xl p-6 border border-slate-700/50">
+            <div className="flex items-center justify-between gap-6 flex-col md:flex-row">
+              <div>
+                <h2 className="text-2xl md:text-3xl font-extrabold bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
+                  {userData.companyName}
+                </h2>
+                <div className="flex flex-wrap gap-6 mt-2 text-slate-300">
+                  <span>Crediti Rimanenti: <strong className="text-white">{userData.credits}</strong></span>
+                  <span>Stato: <strong className={userData.status === 'active' ? 'text-green-400' : 'text-yellow-400'}>{userData.status === 'active' ? 'ATTIVO' : 'NON ATTIVO'}</strong></span>
+                </div>
+              </div>
+              <div className="flex items-center gap-4">
+                <button
+                  onClick={() => navigate('/azienda')}
+                  className="bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-xl font-semibold hover:scale-105 transition"
+                >
+                  ← Dashboard
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Content - stile AziendaPage */}
         <main>
           {loading ? (
@@ -1076,45 +1076,7 @@ const RicaricaCreditiPage: React.FC = () => {
         
         </div>
 
-        {/* Rettangolo dati azienda in basso - come AziendaPage */}
-        {userData && (
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-            <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-6 border border-slate-700/50 flex flex-col md:flex-row justify-between items-center gap-6">
-              <div>
-                <div className="flex items-center gap-4 flex-wrap">
-                  <h2 className="text-2xl md:text-3xl font-extrabold bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
-                    {userData.companyName}
-                  </h2>
-                </div>
-                
-                <div className="flex flex-col md:flex-row gap-4 items-center mt-2">
-                  <div className="flex flex-col md:flex-row gap-4 items-center">
-                    <span className="text-slate-300">
-                      Crediti Rimanenti: <strong className="text-white">{userData.credits}</strong>
-                    </span>
-                  </div>
-                  
-                  <div className="flex flex-col md:flex-row gap-4 items-center">
-                    <span className="text-slate-300">
-                      Stato: <strong className={userData.status === 'active' ? 'text-green-400' : 'text-yellow-400'}>
-                        {userData.status === 'active' ? 'ATTIVO' : 'NON ATTIVO'}
-                      </strong>
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-4">
-                <button
-                  onClick={() => navigate('/azienda')}
-                  className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-6 py-3 rounded-xl font-semibold hover:scale-105 transition flex items-center gap-2"
-                >
-                  ← Torna alla Dashboard
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+        {/* Rimosso rettangolo in basso: ora la barra info è sotto l'header */}
 
         {/* Footer identico ad AziendaPage */}
         <Footer />
