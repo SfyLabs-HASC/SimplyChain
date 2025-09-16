@@ -7236,18 +7236,7 @@ const AziendaPage: React.FC = () => {
         {/* Footer: visibile solo quando loggato */}
         {account && <Footer />}
 
-        {/* Loader popup in tema durante il caricamento delle iscrizioni */}
-        {account && isLoadingBatches && (
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
-            <div className="bg-slate-800 rounded-2xl p-8 max-w-md w-full mx-4 text-center shadow-2xl border border-slate-700/50">
-              <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-gradient-to-r from-purple-600 to-blue-600 animate-pulse"></div>
-              <h3 className="text-xl font-semibold text-white mb-2">Stiamo aggiornando le tue iscrizioni...</h3>
-              <p className="text-slate-400">Attendi qualche secondo</p>
-            </div>
-          </div>
-        )}
-
-        {/* Nessun loader: nessun overlay durante il caricamento */}
+        {/* Loader rimosso a livello parent per evitare ReferenceError */}
 
       </div>
 
