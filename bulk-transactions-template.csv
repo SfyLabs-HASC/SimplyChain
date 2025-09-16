@@ -1,0 +1,8 @@
+action,external_batch_id,product_name,quantity,unit,production_date,step_name,step_data,metadata_json,finalize_note
+create_batch,BATCH-2025-0001,Mozzarella di Bufala,120,kg,2025-09-15,,,,{"lot":"L-8421","origin":"Battipaglia"}
+add_step,BATCH-2025-0001,,,,,Confezionamento,"{\"linea\":\"A2\",\"operator\":\"Mario R.\"}","{\"temp\":\"4C\"}",
+add_step,BATCH-2025-0001,,,,,Spedizione,"{\"courier\":\"DHL\",\"tracking\":\"IT123456\"}","{\"dest\":\"Roma\"}",
+finalize_batch,BATCH-2025-0001,,,,,,,,Lotto chiuso e pronto per QR
+create_batch,BATCH-2025-0002,Vino Montepulciano,300,bottle,2025-09-12,,,,{"vintage":2023,"alc_vol":"13%"}
+add_step,BATCH-2025-0002,,,,,Imbottigliamento,"{\"line\":\"B3\"}","{\"cork\":\"natural\"}",
+finalize_batch,BATCH-2025-0002,,,,,,,,Imbottigliamento completato
