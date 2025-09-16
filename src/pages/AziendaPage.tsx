@@ -6982,12 +6982,27 @@ const AziendaPage: React.FC = () => {
       }
     });
     observer.observe(document.body, { childList: true, subtree: true });
+
+    // Intercetta il click sul pulsante di chiusura del modal di thirdweb
+    const onDocumentClick = (e: MouseEvent) => {
+      if (account) return;
+      const target = e.target as HTMLElement | null;
+      if (!target) return;
+      const closeButton = target.closest('button[aria-label="Close"], button[aria-label="Chiudi"], [data-close-button]');
+      const dialog = target.closest('[aria-modal="true"], [role="dialog"]');
+      if (closeButton && dialog) {
+        e.preventDefault();
+        navigate('/');
+      }
+    };
+    document.addEventListener('click', onDocumentClick, true);
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && !account) navigate('/');
     };
     window.addEventListener('keydown', onKeyDown);
     return () => {
       observer.disconnect();
+      document.removeEventListener('click', onDocumentClick, true);
       window.removeEventListener('keydown', onKeyDown);
       stopped = true;
     };
@@ -7220,6 +7235,17 @@ const AziendaPage: React.FC = () => {
 
         {/* Footer: visibile solo quando loggato */}
         {account && <Footer />}
+
+        {/* Loader popup in tema durante il caricamento delle iscrizioni */}
+        {account && isLoadingBatches && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
+            <div className="bg-slate-800 rounded-2xl p-8 max-w-md w-full mx-4 text-center shadow-2xl border border-slate-700/50">
+              <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-gradient-to-r from-purple-600 to-blue-600 animate-pulse"></div>
+              <h3 className="text-xl font-semibold text-white mb-2">Stiamo aggiornando le tue iscrizioni...</h3>
+              <p className="text-slate-400">Attendi qualche secondo</p>
+            </div>
+          </div>
+        )}
 
         {/* Nessun loader: nessun overlay durante il caricamento */}
 
