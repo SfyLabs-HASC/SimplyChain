@@ -2359,7 +2359,7 @@ const FullPageLoading: React.FC<{ message?: string }> = ({ message }) => {
 
 // Componente per la Dashboard
 
-const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
+const Dashboard: React.FC<{ companyData: CompanyData; onLoadingChange?: (isLoading: boolean) => void }> = ({ companyData, onLoadingChange }) => {
 
   const account = useActiveAccount();
 
@@ -2368,6 +2368,11 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
   const [isLoadingBatches, setIsLoadingBatches] = useState(true);
 
   const [errorBatches, setErrorBatches] = useState<string | null>(null);
+
+  // Notifica il parent quando cambia lo stato di loading
+  useEffect(() => {
+    onLoadingChange?.(isLoadingBatches);
+  }, [isLoadingBatches, onLoadingChange]);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -6948,6 +6953,8 @@ const AziendaPage: React.FC = () => {
 
   });
 
+  const [isLoadingBatches, setIsLoadingBatches] = useState(false);
+
 
 
   // Effect per gestire il disconnect e reindirizzare alla homepage
@@ -7165,9 +7172,9 @@ const AziendaPage: React.FC = () => {
     if (!account) {
       return (
         <div className="flex flex-col items-center justify-center min-h-[60vh] text-center p-6">
-          <div className="bg-slate-800/50 border border-slate-700/50 rounded-lg p-6 max-w-lg w-full">
-            <div className="text-slate-300 text-2xl mb-2">Benvenuto in SimplyChain</div>
-            <p className="text-slate-400 text-base">
+          <div className="bg-slate-800/50 border border-slate-700/50 rounded-lg p-8 max-w-2xl w-full">
+            <div className="text-slate-300 text-4xl mb-4 font-bold">Benvenuto in SimplyChain</div>
+            <p className="text-slate-400 text-xl">
               Per accedere alla tua area privata, <span className="text-white font-semibold">accedi con i social o con la tua email</span> tramite il pulsante <span className="font-semibold">"Accedi"</span> in alto a destra.
             </p>
           </div>
@@ -7191,7 +7198,7 @@ const AziendaPage: React.FC = () => {
     }
 
     if (companyStatus.isActive && companyStatus.data) {
-      return <Dashboard companyData={companyStatus.data} />;
+      return <Dashboard companyData={companyStatus.data} onLoadingChange={setIsLoadingBatches} />;
     }
 
     if (account) {
@@ -7290,6 +7297,17 @@ const AziendaPage: React.FC = () => {
 
         {/* Footer: visibile solo quando loggato */}
         {account && <Footer />}
+
+        {/* Loading popup per caricamento iscrizioni */}
+        {account && companyStatus.isActive && companyStatus.data && isLoadingBatches && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[9999]" role="dialog" aria-modal="true" aria-label="Caricamento iscrizioni">
+            <div className="bg-slate-800 rounded-2xl p-8 max-w-md w-full mx-4 text-center shadow-2xl border border-slate-700/50">
+              <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-gradient-to-r from-purple-600 to-blue-600 animate-pulse"></div>
+              <h3 className="text-xl font-semibold text-white mb-2">Stiamo aggiornando le tue iscrizioni...</h3>
+              <p className="text-slate-400">Attendi qualche secondo</p>
+            </div>
+          </div>
+        )}
 
         {/* Loader rimosso a livello parent per evitare ReferenceError */}
 
