@@ -3525,7 +3525,7 @@ const Dashboard: React.FC<{ companyData: CompanyData; onLoadingChange?: (isLoadi
 
         </div>
 
-        <button onClick={() => setIsModalOpen(true)} className="primary-gradient text-white px-4 py-2 rounded-2xl font-semibold hover:scale-105 transition">+ Nuova Iscrizione</button>
+        <button onClick={() => setIsModalOpen(true)} className="text-white px-4 py-2 rounded-2xl font-semibold hover:scale-105 transition" style={{ backgroundColor: '#6368F7' }}>+ Nuova Iscrizione</button>
 
       </div>
 
@@ -3545,7 +3545,7 @@ const Dashboard: React.FC<{ companyData: CompanyData; onLoadingChange?: (isLoadi
 
             style={{
 
-              background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
+              backgroundColor: '#6368F7',
 
               border: 'none',
 
@@ -3569,7 +3569,7 @@ const Dashboard: React.FC<{ companyData: CompanyData; onLoadingChange?: (isLoadi
 
               fontWeight: 'bold',
 
-              boxShadow: '0 4px 15px rgba(139, 92, 246, 0.3)'
+              boxShadow: '0 4px 15px rgba(99, 104, 247, 0.35)'
 
             }}
 
