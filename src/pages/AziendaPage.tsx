@@ -6959,11 +6959,11 @@ const AziendaPage: React.FC = () => {
   }, []);
 
   // Auto-apri il modal di connessione istantaneamente quando arrivi qui non loggato
-  useEffect(() => {
+  React.useLayoutEffect(() => {
     if (accountCheckDelay || account || connectPrompted) return;
     let stopped = false;
     let tries = 0;
-    const maxTries = 60; // ~1s a 60fps
+    const maxTries = 240; // prova ~4s a 60fps
     const tryOpen = () => {
       if (stopped) return;
       tries++;
@@ -7014,6 +7014,15 @@ const AziendaPage: React.FC = () => {
     }, 2500);
     return () => clearInterval(interval);
   }, [showPostLoginModal]);
+
+  // Mantieni il modal per un breve periodo anche dopo che i dati account sono pronti
+  useEffect(() => {
+    if (!account) return;
+    if (!companyStatus.isLoading && showPostLoginModal) {
+      const t = setTimeout(() => setShowPostLoginModal(false), 1500);
+      return () => clearTimeout(t);
+    }
+  }, [account, companyStatus.isLoading, showPostLoginModal]);
 
   // Gestisce il tasto indietro del browser
   useEffect(() => {
