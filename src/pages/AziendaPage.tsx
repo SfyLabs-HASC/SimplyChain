@@ -7258,6 +7258,9 @@ const AziendaPage: React.FC = () => {
                   wallets={wallets}
                   chain={polygon}
                   accountAbstraction={{ chain: polygon, sponsorGas: true }}
+                  connectButton={{
+                    label: 'Accedi'
+                  }}
                   connectModal={{
                     size: 'wide',
                     showThirdwebBranding: false,
