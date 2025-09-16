@@ -34,6 +34,7 @@ interface CreditPackage {
   pricePerCredit: number;
   totalPrice: number;
   description: string;
+  savingsText?: string;
 }
 
 interface CustomContactForm {
@@ -112,11 +113,11 @@ const RicaricaCreditiStyles = () => (
 
 // --- Pacchetti Crediti ---
 const creditPackages: CreditPackage[] = [
-  { id: 'price_1', credits: 10, pricePerCredit: 1.00, totalPrice: 10.00, description: 'Pacchetto 10 crediti' },
-  { id: 'price_2', credits: 50, pricePerCredit: 1.00, totalPrice: 50.00, description: 'Pacchetto 50 crediti' },
-  { id: 'price_3', credits: 100, pricePerCredit: 1.00, totalPrice: 100.00, description: 'Pacchetto 100 crediti' },
-  { id: 'price_4', credits: 500, pricePerCredit: 1.00, totalPrice: 500.00, description: 'Pacchetto 500 crediti' },
-  { id: 'price_5', credits: 1000, pricePerCredit: 1.00, totalPrice: 1000.00, description: 'Pacchetto 1000 crediti' },
+  { id: 'price_1', credits: 10, pricePerCredit: 1.00, totalPrice: 10.00, description: 'Pacchetto 10 crediti', savingsText: '-' },
+  { id: 'price_2', credits: 50, pricePerCredit: 0.90, totalPrice: 45.00, description: 'Pacchetto 50 crediti', savingsText: '10% (5 €)' },
+  { id: 'price_3', credits: 100, pricePerCredit: 0.85, totalPrice: 85.00, description: 'Pacchetto 100 crediti', savingsText: '15% (15 €)' },
+  { id: 'price_4', credits: 500, pricePerCredit: 0.80, totalPrice: 400.00, description: 'Pacchetto 500 crediti', savingsText: '20% (100 €)' },
+  { id: 'price_5', credits: 1000, pricePerCredit: 0.70, totalPrice: 700.00, description: 'Pacchetto 1000 crediti', savingsText: '30% (300 €)' },
 ];
 
 // --- Componente Form Contatto Custom ---
@@ -803,6 +804,11 @@ const RicaricaCreditiPage: React.FC = () => {
                       <p className="text-slate-400">
                         {pkg.pricePerCredit.toFixed(2)} € per credito
                       </p>
+                      {pkg.savingsText && (
+                        <p className="text-green-400 text-sm mt-1">
+                          Risparmio: {pkg.savingsText}
+                        </p>
+                      )}
                     </div>
                     <div className="text-right">
                       <p className="text-2xl font-bold text-purple-400">
