@@ -3698,7 +3698,7 @@ const Dashboard: React.FC<{ companyData: CompanyData }> = ({ companyData }) => {
 
 
 
-      {(typeof isLoadingBatches !== 'undefined' && isLoadingBatches) && !showFullPageLoading ? (
+      {isLoadingBatches && !showFullPageLoading ? (
         null
       ) : errorBatches ? (
 
@@ -7145,10 +7145,16 @@ const AziendaPage: React.FC = () => {
       return <Dashboard companyData={companyStatus.data} />;
     }
 
-    // Se connesso ma account non attivo, reindirizza al form
-    if (account && !companyStatus.isActive) {
-      navigate('/form');
-      return null;
+    if (account) {
+      return (
+        <div className="flex flex-col items-center justify-center min-h-[60vh] text-center p-6">
+          <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-6 max-w-md">
+            <div className="text-amber-400 text-2xl mb-2">🔒</div>
+            <p className="text-amber-300 text-lg">Account non attivato</p>
+            <p className="text-slate-400 text-sm mt-2">Contatta l'amministratore per attivare il tuo account</p>
+          </div>
+        </div>
+      );
     }
 
     return (
@@ -7233,17 +7239,6 @@ const AziendaPage: React.FC = () => {
         {/* Loader rimosso a livello parent per evitare ReferenceError */}
 
       </div>
-
-      {/* Themed loading modal while batches are loading */}
-      {(typeof isLoadingBatches !== 'undefined' && isLoadingBatches) && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[9999]" role="dialog" aria-modal="true" aria-label="Caricamento iscrizioni">
-          <div className="bg-slate-800 rounded-2xl p-8 max-w-md w-full mx-4 text-center shadow-2xl border border-slate-700/50">
-            <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-gradient-to-r from-purple-600 to-blue-600 animate-pulse"></div>
-            <h3 className="text-xl font-semibold text-white mb-2">Stiamo aggiornando le tue iscrizioni...</h3>
-            <p className="text-slate-400">Attendi qualche secondo</p>
-          </div>
-        </div>
-      )}
 
     </>
 
