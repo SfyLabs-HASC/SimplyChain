@@ -6946,8 +6946,6 @@ const AziendaPage: React.FC = () => {
   // Solo dopo che il sistema ha avuto tempo di caricare l'account
   const [accountCheckDelay, setAccountCheckDelay] = useState(true);
   const [connectPrompted, setConnectPrompted] = useState(false);
-  const [showPostLoginModal, setShowPostLoginModal] = useState(false);
-  const [messageIndex, setMessageIndex] = useState(0);
 
   useEffect(() => {
     // Dai tempo al sistema di caricare l'account dopo F5
@@ -7002,27 +7000,7 @@ const AziendaPage: React.FC = () => {
     };
   }, [account, accountCheckDelay, connectPrompted, navigate]);
 
-  // Post-login modal unico con messaggi a loop durante il caricamento dati
-  useEffect(() => {
-    setShowPostLoginModal(!!account && companyStatus.isLoading);
-  }, [account, companyStatus.isLoading]);
-
-  useEffect(() => {
-    if (!showPostLoginModal) return;
-    const interval = setInterval(() => {
-      setMessageIndex((i) => (i + 1) % 3);
-    }, 2500);
-    return () => clearInterval(interval);
-  }, [showPostLoginModal]);
-
-  // Mantieni il modal per un breve periodo anche dopo che i dati account sono pronti
-  useEffect(() => {
-    if (!account) return;
-    if (!companyStatus.isLoading && showPostLoginModal) {
-      const t = setTimeout(() => setShowPostLoginModal(false), 1500);
-      return () => clearTimeout(t);
-    }
-  }, [account, companyStatus.isLoading, showPostLoginModal]);
+  // Nessun loader/avviso: nessun post-login modal
 
   // Gestisce il tasto indietro del browser
   useEffect(() => {
@@ -7141,7 +7119,7 @@ const AziendaPage: React.FC = () => {
     }
 
     if (companyStatus.isLoading) {
-      return null; // usa solo il modal unico
+      return null; // nessun loader
     }
 
     if (companyStatus.error) {
@@ -7250,20 +7228,7 @@ const AziendaPage: React.FC = () => {
         {/* Footer: visibile solo quando loggato */}
         {account && <Footer />}
 
-        {/* Modal post-login unico durante caricamento dati */}
-        {showPostLoginModal && (
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
-            <div className="bg-slate-800 rounded-2xl p-8 max-w-md w-full mx-4 text-center shadow-2xl border border-slate-700/50">
-              <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-gradient-to-r from-purple-600 to-blue-600 animate-pulse"></div>
-              <h3 className="text-xl font-semibold text-white mb-2">
-                {messageIndex === 0 && 'Stiamo preparando la tua dashboard'}
-                {messageIndex === 1 && 'Carichiamo le tue iscrizioni'}
-                {messageIndex === 2 && 'Ottimizzazione dei dati in corso'}
-              </h3>
-              <p className="text-slate-400">Attendi qualche secondo…</p>
-            </div>
-          </div>
-        )}
+        {/* Nessun loader: nessun overlay durante il caricamento */}
 
       </div>
 
