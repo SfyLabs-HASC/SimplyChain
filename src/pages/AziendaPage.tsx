@@ -2382,7 +2382,7 @@ const Dashboard: React.FC<{ companyData: CompanyData; onLoadingChange?: (isLoadi
 
   const [refreshCounter, setRefreshCounter] = useState(0);
 
-  const [showFullPageLoading, setShowFullPageLoading] = useState(false);
+  const [showFullPageLoading, setShowFullPageLoading] = useState(true);
 
   const [firstLoad, setFirstLoad] = useState(true);
 
@@ -3465,7 +3465,15 @@ const Dashboard: React.FC<{ companyData: CompanyData; onLoadingChange?: (isLoadi
 
     <>
 
-      {showFullPageLoading && null}
+      {showFullPageLoading && (
+
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[9999]" role="dialog" aria-modal="true" aria-label="Caricamento">
+
+          <div className="mx-auto w-20 h-20 border-4 border-slate-600 border-t-transparent rounded-full animate-spin" style={{ borderTopColor: '#6366F1' }}></div>
+
+        </div>
+
+      )}
 
 
 
@@ -7310,7 +7318,7 @@ const AziendaPage: React.FC = () => {
           </div>
         )}
 
-        {/* Loader rimosso a livello parent per evitare ReferenceError */}
+        {/* Loader rimosso a livello parent per evitare duplicazioni */}
 
       </div>
 
