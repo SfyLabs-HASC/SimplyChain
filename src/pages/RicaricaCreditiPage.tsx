@@ -199,7 +199,7 @@ const CustomContactModal: React.FC<{ isOpen: boolean, onClose: () => void, userD
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div className="bg-slate-800/90 backdrop-blur-sm rounded-2xl p-6 w-full max-w-md border border-slate-700/50">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-xl font-bold text-white">Richiesta Prezzo Custom</h3>
+          <h3 className="text-xl font-bold text-white">Richiesta Servizio Custom</h3>
           <button
             onClick={onClose}
             className="text-slate-400 hover:text-white transition"
@@ -226,7 +226,13 @@ const CustomContactModal: React.FC<{ isOpen: boolean, onClose: () => void, userD
             </button>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <div className="mb-6 p-4 bg-slate-700/30 rounded-lg border border-slate-600/50">
+              <p className="text-slate-300 text-sm leading-relaxed">
+                Possiamo creare un servizio personalizzato per la tua azienda, con più crediti e campi custom per le tue esigenze. Disponibile anche servizio di importazione massiva automatizzata e agente AI personalizzato. Contattaci!
+              </p>
+            </div>
+            <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-slate-300 mb-1">
                 Email *
@@ -292,6 +298,7 @@ const CustomContactModal: React.FC<{ isOpen: boolean, onClose: () => void, userD
               </button>
             </div>
           </form>
+          </div>
         )}
       </div>
     </div>
@@ -485,6 +492,31 @@ const PaymentForm: React.FC = () => {
       } else if (paymentIntent && paymentIntent.status === 'succeeded') {
         console.log('Payment successful:', paymentIntent);
         setPaymentStatus('success');
+        
+        // Aggiungi crediti onchain
+        try {
+          if (selectedPackage && account?.address) {
+            console.log('Adding credits onchain:', selectedPackage.credits);
+            const response = await fetch('/api/add-credits', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                walletAddress: account.address,
+                credits: selectedPackage.credits
+              })
+            });
+            
+            if (response.ok) {
+              const result = await response.json();
+              console.log('Credits added onchain:', result);
+            } else {
+              console.error('Failed to add credits onchain');
+            }
+          }
+        } catch (blockchainError) {
+          console.error('Blockchain transaction error:', blockchainError);
+          // Non bloccare il flusso se la transazione blockchain fallisce
+        }
         
         // Redirect dopo successo
         setTimeout(() => {
@@ -855,7 +887,7 @@ const RicaricaCreditiPage: React.FC = () => {
                       Custom
                     </p>
                     <p className="text-sm text-slate-400">
-                      Contatta SFY
+                      Servizio Personalizzato
                     </p>
                   </div>
                 </div>
@@ -1020,7 +1052,7 @@ const RicaricaCreditiPage: React.FC = () => {
               
               {/* Logo e titolo */}
               <div className="flex items-center space-x-4">
-                <div className="flex items-center space-x-3">
+                <div className="flex items-center space-x-3 cursor-pointer" onClick={() => navigate('/')}>
                   <div className="w-10 h-10 bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl flex items-center justify-center">
                     <span className="text-white font-bold text-lg">S</span>
                   </div>
@@ -1044,35 +1076,9 @@ const RicaricaCreditiPage: React.FC = () => {
           </div>
         </header>
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-
-        {/* Barra info azienda sotto header, prima dei contenuti */}
-        {userData && (
-          <div className="mb-6 bg-slate-800/50 backdrop-blur-sm rounded-2xl p-6 border border-slate-700/50">
-            <div className="flex items-center justify-between gap-6 flex-col md:flex-row">
-              <div>
-                <h2 className="text-2xl md:text-3xl font-extrabold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-                  {userData.companyName}
-                </h2>
-                <div className="flex flex-wrap gap-6 mt-2 text-slate-300">
-                  <span>Crediti Rimanenti: <strong className="text-white">{userData.credits}</strong></span>
-                  <span>Stato: <strong className={userData.status === 'active' ? 'text-green-400' : 'text-yellow-400'}>{userData.status === 'active' ? 'ATTIVO' : 'NON ATTIVO'}</strong></span>
-                </div>
-              </div>
-              <div className="flex items-center gap-4">
-                <button
-                  onClick={() => navigate('/azienda')}
-                  className="bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-xl font-semibold hover:scale-105 transition"
-                >
-                  ← Dashboard
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Content - stile AziendaPage */}
-        <main className="flex-1">
+        <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
+          {/* Content - stile AziendaPage */}
+          <main className="flex-1">
           {loading ? (
             <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-8 text-center border border-slate-700/50">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
@@ -1093,8 +1099,17 @@ const RicaricaCreditiPage: React.FC = () => {
           ) : (
             renderContent()
           )}
-        </main>
-        
+          </main>
+          
+          {/* Tasto Dashboard alla fine */}
+          <div className="mt-8 flex justify-center">
+            <button
+              onClick={() => navigate('/azienda')}
+              className="bg-slate-700 hover:bg-slate-600 text-white px-6 py-3 rounded-xl font-semibold hover:scale-105 transition flex items-center gap-2"
+            >
+              ← Dashboard
+            </button>
+          </div>
         </div>
 
         {/* Rimosso rettangolo in basso: ora la barra info è sotto l'header */}
