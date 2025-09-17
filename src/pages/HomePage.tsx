@@ -91,6 +91,7 @@ export default function HomePage() {
   };
 
   const handleAuthButtonClick = () => {
+    console.log('HomePage: Cliccato Accedi, navigando a /azienda');
     setUserClickedButton(true);
     navigate('/azienda');
   };

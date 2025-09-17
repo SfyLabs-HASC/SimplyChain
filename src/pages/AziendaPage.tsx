@@ -6954,8 +6954,15 @@ const AziendaPage: React.FC = () => {
   });
 
   const [isLoadingBatches, setIsLoadingBatches] = useState(false);
+  const [isPageRefreshing, setIsPageRefreshing] = useState(true);
 
-
+  // Effect per rilevare refresh del browser e nascondere loader quando i dati sono pronti
+  useEffect(() => {
+    // Nascondi il loader di refresh quando i dati sono caricati
+    if (account && companyStatus.isActive && companyStatus.data && !isLoadingBatches) {
+      setIsPageRefreshing(false);
+    }
+  }, [account, companyStatus.isActive, companyStatus.data, isLoadingBatches]);
 
   // Effect per gestire il disconnect e reindirizzare alla homepage
   // Solo dopo che il sistema ha avuto tempo di caricare l'account
@@ -6966,6 +6973,7 @@ const AziendaPage: React.FC = () => {
 
   // Auto-apri il modal di connessione istantaneamente quando arrivi qui non loggato
   React.useLayoutEffect(() => {
+    console.log('AziendaPage: useLayoutEffect triggered', { accountCheckDelay, account: !!account, connectPrompted });
     if (accountCheckDelay || account || connectPrompted) return;
     let stopped = false;
     let tries = 0;
@@ -6978,15 +6986,38 @@ const AziendaPage: React.FC = () => {
         const txt = (btn.textContent || '').toLowerCase();
         const testId = btn.getAttribute('data-testid') || '';
         if (txt.includes('connect') || txt.includes('connetti') || txt.includes('accedi') || testId.includes('connect')) {
-          (btn as HTMLButtonElement).click();
-          setConnectPrompted(true);
-          stopped = true;
-          break;
+          console.log('AziendaPage: Trovato pulsante connessione:', { txt, testId, btn });
+          try {
+            (btn as HTMLButtonElement).click();
+            console.log('AziendaPage: Pulsante cliccato con successo');
+            setConnectPrompted(true);
+            stopped = true;
+            break;
+          } catch (error) {
+            console.warn('Errore cliccando pulsante connessione:', error);
+          }
         }
       }
       if (!stopped && tries < maxTries) requestAnimationFrame(tryOpen);
     };
-    requestAnimationFrame(tryOpen);
+    // Aggiungi un piccolo delay per assicurarsi che il DOM sia pronto
+    setTimeout(() => requestAnimationFrame(tryOpen), 100);
+    
+    // Fallback: se dopo 2 secondi non trova il pulsante, prova a forzare l'apertura
+    setTimeout(() => {
+      if (!connectPrompted && !account) {
+        console.log('Fallback: forzando apertura modal connessione');
+        const connectBtn = document.querySelector('[data-testid*="connect"], button[class*="connect"]') as HTMLButtonElement;
+        if (connectBtn) {
+          try {
+            connectBtn.click();
+            setConnectPrompted(true);
+          } catch (error) {
+            console.warn('Errore fallback connessione:', error);
+          }
+        }
+      }
+    }, 2000);
 
     // Osserva chiusura del modal: alla chiusura forza disconnect e redirect
     const observer = new MutationObserver(() => {
@@ -7298,8 +7329,15 @@ const AziendaPage: React.FC = () => {
         {/* Footer: visibile solo quando loggato */}
         {account && <Footer />}
 
+        {/* Loader di refresh del browser - appare subito */}
+        {isPageRefreshing && (
+          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[10000]" role="dialog" aria-modal="true" aria-label="Caricamento">
+            <div className="mx-auto w-20 h-20 border-4 border-slate-600 border-t-transparent rounded-full animate-spin" style={{ borderTopColor: '#6366F1' }}></div>
+          </div>
+        )}
+
         {/* Loading popup per caricamento iscrizioni */}
-        {account && companyStatus.isActive && companyStatus.data && isLoadingBatches && (
+        {account && companyStatus.isActive && companyStatus.data && isLoadingBatches && !isPageRefreshing && (
           <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[9999]" role="dialog" aria-modal="true" aria-label="Caricamento iscrizioni">
             <div className="bg-slate-800 rounded-2xl p-8 max-w-md w-full mx-4 text-center shadow-2xl border border-slate-700/50">
               <div className="mx-auto mb-6 w-16 h-16 border-4 border-slate-600 border-t-transparent rounded-full animate-spin" style={{ borderTopColor: '#6366F1' }}></div>
