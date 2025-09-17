@@ -1,6 +1,25 @@
 import { createWalletClient, http } from 'viem';
 import { polygon } from 'viem/chains';
 import { privateKeyToAccount } from 'viem/accounts';
+import admin from 'firebase-admin';
+
+// Funzione helper per inizializzare Firebase Admin
+function initializeFirebaseAdmin() {
+  if (!admin.apps.length) {
+    try {
+      admin.initializeApp({
+        credential: admin.credential.cert({
+          projectId: process.env.FIREBASE_PROJECT_ID,
+          clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+          privateKey: (process.env.FIREBASE_PRIVATE_KEY || '').replace(/\\n/g, '\n'),
+        }),
+      });
+    } catch (error) {
+      console.error('Firebase admin initialization error', error);
+    }
+  }
+  return admin.firestore();
+}
 
 // ABI del contratto
 const CONTRACT_ABI = [
@@ -91,24 +110,25 @@ export default async function handler(req, res) {
       account: account
     });
 
-    // Prima leggiamo i crediti attuali dell'utente
-    console.log('Reading current credits for:', walletAddress);
+    // Prima leggiamo i crediti attuali da Firebase
+    console.log('Reading current credits from Firebase for:', walletAddress);
     let currentCredits = 0;
     
     try {
-      const currentInfo = await walletClient.readContract({
-        address: CONTRACT_ADDRESS,
-        abi: CONTRACT_ABI,
-        functionName: 'getContributorInfo',
-        args: [walletAddress]
-      });
-
-      console.log('Contract response:', currentInfo);
-      currentCredits = Number(currentInfo[1]); // Il secondo valore è i crediti
-      console.log('Current credits from contract:', currentCredits);
-    } catch (readError) {
-      console.log('Error reading current credits, assuming 0:', readError.message);
-      // Se l'utente non esiste nel contratto, assumiamo 0 crediti
+      const db = initializeFirebaseAdmin();
+      const companyRef = db.collection('activeCompanies').doc(walletAddress);
+      const doc = await companyRef.get();
+      
+      if (doc.exists) {
+        const companyData = doc.data();
+        currentCredits = companyData.credits || 0;
+        console.log('Current credits from Firebase:', currentCredits);
+      } else {
+        console.log('Company not found in Firebase, assuming 0 credits');
+        currentCredits = 0;
+      }
+    } catch (firebaseError) {
+      console.log('Error reading credits from Firebase, assuming 0:', firebaseError.message);
       currentCredits = 0;
     }
 
@@ -127,6 +147,20 @@ export default async function handler(req, res) {
     });
 
     console.log('Transaction hash:', hash);
+
+    // Aggiorna anche i crediti su Firebase
+    try {
+      const db = initializeFirebaseAdmin();
+      const companyRef = db.collection('activeCompanies').doc(walletAddress);
+      await companyRef.update({
+        credits: newTotalCredits,
+        lastCreditUpdate: new Date().toISOString()
+      });
+      console.log('Credits updated on Firebase:', newTotalCredits);
+    } catch (firebaseUpdateError) {
+      console.error('Error updating credits on Firebase:', firebaseUpdateError);
+      // Non blocchiamo la risposta se l'aggiornamento Firebase fallisce
+    }
 
     return res.status(200).json({
       success: true,
