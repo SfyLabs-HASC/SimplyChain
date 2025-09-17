@@ -1,4 +1,4 @@
-import { createWalletClient, http } from 'viem';
+import { createWalletClient, createPublicClient, http } from 'viem';
 import { polygon } from 'viem/chains';
 import { privateKeyToAccount } from 'viem/accounts';
 import admin from 'firebase-admin';
@@ -81,26 +81,85 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { walletAddress, credits } = req.body;
+    const { walletAddress, credits, action } = req.body;
 
-    console.log('Received request:', { walletAddress, credits });
-    console.log('Environment variables:', {
-      hasPrivateKey: !!process.env.BACKEND_PRIVATE_KEY,
-      contractAddress: process.env.CONTRACT_ADDRESS,
-      rpcUrl: process.env.POLYGON_RPC_URL
-    });
+    console.log('Received request:', { walletAddress, credits, action });
 
-    if (!walletAddress || !credits) {
-      return res.status(400).json({ error: 'Missing walletAddress or credits' });
+    if (!walletAddress) {
+      return res.status(400).json({ error: 'Missing walletAddress' });
+    }
+
+    if (!process.env.CONTRACT_ADDRESS || process.env.CONTRACT_ADDRESS === '0x...') {
+      return res.status(500).json({ error: 'CONTRACT_ADDRESS not configured' });
+    }
+
+    // Se action è 'refresh', solo leggi i crediti dal contratto e aggiorna Firebase
+    if (action === 'refresh') {
+      console.log('Refreshing credits from blockchain for:', walletAddress);
+      
+      const publicClient = createPublicClient({
+        chain: polygon,
+        transport: http(process.env.POLYGON_RPC_URL || 'https://polygon-rpc.com'),
+      });
+
+      // Leggi i crediti dal contratto
+      let contractCredits = 0;
+      
+      try {
+        const contractInfo = await publicClient.readContract({
+          address: CONTRACT_ADDRESS,
+          abi: CONTRACT_ABI,
+          functionName: 'getContributorInfo',
+          args: [walletAddress]
+        });
+
+        contractCredits = Number(contractInfo[1]); // Il secondo valore è i crediti
+        console.log('Credits from contract:', contractCredits);
+      } catch (contractError) {
+        console.log('Error reading from contract, using 0:', contractError.message);
+        contractCredits = 0;
+      }
+
+      // Aggiorna Firebase con i crediti dal contratto
+      try {
+        const db = initializeFirebaseAdmin();
+        const companyRef = db.collection('activeCompanies').doc(walletAddress);
+        
+        await companyRef.update({
+          credits: contractCredits,
+          lastCreditRefresh: new Date().toISOString()
+        });
+        
+        console.log('Credits updated on Firebase:', contractCredits);
+      } catch (firebaseError) {
+        console.error('Error updating Firebase:', firebaseError);
+        return res.status(500).json({ 
+          error: 'Failed to update Firebase',
+          details: firebaseError.message 
+        });
+      }
+
+      return res.status(200).json({
+        success: true,
+        credits: contractCredits,
+        message: 'Credits refreshed from blockchain'
+      });
+    }
+
+    // Altrimenti, aggiungi crediti (comportamento originale)
+    if (!credits) {
+      return res.status(400).json({ error: 'Missing credits for add operation' });
     }
 
     if (!process.env.BACKEND_PRIVATE_KEY) {
       return res.status(500).json({ error: 'BACKEND_PRIVATE_KEY not configured' });
     }
 
-    if (!process.env.CONTRACT_ADDRESS || process.env.CONTRACT_ADDRESS === '0x...') {
-      return res.status(500).json({ error: 'CONTRACT_ADDRESS not configured' });
-    }
+    console.log('Environment variables:', {
+      hasPrivateKey: !!process.env.BACKEND_PRIVATE_KEY,
+      contractAddress: process.env.CONTRACT_ADDRESS,
+      rpcUrl: process.env.POLYGON_RPC_URL
+    });
 
     // Configurazione del wallet client
     const account = privateKeyToAccount(process.env.BACKEND_PRIVATE_KEY);
@@ -171,9 +230,9 @@ export default async function handler(req, res) {
     });
 
   } catch (error) {
-    console.error('Error adding credits:', error);
+    console.error('Error in credits operation:', error);
     return res.status(500).json({ 
-      error: 'Failed to add credits',
+      error: 'Failed to process credits operation',
       details: error.message 
     });
   }

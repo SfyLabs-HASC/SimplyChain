@@ -7115,10 +7115,10 @@ const AziendaPage: React.FC = () => {
         if (fromRecharge) {
           try {
             console.log('Refreshing credits from blockchain after payment...');
-            const refreshResponse = await fetch('/api/refresh-credits', {
+            const refreshResponse = await fetch('/api/add-credits', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ walletAddress: account.address })
+              body: JSON.stringify({ walletAddress: account.address, action: 'refresh' })
             });
             
             if (refreshResponse.ok) {
