@@ -7299,7 +7299,7 @@ const AziendaPage: React.FC = () => {
         {account && <Footer />}
 
         {/* Loading popup per caricamento iscrizioni */}
-        {account && companyStatus.isActive && companyStatus.data && isLoadingBatches && (
+        {account && (companyStatus.isLoading || (companyStatus.isActive && !companyStatus.data) || isLoadingBatches) && (
           <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[9999]" role="dialog" aria-modal="true" aria-label="Caricamento iscrizioni">
             <div className="bg-slate-800 rounded-2xl p-8 max-w-md w-full mx-4 text-center shadow-2xl border border-slate-700/50">
               <div className="mx-auto mb-6 w-16 h-16 border-4 border-slate-600 border-t-transparent rounded-full animate-spin" style={{ borderTopColor: '#6366F1' }}></div>
