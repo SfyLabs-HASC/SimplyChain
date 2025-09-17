@@ -459,7 +459,7 @@ const StripeCheckoutForm: React.FC = () => {
 
 // --- Componente Principale Pagina ---
 // Componente per il form di pagamento Stripe
-const PaymentForm: React.FC = () => {
+const PaymentForm: React.FC<{ selectedPackage: CreditPackage | null; account: any }> = ({ selectedPackage, account }) => {
   const stripe = useStripe();
   const elements = useElements();
   const [isProcessing, setIsProcessing] = useState(false);
@@ -1013,7 +1013,7 @@ const RicaricaCreditiPage: React.FC = () => {
             </div>
             
             <Elements options={{ clientSecret }} stripe={stripePromise}>
-              <PaymentForm />
+              <PaymentForm selectedPackage={selectedPackage} account={account} />
             </Elements>
             
             <div className="flex gap-4 mt-6">
