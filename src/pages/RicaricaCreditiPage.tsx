@@ -631,7 +631,7 @@ const RicaricaCreditiPage: React.FC = () => {
   const account = useActiveAccount();
   const navigate = useNavigate();
   
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [userData, setUserData] = useState<UserData | null>(null);
   const [billingDetails, setBillingDetails] = useState<BillingDetails | null>(null);
@@ -673,7 +673,6 @@ const RicaricaCreditiPage: React.FC = () => {
     }
 
     const fetchUserData = async () => {
-      setLoading(true);
       setError(null);
       try {
         console.log('Fetching company data for wallet:', account.address);
@@ -717,7 +716,7 @@ const RicaricaCreditiPage: React.FC = () => {
         setError(err.message || "Impossibile caricare i dati dell'utente.");
         console.error(err);
       } finally {
-        setLoading(false);
+        // Loading rimosso - mostra sempre le opzioni
       }
     };
 
@@ -1118,12 +1117,7 @@ const RicaricaCreditiPage: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Content - stile AziendaPage */}
           <main className="flex-1">
-          {loading ? (
-            <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-8 text-center border border-slate-700/50">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
-              <p className="text-slate-300">Caricamento dati utente...</p>
-            </div>
-          ) : error ? (
+          {error ? (
             <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-8 text-center border border-slate-700/50">
               <div className="text-red-400 text-6xl mb-4">⚠️</div>
               <h3 className="text-xl font-semibold text-red-300 mb-2">Errore</h3>

@@ -7107,6 +7107,29 @@ const AziendaPage: React.FC = () => {
       setCompanyStatus(prev => ({ ...prev, isLoading: true }));
 
       try {
+        // Controlla se siamo tornati dalla ricarica crediti
+        const urlParams = new URLSearchParams(window.location.search);
+        const fromRecharge = urlParams.get('payment') === 'success';
+        
+        // Se torniamo dalla ricarica, aggiorna i crediti dal contratto
+        if (fromRecharge) {
+          try {
+            console.log('Refreshing credits from blockchain after payment...');
+            const refreshResponse = await fetch('/api/refresh-credits', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ walletAddress: account.address })
+            });
+            
+            if (refreshResponse.ok) {
+              console.log('Credits refreshed from blockchain');
+            } else {
+              console.log('Failed to refresh credits from blockchain');
+            }
+          } catch (refreshError) {
+            console.error('Error refreshing credits:', refreshError);
+          }
+        }
 
         const response = await fetch(`/api/get-company-status?walletAddress=${account.address}`);
 
