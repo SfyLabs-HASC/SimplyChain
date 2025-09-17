@@ -1076,7 +1076,7 @@ const RicaricaCreditiPage: React.FC = () => {
           </div>
         </header>
 
-        <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Content - stile AziendaPage */}
           <main className="flex-1">
           {loading ? (
