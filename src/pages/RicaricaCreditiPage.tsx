@@ -91,6 +91,60 @@ const RicaricaCreditiStyles = () => (
     .user-info-grid { display: grid; grid-template-columns: 1fr; gap: 1rem; }
     .status-active-text { color: #10b981; }
     .status-inactive-text { color: #f59e0b; }
+    
+    /* Stili per header identico ad AziendaPage */
+    .glass-card.rounded-3xl.p-6.tech-shadow.flex.flex-col.md\\:flex-row.justify-between.items-center.gap-6 { 
+      background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+      color: #ffffff; 
+      padding: 1.5rem; 
+      border-radius: 1rem; 
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+      border: 1px solid #333;
+      margin-bottom: 1.5rem; 
+      display: flex; 
+      flex-direction: column;
+      gap: 1rem;
+    }
+    
+    .flex.items-center.gap-4.flex-wrap {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    
+    .text-2xl.md\\:text-3xl.font-extrabold.bg-gradient-to-r.from-primary.to-accent.bg-clip-text.text-transparent { 
+      font-size: 1.5rem; 
+      font-weight: 700;
+      color: #ffffff;
+      margin: 0;
+    }
+    
+    .flex.flex-col.md\\:flex-row.gap-4.items-center {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    
+    .flex.flex-col.md\\:flex-row.gap-4.items-center-item {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      color: #ffffff;
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+    
+    .credits-link {
+      color: #ffffff;
+      text-decoration: none;
+      cursor: pointer;
+    }
+    
+    .credits-link:hover {
+      text-decoration: underline !important;
+      text-decoration-color: #ffffff !important;
+    }
 
     .credit-packages-table { width: 100%; border-collapse: collapse; }
     .credit-packages-table th, .credit-packages-table td { padding: 1rem; text-align: left; border-bottom: 1px solid #333; }
@@ -107,6 +161,23 @@ const RicaricaCreditiStyles = () => (
       .main-header-bar { flex-direction: row; justify-content: space-between; align-items: center; padding: 1.5rem; }
       .header-title { text-align: left; }
       .user-info-grid { grid-template-columns: repeat(2, 1fr); }
+      
+      .glass-card.rounded-3xl.p-6.tech-shadow.flex.flex-col.md\\:flex-row.justify-between.items-center.gap-6 { 
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: flex-start;
+        padding: 2rem;
+      }
+      
+      .text-2xl.md\\:text-3xl.font-extrabold.bg-gradient-to-r.from-primary.to-accent.bg-clip-text.text-transparent { 
+        font-size: 1.875rem;
+      }
+    }
+    
+    @media (min-width: 1024px) {
+      .glass-card.rounded-3xl.p-6.tech-shadow.flex.flex-col.md\\:flex-row.justify-between.items-center.gap-6 { 
+        padding: 2.5rem;
+      }
     }
   `}</style>
 );
@@ -1046,28 +1117,27 @@ const RicaricaCreditiPage: React.FC = () => {
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
-        {/* Barra info azienda sotto header, prima dei contenuti */}
+        {/* Barra info azienda - identica ad AziendaPage */}
         {userData && (
-          <div className="mb-6 bg-slate-800/50 backdrop-blur-sm rounded-2xl p-6 border border-slate-700/50">
-            <div className="flex items-center justify-between gap-6 flex-col md:flex-row">
-              <div>
-                <h2 className="text-2xl md:text-3xl font-extrabold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-                  {userData.companyName}
-                </h2>
-                <div className="flex flex-wrap gap-6 mt-2 text-slate-300">
-                  <span>Crediti Rimanenti: <strong className="text-white">{userData.credits}</strong></span>
-                  <span>Stato: <strong className={userData.status === 'active' ? 'text-green-400' : 'text-yellow-400'}>{userData.status === 'active' ? 'ATTIVO' : 'NON ATTIVO'}</strong></span>
+          <div className="glass-card rounded-3xl p-6 tech-shadow flex flex-col md:flex-row justify-between items-center gap-6">
+            <div>
+              <div className="flex items-center gap-4 flex-wrap">
+                <h2 className="text-2xl md:text-3xl font-extrabold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">{userData.companyName}</h2>
+              </div>
+              <div className="flex flex-col md:flex-row gap-4 items-center">
+                <div className="flex flex-col md:flex-row gap-4 items-center-item">
+                  <span>
+                    <a href="/ricaricacrediti" className="credits-link" style={{ color: 'rgb(255, 255, 255)', textDecoration: 'none', cursor: 'pointer' }}>
+                      Crediti Rimanenti: <strong>{userData.credits}</strong>
+                    </a>
+                  </span>
+                </div>
+                <div className="flex flex-col md:flex-row gap-4 items-center-item">
+                  <span>Stato: <strong className={userData.status === 'active' ? 'status-active-text' : 'status-inactive-text'}>{userData.status === 'active' ? 'ATTIVO' : 'NON ATTIVO'}</strong></span>
                 </div>
               </div>
-              <div className="flex items-center gap-4">
-                <button
-                  onClick={() => navigate('/azienda')}
-                  className="bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-xl font-semibold hover:scale-105 transition"
-                >
-                  ← Dashboard
-                </button>
-              </div>
             </div>
+            <button onClick={() => navigate('/azienda')} className="text-white px-4 py-2 rounded-2xl font-semibold hover:scale-105 transition" style={{ backgroundColor: 'rgb(99, 104, 247)' }}>Dashboard</button>
           </div>
         )}
 
