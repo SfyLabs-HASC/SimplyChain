@@ -4651,17 +4651,18 @@ const AddStepModal: React.FC<{
 
     <>
 
-      <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4" onClick={onClose}>
+      <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={onClose}>
 
-        <div className="bg-card p-6 rounded-2xl border border-border max-w-2xl w-full text-foreground" onClick={(e) => e.stopPropagation()}>
+        <div className="bg-slate-800 rounded-2xl shadow-2xl max-w-2xl w-full text-foreground border border-slate-700/50" onClick={(e) => e.stopPropagation()}>
 
-          <div className="p-4 border-b border-border">
-
-            <h2>Aggiungi step all'iscrizione ({currentStep}/6)</h2>
-
+          <div className="sticky top-0 z-10 bg-slate-800/95 backdrop-blur-sm border-b border-slate-700/50 p-5 rounded-t-2xl flex items-center justify-between">
+            <h2 className="text-white font-semibold">Aggiungi step all'iscrizione ({currentStep}/6)</h2>
+            <button onClick={onClose} className="text-slate-400 hover:text-white transition-colors p-2 hover:bg-slate-700 rounded-lg">
+              <span className="material-symbols-outlined">close</span>
+            </button>
           </div>
 
-          <div className="p-4" style={{ minHeight: "350px" }}>
+          <div className="p-5" style={{ minHeight: "350px" }}>
 
             {currentStep === 1 && (
 
@@ -5366,17 +5367,18 @@ const FinalizeModal: React.FC<{
 
     <>
 
-      <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4" onClick={onClose}>
+      <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={onClose}>
 
-        <div className="bg-card p-6 rounded-2xl border border-border max-w-2xl w-full text-foreground" onClick={(e) => e.stopPropagation()}>
+        <div className="bg-slate-800 rounded-2xl shadow-2xl max-w-2xl w-full text-foreground border border-slate-700/50" onClick={(e) => e.stopPropagation()}>
 
-          <div className="p-4 border-b border-border">
-
-            <h2>Finalizza Iscrizione</h2>
-
+          <div className="sticky top-0 z-10 bg-slate-800/95 backdrop-blur-sm border-b border-slate-700/50 p-5 rounded-t-2xl flex items-center justify-between">
+            <h2 className="text-white font-semibold">Finalizza Iscrizione</h2>
+            <button onClick={onClose} className="text-slate-400 hover:text-white transition-colors p-2 hover:bg-slate-700 rounded-lg">
+              <span className="material-symbols-outlined">close</span>
+            </button>
           </div>
 
-          <div className="p-4">
+          <div className="p-5">
 
             <p>Sei sicuro di voler finalizzare l'iscrizione "{batch.name}"?</p>
 
@@ -5983,15 +5985,7 @@ const NewInscriptionModal: React.FC<{
         <div className="bg-slate-800 rounded-2xl shadow-2xl max-w-2xl w-full text-foreground border border-slate-700/50" onClick={(e) => e.stopPropagation()}>
 
           <div className="sticky top-0 z-10 bg-slate-800/95 backdrop-blur-sm border-b border-slate-700/50 p-5 rounded-t-2xl flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl flex items-center justify-center">
-                <span className="material-symbols-outlined text-white">edit_square</span>
-              </div>
-              <div>
-                <h2 className="text-xl font-bold text-white">Nuova Iscrizione</h2>
-                <p className="text-sm text-slate-400">Passo {currentStep} di 6</p>
-              </div>
-            </div>
+            <h2 className="text-white font-semibold">Nuova Iscrizione ({currentStep}/6)</h2>
             <button onClick={onClose} className="text-slate-400 hover:text-white transition-colors p-2 hover:bg-slate-700 rounded-lg">
               <span className="material-symbols-outlined">close</span>
             </button>
