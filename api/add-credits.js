@@ -21,6 +21,35 @@ const CONTRACT_ABI = [
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_contributorAddress",
+        "type": "address"
+      }
+    ],
+    "name": "getContributorInfo",
+    "outputs": [
+      {
+        "internalType": "string",
+        "name": "",
+        "type": "string"
+      },
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      },
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
   }
 ];
 
@@ -62,12 +91,28 @@ export default async function handler(req, res) {
       account: account
     });
 
-    // Eseguire la transazione
+    // Prima leggiamo i crediti attuali dell'utente
+    console.log('Reading current credits for:', walletAddress);
+    const currentInfo = await walletClient.readContract({
+      address: CONTRACT_ADDRESS,
+      abi: CONTRACT_ABI,
+      functionName: 'getContributorInfo',
+      args: [walletAddress]
+    });
+
+    const currentCredits = Number(currentInfo[1]); // Il secondo valore è i crediti
+    const newTotalCredits = currentCredits + Number(credits);
+    
+    console.log('Current credits:', currentCredits);
+    console.log('Adding credits:', credits);
+    console.log('New total credits:', newTotalCredits);
+
+    // Eseguire la transazione con il totale dei crediti
     const hash = await walletClient.writeContract({
       address: CONTRACT_ADDRESS,
       abi: CONTRACT_ABI,
       functionName: 'setContributorCredits',
-      args: [walletAddress, BigInt(credits)]
+      args: [walletAddress, BigInt(newTotalCredits)]
     });
 
     console.log('Transaction hash:', hash);
@@ -75,7 +120,9 @@ export default async function handler(req, res) {
     return res.status(200).json({
       success: true,
       transactionHash: hash,
-      credits: credits
+      creditsAdded: credits,
+      previousCredits: currentCredits,
+      newTotalCredits: newTotalCredits
     });
 
   } catch (error) {
