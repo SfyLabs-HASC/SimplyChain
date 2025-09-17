@@ -67,7 +67,7 @@ const wallets = [
 const stripePromise = loadStripe("pk_test_51RrJLQRx6E9RZt5ynBwc2dt3o7RT4YTwwij3O9xj3VdMwNKlI4GA9Yvbzkgwbxi0I5J9XnqPMlgY7bz2xHSgxmz000KCex9EiA");
 
 // --- Stili ---
-const RicaricaCreditiStyles = () => (
+const AziendaPageStyles = () => (
   <style>{`
     /* Stili base da AziendaPage */
     .app-container-full { padding: 1rem; min-height: 100vh; background-color: #0f0f0f; }
