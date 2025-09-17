@@ -226,13 +226,52 @@ const CustomContactModal: React.FC<{ isOpen: boolean, onClose: () => void, userD
             </button>
           </div>
         ) : (
-          <div>
-            <div className="mb-6 p-4 bg-slate-700/30 rounded-lg border border-slate-600/50">
-              <p className="text-slate-300 text-sm leading-relaxed">
-                Possiamo creare un servizio personalizzato per la tua azienda, con più crediti e campi custom per le tue esigenze. Disponibile anche servizio di importazione massiva automatizzata e agente AI personalizzato. Contattaci!
+    <div>
+      <div className="mb-6 relative overflow-hidden">
+        {/* Banner principale con gradiente */}
+        <div className="bg-gradient-to-br from-purple-600/20 via-blue-600/20 to-indigo-600/20 rounded-xl p-6 border border-purple-500/30 relative">
+          {/* Pattern di sfondo */}
+          <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 to-blue-500/10 rounded-xl"></div>
+          <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-purple-400/20 to-transparent rounded-full -translate-y-16 translate-x-16"></div>
+          <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-blue-400/20 to-transparent rounded-full translate-y-12 -translate-x-12"></div>
+          
+          {/* Contenuto */}
+          <div className="relative z-10">
+            {/* Icona e titolo */}
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-blue-500 rounded-xl flex items-center justify-center">
+                <span className="text-white text-2xl">⚡</span>
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-white mb-1">Servizio Personalizzato</h3>
+                <p className="text-purple-300 text-sm">Soluzioni su misura per la tua azienda</p>
+              </div>
+            </div>
+            
+            {/* Descrizione */}
+            <div className="space-y-3">
+              <p className="text-slate-200 leading-relaxed">
+                🚀 <strong className="text-white">Crediti illimitati</strong> e campi personalizzati per le tue esigenze specifiche
+              </p>
+              <p className="text-slate-200 leading-relaxed">
+                📊 <strong className="text-white">Importazione massiva automatizzata</strong> per migliaia di prodotti in pochi click
+              </p>
+              <p className="text-slate-200 leading-relaxed">
+                🤖 <strong className="text-white">Agente AI personalizzato</strong> per analisi avanzate e automazione intelligente
               </p>
             </div>
-            <form onSubmit={handleSubmit} className="space-y-4">
+            
+            {/* Call to action */}
+            <div className="mt-4 p-3 bg-gradient-to-r from-purple-500/20 to-blue-500/20 rounded-lg border border-purple-400/30">
+              <p className="text-center text-purple-200 font-medium">
+                💬 <strong>Contattaci per un preventivo personalizzato!</strong>
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-slate-300 mb-1">
                 Email *
