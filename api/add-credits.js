@@ -93,14 +93,25 @@ export default async function handler(req, res) {
 
     // Prima leggiamo i crediti attuali dell'utente
     console.log('Reading current credits for:', walletAddress);
-    const currentInfo = await walletClient.readContract({
-      address: CONTRACT_ADDRESS,
-      abi: CONTRACT_ABI,
-      functionName: 'getContributorInfo',
-      args: [walletAddress]
-    });
+    let currentCredits = 0;
+    
+    try {
+      const currentInfo = await walletClient.readContract({
+        address: CONTRACT_ADDRESS,
+        abi: CONTRACT_ABI,
+        functionName: 'getContributorInfo',
+        args: [walletAddress]
+      });
 
-    const currentCredits = Number(currentInfo[1]); // Il secondo valore è i crediti
+      console.log('Contract response:', currentInfo);
+      currentCredits = Number(currentInfo[1]); // Il secondo valore è i crediti
+      console.log('Current credits from contract:', currentCredits);
+    } catch (readError) {
+      console.log('Error reading current credits, assuming 0:', readError.message);
+      // Se l'utente non esiste nel contratto, assumiamo 0 crediti
+      currentCredits = 0;
+    }
+
     const newTotalCredits = currentCredits + Number(credits);
     
     console.log('Current credits:', currentCredits);
