@@ -6957,6 +6957,25 @@ const AziendaPage: React.FC = () => {
 
 
 
+  // Mostra loader immediato in caso di refresh/F5 della pagina
+  const [isPageRefreshing, setIsPageRefreshing] = useState<boolean>(() => {
+    try {
+      const nav = (performance.getEntriesByType('navigation') || [])[0] as any;
+      return !!nav && nav.type === 'reload';
+    } catch {
+      return false;
+    }
+  });
+
+  // Quando i dati sono pronti, nascondi il loader da refresh
+  useEffect(() => {
+    if (!companyStatus.isLoading && !isLoadingBatches) {
+      setIsPageRefreshing(false);
+    }
+  }, [companyStatus.isLoading, isLoadingBatches]);
+
+
+
   // Effect per gestire il disconnect e reindirizzare alla homepage
   // Solo dopo che il sistema ha avuto tempo di caricare l'account
   const [accountCheckDelay, setAccountCheckDelay] = useState(false);
@@ -7299,7 +7318,7 @@ const AziendaPage: React.FC = () => {
         {account && <Footer />}
 
         {/* Loading popup per caricamento iscrizioni */}
-        {account && (companyStatus.isLoading || (companyStatus.isActive && !companyStatus.data) || isLoadingBatches) && (
+        {account && (isPageRefreshing || companyStatus.isLoading || (companyStatus.isActive && !companyStatus.data) || isLoadingBatches) && (
           <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[9999]" role="dialog" aria-modal="true" aria-label="Caricamento iscrizioni">
             <div className="bg-slate-800 rounded-2xl p-8 max-w-md w-full mx-4 text-center shadow-2xl border border-slate-700/50">
               <div className="mx-auto mb-6 w-16 h-16 border-4 border-slate-600 border-t-transparent rounded-full animate-spin" style={{ borderTopColor: '#6366F1' }}></div>
