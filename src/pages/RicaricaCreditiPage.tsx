@@ -1034,13 +1034,6 @@ const RicaricaCreditiPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [userData, setUserData] = useState<UserData | null>(null);
-  const [billingDetails, setBillingDetails] = useState<BillingDetails | null>(null);
-  const [selectedPackage, setSelectedPackage] = useState<CreditPackage | null>(null);
-  const [clientSecret, setClientSecret] = useState<string | null>(null);
-  const [isEditingBilling, setIsEditingBilling] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
-  const [currentStep, setCurrentStep] = useState(1); // 1: Pacchetti, 2: Dati, 3: Pagamento
-  const [showCustomModal, setShowCustomModal] = useState(false);
 
   // Redirect: se non loggato non può stare su questa pagina.
   // Attende un delay più ampio per evitare redirect mentre il wallet si inizializza quando sei loggato.
@@ -1095,20 +1088,6 @@ const RicaricaCreditiPage: React.FC = () => {
             status: data.status,
             email: data.contactEmail, // Corretto per leggere 'contactEmail' da Firebase
           });
-
-          console.log('Checking billingDetails from Firebase:', data.billingDetails);
-          console.log('billingDetails exists:', !!data.billingDetails);
-          console.log('billingDetails keys:', data.billingDetails ? Object.keys(data.billingDetails) : 'none');
-          
-          if (data.billingDetails && Object.keys(data.billingDetails).length > 0) {
-            console.log('Loading existing billing details:', data.billingDetails);
-            setBillingDetails(data.billingDetails);
-            setIsEditingBilling(false);
-          } else {
-            console.log('No billing details found, setting to edit mode');
-            setBillingDetails(null);
-            setIsEditingBilling(true);
-          }
         } else {
             throw new Error('Il tuo account non risulta attivo.');
         }
@@ -1123,112 +1102,6 @@ const RicaricaCreditiPage: React.FC = () => {
 
     fetchUserData();
   }, [account]);
-
-  // Effect per gestire lo step iniziale basato sui dati esistenti
-  useEffect(() => {
-    if (userData && billingDetails) {
-      console.log('Dati di fatturazione esistenti trovati, utente può andare direttamente al pagamento');
-      // Se ci sono dati salvati e l'utente non ha ancora selezionato un pacchetto, resta allo step 1
-      if (!selectedPackage) {
-        setCurrentStep(1);
-      }
-    }
-  }, [userData, billingDetails, selectedPackage]);
-  
-  const handleSelectPackage = async (pkg: CreditPackage) => {
-    setSelectedPackage(pkg);
-    setClientSecret(null);
-
-    // Vai al passo 2 (dati di fatturazione)
-    setCurrentStep(2);
-
-    // Se non ci sono dati di fatturazione, attiva editing
-    if (!billingDetails) {
-        setIsEditingBilling(true);
-        return;
-    }
-
-    // Se ci sono già dati salvati, vai direttamente al pagamento
-    await createPaymentIntent(pkg);
-  };
-
-  const createPaymentIntent = async (pkg: CreditPackage) => {
-    try {
-        const response = await fetch(`/api/send-email?action=create-payment-intent`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                amount: pkg.totalPrice * 100,
-                walletAddress: account?.address
-            }),
-        });
-        
-        if (!response.ok) throw new Error(`Errore dal server: ${response.statusText}`);
-        const data = await response.json();
-        setClientSecret(data.clientSecret);
-        setCurrentStep(3); // Vai al passo 3 (pagamento)
-    } catch (error) {
-        console.error("Errore nella creazione del Payment Intent:", error);
-        setError("Non è stato possibile avviare il pagamento. Riprova.");
-    }
-  };
-
-  const handleSaveBilling = async (details: BillingDetails) => {
-    if (!account || isSaving) return; // Evita doppio click
-    setIsSaving(true);
-    setError(null);
-
-    try {
-        console.log('Salvando dati di fatturazione...', details);
-        const response = await fetch('/api/send-email?action=save-billing-details', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                walletAddress: account.address,
-                details: details
-            })
-        });
-
-        if (!response.ok) {
-            const errorText = await response.text();
-            console.error('Errore response:', response.status, errorText);
-            throw new Error(`Errore dal server: ${response.status} - ${errorText}`);
-        }
-
-        const responseData = await response.json();
-        console.log('Dati salvati con successo, response:', responseData);
-        setBillingDetails(details);
-        setIsEditingBilling(false);
-
-        // Forza il ricaricamento dei dati per verificare che siano stati salvati
-        setTimeout(async () => {
-          try {
-            const verifyResponse = await fetch(`/api/get-company-status?walletAddress=${account.address}`);
-            if (verifyResponse.ok) {
-              const verifyData = await verifyResponse.json();
-              console.log('Verifica dati dopo salvataggio:', verifyData.billingDetails);
-              
-              if (verifyData.billingDetails) {
-                setBillingDetails(verifyData.billingDetails);
-              }
-            }
-          } catch (verifyError) {
-            console.error('Errore durante la verifica:', verifyError);
-          }
-        }, 1000);
-
-        // Vai al passo 3 (pagamento) se c'è un pacchetto selezionato
-        if (selectedPackage) {
-            await createPaymentIntent(selectedPackage);
-        }
-
-    } catch(err: any) {
-        console.error('Errore nel salvataggio:', err);
-        setError(`Errore nel salvataggio: ${err.message || 'Errore sconosciuto'}`);
-    } finally {
-        setIsSaving(false);
-    }
-  };
 
   const renderContent = () => {
     // Se non connesso: mostra solo background + header + footer, nessun contenuto
