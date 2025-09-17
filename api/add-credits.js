@@ -35,8 +35,23 @@ export default async function handler(req, res) {
   try {
     const { walletAddress, credits } = req.body;
 
+    console.log('Received request:', { walletAddress, credits });
+    console.log('Environment variables:', {
+      hasPrivateKey: !!process.env.BACKEND_PRIVATE_KEY,
+      contractAddress: process.env.CONTRACT_ADDRESS,
+      rpcUrl: process.env.POLYGON_RPC_URL
+    });
+
     if (!walletAddress || !credits) {
       return res.status(400).json({ error: 'Missing walletAddress or credits' });
+    }
+
+    if (!process.env.BACKEND_PRIVATE_KEY) {
+      return res.status(500).json({ error: 'BACKEND_PRIVATE_KEY not configured' });
+    }
+
+    if (!process.env.CONTRACT_ADDRESS || process.env.CONTRACT_ADDRESS === '0x...') {
+      return res.status(500).json({ error: 'CONTRACT_ADDRESS not configured' });
     }
 
     // Configurazione del wallet client
