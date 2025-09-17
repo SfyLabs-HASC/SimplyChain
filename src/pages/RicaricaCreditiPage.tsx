@@ -145,6 +145,26 @@ const RicaricaCreditiStyles = () => (
       text-decoration: underline !important;
       text-decoration-color: #ffffff !important;
     }
+    
+    /* Stili per sezione iscrizioni */
+    .inscriptions-section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+      padding: 1rem;
+      background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+      border-radius: 1rem;
+      border: 1px solid #333;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+    }
+    
+    .inscriptions-section-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #ffffff;
+      margin: 0;
+    }
 
     .credit-packages-table { width: 100%; border-collapse: collapse; }
     .credit-packages-table th, .credit-packages-table td { padding: 1rem; text-align: left; border-bottom: 1px solid #333; }
@@ -521,6 +541,386 @@ const StripeCheckoutForm: React.FC = () => {
     );
 };
 
+// --- Componente Dashboard per Ricarica Crediti ---
+const CreditRechargeDashboard: React.FC<{ userData: UserData }> = ({ userData }) => {
+  const navigate = useNavigate();
+  const [currentStep, setCurrentStep] = useState(1); // 1: Pacchetti, 2: Dati, 3: Pagamento
+  const [selectedPackage, setSelectedPackage] = useState<CreditPackage | null>(null);
+  const [clientSecret, setClientSecret] = useState<string | null>(null);
+  const [billingDetails, setBillingDetails] = useState<BillingDetails | null>(null);
+  const [isEditingBilling, setIsEditingBilling] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [showCustomModal, setShowCustomModal] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const account = useActiveAccount();
+
+  // Effect per gestire lo step iniziale basato sui dati esistenti
+  useEffect(() => {
+    if (userData && billingDetails) {
+      console.log('Dati di fatturazione esistenti trovati, utente può andare direttamente al pagamento');
+      // Se ci sono dati salvati e l'utente non ha ancora selezionato un pacchetto, resta allo step 1
+      if (!selectedPackage) {
+        setCurrentStep(1);
+      }
+    }
+  }, [userData, billingDetails, selectedPackage]);
+
+  const handleSelectPackage = async (pkg: CreditPackage) => {
+    setSelectedPackage(pkg);
+    setClientSecret(null);
+
+    // Vai al passo 2 (dati di fatturazione)
+    setCurrentStep(2);
+
+    // Se non ci sono dati di fatturazione, attiva editing
+    if (!billingDetails) {
+        setIsEditingBilling(true);
+        return;
+    }
+
+    // Se ci sono già dati salvati, vai direttamente al pagamento
+    await createPaymentIntent(pkg);
+  };
+
+  const createPaymentIntent = async (pkg: CreditPackage) => {
+    try {
+        const response = await fetch(`/api/send-email?action=create-payment-intent`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                amount: pkg.totalPrice * 100,
+                walletAddress: account?.address
+            }),
+        });
+        
+        if (!response.ok) throw new Error(`Errore dal server: ${response.statusText}`);
+        const data = await response.json();
+        setClientSecret(data.clientSecret);
+        setCurrentStep(3); // Vai al passo 3 (pagamento)
+    } catch (error) {
+        console.error("Errore nella creazione del Payment Intent:", error);
+        setError("Non è stato possibile avviare il pagamento. Riprova.");
+    }
+  };
+
+  const handleSaveBilling = async (details: BillingDetails) => {
+    if (!account || isSaving) return; // Evita doppio click
+    setIsSaving(true);
+    setError(null);
+
+    try {
+        console.log('Salvando dati di fatturazione...', details);
+        const response = await fetch('/api/send-email?action=save-billing-details', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                walletAddress: account.address,
+                details: details
+            })
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('Errore response:', response.status, errorText);
+            throw new Error(`Errore dal server: ${response.status} - ${errorText}`);
+        }
+
+        const responseData = await response.json();
+        console.log('Dati salvati con successo, response:', responseData);
+        setBillingDetails(details);
+        setIsEditingBilling(false);
+
+        // Vai al passo 3 (pagamento) se c'è un pacchetto selezionato
+        if (selectedPackage) {
+            await createPaymentIntent(selectedPackage);
+        }
+
+    } catch(err: any) {
+        console.error('Errore nel salvataggio:', err);
+        setError(`Errore nel salvataggio: ${err.message || 'Errore sconosciuto'}`);
+    } finally {
+        setIsSaving(false);
+    }
+  };
+
+  return (
+    <>
+      {/* Header identico ad AziendaPage */}
+      <div className="glass-card rounded-3xl p-6 tech-shadow flex flex-col md:flex-row justify-between items-center gap-6">
+        <div>
+          <div className="flex items-center gap-4 flex-wrap">
+            <h2 className="text-2xl md:text-3xl font-extrabold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">{userData.companyName}</h2>
+          </div>
+          <div className="flex flex-col md:flex-row gap-4 items-center">
+            <div className="flex flex-col md:flex-row gap-4 items-center-item">
+              <span>
+                <a href="/ricaricacrediti" className="credits-link" style={{ color: '#ffffff', textDecoration: 'none', cursor: 'pointer' }}>
+                  Crediti Rimanenti: <strong>{userData.credits}</strong>
+                </a>
+              </span>
+            </div>
+            <div className="flex flex-col md:flex-row gap-4 items-center-item">
+              <span>Stato: <strong className={userData.status === 'active' ? 'status-active-text' : 'status-inactive-text'}>{userData.status === 'active' ? 'ATTIVO' : 'NON ATTIVO'}</strong></span>
+            </div>
+          </div>
+        </div>
+        <button onClick={() => navigate('/azienda')} className="text-white px-4 py-2 rounded-2xl font-semibold hover:scale-105 transition" style={{ backgroundColor: '#6368F7' }}>Dashboard</button>
+      </div>
+
+      {/* Sezione Ricarica Crediti */}
+      <div className="inscriptions-section-header">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <h3 className="inscriptions-section-title">Ricarica i tuoi Crediti</h3>
+        </div>
+      </div>
+
+      {/* Progress Steps - stile AziendaPage */}
+      <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-6 border border-slate-700/50 mb-6">
+        <div className="flex items-center justify-center space-x-8">
+          <div className={`flex items-center gap-2 ${currentStep >= 1 ? 'text-purple-400' : 'text-slate-500'}`}>
+            <div className={`w-8 h-8 rounded-full flex items-center justify-center ${currentStep >= 1 ? 'bg-purple-600 text-white' : 'bg-slate-600'}`}>
+              1
+            </div>
+            <span className="font-medium">Seleziona Pacchetto</span>
+          </div>
+          
+          <div className={`w-12 h-0.5 ${currentStep >= 2 ? 'bg-purple-600' : 'bg-slate-600'}`}></div>
+          
+          <div className={`flex items-center gap-2 ${currentStep >= 2 ? 'text-purple-400' : 'text-slate-500'}`}>
+            <div className={`w-8 h-8 rounded-full flex items-center justify-center ${currentStep >= 2 ? 'bg-purple-600 text-white' : 'bg-slate-600'}`}>
+              2
+            </div>
+            <span className="font-medium">Dati Fatturazione</span>
+          </div>
+          
+          <div className={`w-12 h-0.5 ${currentStep >= 3 ? 'bg-purple-600' : 'bg-slate-600'}`}></div>
+          
+          <div className={`flex items-center gap-2 ${currentStep >= 3 ? 'text-purple-400' : 'text-slate-500'}`}>
+            <div className={`w-8 h-8 rounded-full flex items-center justify-center ${currentStep >= 3 ? 'bg-purple-600 text-white' : 'bg-slate-600'}`}>
+              3
+            </div>
+            <span className="font-medium">Pagamento</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Step 1: Pacchetti Crediti - stile AziendaPage */}
+      {currentStep === 1 && (
+        <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-6 border border-slate-700/50 transform transition-all duration-500 ease-in-out">
+          <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
+            Seleziona un Pacchetto Crediti
+          </h2>
+          
+          <div className="grid gap-4">
+            {creditPackages.map(pkg => (
+              <div
+                key={pkg.id}
+                onClick={() => handleSelectPackage(pkg)}
+                className="p-4 rounded-xl border-2 cursor-pointer transition-all hover:scale-105 border-slate-600 bg-slate-700/30 hover:border-purple-500 hover:bg-slate-700/50"
+              >
+                <div className="flex justify-between items-center">
+                  <div>
+                    <h3 className="text-lg font-bold text-white">
+                      {pkg.credits} Crediti
+                    </h3>
+                    <p className="text-slate-400">
+                      {pkg.pricePerCredit.toFixed(2)} € per credito
+                    </p>
+                    {pkg.savingsText && (
+                      <p className="text-green-400 text-sm mt-1">
+                        Risparmio: {pkg.savingsText}
+                      </p>
+                    )}
+                  </div>
+                  <div className="text-right">
+                    <p className="text-2xl font-bold text-purple-400">
+                      {pkg.totalPrice.toFixed(2)} €
+                    </p>
+                    <p className="text-sm text-slate-400">
+                      {pkg.description}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ))}
+            
+            {/* Opzione Custom */}
+            <div
+              onClick={() => setShowCustomModal(true)}
+              className="p-4 rounded-xl border-2 cursor-pointer transition-all hover:scale-105 border-purple-500 bg-gradient-to-r from-purple-600/20 to-blue-600/20 hover:from-purple-600/30 hover:to-blue-600/30"
+            >
+              <div className="flex justify-between items-center">
+                <div>
+                  <h3 className="text-lg font-bold text-white">
+                    Servizio Personalizzato
+                  </h3>
+                  <p className="text-slate-300">
+                    Contatta per un preventivo su misura
+                  </p>
+                </div>
+                <div className="text-right">
+                  <p className="text-2xl font-bold text-purple-400">
+                    Custom
+                  </p>
+                  <p className="text-sm text-slate-400">
+                    Contatta SFY
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Step 2: Dati di Fatturazione - stile AziendaPage */}
+      {currentStep === 2 && selectedPackage && (
+        <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-6 border border-slate-700/50 transform transition-all duration-500 ease-in-out">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-bold text-white flex items-center gap-2">
+              Dati di Fatturazione
+            </h2>
+            <div className="text-right">
+              <p className="text-slate-400">Pacchetto selezionato:</p>
+              <p className="text-purple-400 font-bold">{selectedPackage.credits} crediti - {selectedPackage.totalPrice.toFixed(2)} €</p>
+            </div>
+          </div>
+          
+          {billingDetails && !isEditingBilling ? (
+            <div>
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-semibold text-white">Dati Salvati</h3>
+                <button 
+                  className="bg-purple-600 hover:bg-purple-700 text-white px-3 py-1 rounded-lg transition text-sm"
+                  onClick={() => setIsEditingBilling(true)}
+                >
+                  Modifica
+                </button>
+              </div>
+              
+              <div className="grid md:grid-cols-2 gap-4 mb-6">
+                {billingDetails.type === 'azienda' ? (
+                  <>
+                    <div>
+                      <span className="text-gray-400">Ragione Sociale:</span>
+                      <p className="text-white font-semibold">{billingDetails.ragioneSociale}</p>
+                    </div>
+                    <div>
+                      <span className="text-gray-400">P.IVA/CF:</span>
+                      <p className="text-white">{billingDetails.pIvaCf}</p>
+                    </div>
+                    <div className="md:col-span-2">
+                      <span className="text-gray-400">Indirizzo:</span>
+                      <p className="text-white">{billingDetails.indirizzo}</p>
+                    </div>
+                    <div>
+                      <span className="text-gray-400">SDI/PEC:</span>
+                      <p className="text-white">{billingDetails.sdiPec}</p>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div>
+                      <span className="text-gray-400">Nome:</span>
+                      <p className="text-white font-semibold">{billingDetails.nome} {billingDetails.cognome}</p>
+                    </div>
+                    <div>
+                      <span className="text-gray-400">Codice Fiscale:</span>
+                      <p className="text-white">{billingDetails.cf}</p>
+                    </div>
+                    <div className="md:col-span-2">
+                      <span className="text-gray-400">Indirizzo:</span>
+                      <p className="text-white">{billingDetails.indirizzo}</p>
+                    </div>
+                  </>
+                )}
+              </div>
+              
+              <div className="flex gap-4">
+                <button
+                  onClick={() => setCurrentStep(1)}
+                  className="bg-slate-600 hover:bg-slate-700 text-white px-4 py-2 rounded-lg transition"
+                >
+                  ← Cambia Pacchetto
+                </button>
+                <button
+                  onClick={() => createPaymentIntent(selectedPackage)}
+                  className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-6 py-2 rounded-lg transition font-semibold"
+                >
+                  Procedi al Pagamento →
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div>
+              <h3 className="text-lg font-semibold text-white mb-4">
+                {billingDetails ? 'Modifica Dati di Fatturazione' : 'Inserisci i Dati di Fatturazione'}
+              </h3>
+              <BillingForm initialDetails={billingDetails} onSave={handleSaveBilling} isSaving={isSaving} />
+              
+              <div className="flex gap-4 mt-6">
+                <button
+                  onClick={() => setCurrentStep(1)}
+                  className="bg-slate-600 hover:bg-slate-700 text-white px-4 py-2 rounded-lg transition"
+                >
+                  ← Cambia Pacchetto
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Step 3: Pagamento - stile AziendaPage */}
+      {currentStep === 3 && selectedPackage && clientSecret && (
+        <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-6 border border-slate-700/50 transform transition-all duration-500 ease-in-out">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-bold text-white flex items-center gap-2">
+              Completa il Pagamento
+            </h2>
+            <div className="text-right">
+              <p className="text-slate-400">Importo totale:</p>
+              <p className="text-2xl font-bold text-green-400">{selectedPackage.totalPrice.toFixed(2)} €</p>
+            </div>
+          </div>
+          
+          <div className="mb-6 p-4 bg-slate-700/30 rounded-lg border border-slate-600/50">
+            <h4 className="font-semibold text-white mb-2">Riepilogo Ordine:</h4>
+            <p className="text-slate-300">{selectedPackage.credits} crediti × {selectedPackage.pricePerCredit.toFixed(2)} € = {selectedPackage.totalPrice.toFixed(2)} €</p>
+          </div>
+          
+          <Elements options={{ clientSecret }} stripe={stripePromise}>
+            <PaymentForm />
+          </Elements>
+          
+          <div className="flex gap-4 mt-6">
+            <button
+              onClick={() => setCurrentStep(2)}
+              className="bg-slate-600 hover:bg-slate-700 text-white px-4 py-2 rounded-lg transition"
+            >
+              ← Modifica Dati
+            </button>
+            <button
+              onClick={() => setCurrentStep(1)}
+              className="bg-slate-600 hover:bg-slate-700 text-white px-4 py-2 rounded-lg transition"
+            >
+              ← Cambia Pacchetto
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Contatto Custom */}
+      <CustomContactModal 
+        isOpen={showCustomModal} 
+        onClose={() => setShowCustomModal(false)} 
+        userData={userData} 
+        walletAddress={account?.address}
+      />
+    </>
+  );
+};
+
 // --- Componente Principale Pagina ---
 // Componente per il form di pagamento Stripe
 const PaymentForm: React.FC = () => {
@@ -831,248 +1231,58 @@ const RicaricaCreditiPage: React.FC = () => {
   };
 
   const renderContent = () => {
-    if (loading) return <div className="centered-container"><p>Caricamento dati utente...</p></div>;
-    if (error) return <div className="centered-container"><p style={{ color: "red" }}>{error}</p></div>;
-    if (!userData) return <div className="centered-container"><p>Nessun dato utente trovato per questo wallet.</p></div>;
-
-    return (
-      <div className="space-y-6">
-        {/* Progress Steps - stile AziendaPage */}
-        <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-6 border border-slate-700/50 mb-6">
-          <div className="flex items-center justify-center space-x-8">
-            <div className={`flex items-center gap-2 ${currentStep >= 1 ? 'text-purple-400' : 'text-slate-500'}`}>
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${currentStep >= 1 ? 'bg-purple-600 text-white' : 'bg-slate-600'}`}>
-                1
-              </div>
-              <span className="font-medium">Seleziona Pacchetto</span>
-            </div>
-            
-            <div className={`w-12 h-0.5 ${currentStep >= 2 ? 'bg-purple-600' : 'bg-slate-600'}`}></div>
-            
-            <div className={`flex items-center gap-2 ${currentStep >= 2 ? 'text-purple-400' : 'text-slate-500'}`}>
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${currentStep >= 2 ? 'bg-purple-600 text-white' : 'bg-slate-600'}`}>
-                2
-              </div>
-              <span className="font-medium">Dati Fatturazione</span>
-            </div>
-            
-            <div className={`w-12 h-0.5 ${currentStep >= 3 ? 'bg-purple-600' : 'bg-slate-600'}`}></div>
-            
-            <div className={`flex items-center gap-2 ${currentStep >= 3 ? 'text-purple-400' : 'text-slate-500'}`}>
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${currentStep >= 3 ? 'bg-purple-600 text-white' : 'bg-slate-600'}`}>
-                3
-              </div>
-              <span className="font-medium">Pagamento</span>
-            </div>
+    // Se non connesso: mostra solo background + header + footer, nessun contenuto
+    if (!account) {
+      return (
+        <div className="flex flex-col items-center justify-center min-h-[60vh] text-center p-6">
+          <div className="bg-slate-800/50 border border-slate-700/50 rounded-lg p-8 max-w-2xl w-full">
+            <div className="text-slate-300 text-4xl mb-4 font-bold">Benvenuto in SimplyChain</div>
+            <p className="text-slate-400 text-xl">
+              Per accedere alla tua area privata, <span className="text-white font-semibold">accedi con i social o con la tua email</span> tramite il pulsante <span className="font-semibold">"Accedi"</span> in alto a destra.
+            </p>
           </div>
         </div>
+      );
+    }
 
-        {/* Step 1: Pacchetti Crediti - stile AziendaPage */}
-        {currentStep === 1 && (
-          <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-6 border border-slate-700/50 transform transition-all duration-500 ease-in-out">
-            <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
-              Seleziona un Pacchetto Crediti
-            </h2>
-            
-            <div className="grid gap-4">
-              {creditPackages.map(pkg => (
-                <div
-                  key={pkg.id}
-                  onClick={() => handleSelectPackage(pkg)}
-                  className="p-4 rounded-xl border-2 cursor-pointer transition-all hover:scale-105 border-slate-600 bg-slate-700/30 hover:border-purple-500 hover:bg-slate-700/50"
-                >
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <h3 className="text-lg font-bold text-white">
-                        {pkg.credits} Crediti
-                      </h3>
-                      <p className="text-slate-400">
-                        {pkg.pricePerCredit.toFixed(2)} € per credito
-                      </p>
-                      {pkg.savingsText && (
-                        <p className="text-green-400 text-sm mt-1">
-                          Risparmio: {pkg.savingsText}
-                        </p>
-                      )}
-                    </div>
-                    <div className="text-right">
-                      <p className="text-2xl font-bold text-purple-400">
-                        {pkg.totalPrice.toFixed(2)} €
-                      </p>
-                      <p className="text-sm text-slate-400">
-                        {pkg.description}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-              
-              {/* Opzione Custom */}
-              <div
-                onClick={() => setShowCustomModal(true)}
-                className="p-4 rounded-xl border-2 cursor-pointer transition-all hover:scale-105 border-purple-500 bg-gradient-to-r from-purple-600/20 to-blue-600/20 hover:from-purple-600/30 hover:to-blue-600/30"
-              >
-                <div className="flex justify-between items-center">
-                  <div>
-                    <h3 className="text-lg font-bold text-white">
-                      Servizio Personalizzato
-                    </h3>
-                    <p className="text-slate-300">
-                      Contatta per un preventivo su misura
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-2xl font-bold text-purple-400">
-                      Custom
-                    </p>
-                    <p className="text-sm text-slate-400">
-                      Contatta SFY
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
+    if (loading) {
+      return null; // nessun loader
+    }
+
+    if (error) {
+      return (
+        <div className="flex flex-col items-center justify-center min-h-[60vh] text-center p-6">
+          <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-6 max-w-md">
+            <div className="text-red-400 text-2xl mb-2">⚠️</div>
+            <p className="text-red-300">{error}</p>
           </div>
-        )}
+        </div>
+      );
+    }
 
-        {/* Step 2: Dati di Fatturazione - stile AziendaPage */}
-        {currentStep === 2 && selectedPackage && (
-          <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-6 border border-slate-700/50 transform transition-all duration-500 ease-in-out">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                Dati di Fatturazione
-              </h2>
-              <div className="text-right">
-                <p className="text-slate-400">Pacchetto selezionato:</p>
-                <p className="text-purple-400 font-bold">{selectedPackage.credits} crediti - {selectedPackage.totalPrice.toFixed(2)} €</p>
-              </div>
-            </div>
-            
-            {billingDetails && !isEditingBilling ? (
-              <div>
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-lg font-semibold text-white">Dati Salvati</h3>
-                  <button 
-                    className="bg-purple-600 hover:bg-purple-700 text-white px-3 py-1 rounded-lg transition text-sm"
-                    onClick={() => setIsEditingBilling(true)}
-                  >
-                    Modifica
-                  </button>
-                </div>
-                
-                <div className="grid md:grid-cols-2 gap-4 mb-6">
-                  {billingDetails.type === 'azienda' ? (
-                    <>
-                      <div>
-                        <span className="text-gray-400">Ragione Sociale:</span>
-                        <p className="text-white font-semibold">{billingDetails.ragioneSociale}</p>
-                      </div>
-                      <div>
-                        <span className="text-gray-400">P.IVA/CF:</span>
-                        <p className="text-white">{billingDetails.pIvaCf}</p>
-                      </div>
-                      <div className="md:col-span-2">
-                        <span className="text-gray-400">Indirizzo:</span>
-                        <p className="text-white">{billingDetails.indirizzo}</p>
-                      </div>
-                      <div>
-                        <span className="text-gray-400">SDI/PEC:</span>
-                        <p className="text-white">{billingDetails.sdiPec}</p>
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      <div>
-                        <span className="text-gray-400">Nome:</span>
-                        <p className="text-white font-semibold">{billingDetails.nome} {billingDetails.cognome}</p>
-                      </div>
-                      <div>
-                        <span className="text-gray-400">Codice Fiscale:</span>
-                        <p className="text-white">{billingDetails.cf}</p>
-                      </div>
-                      <div className="md:col-span-2">
-                        <span className="text-gray-400">Indirizzo:</span>
-                        <p className="text-white">{billingDetails.indirizzo}</p>
-                      </div>
-                    </>
-                  )}
-                </div>
-                
-                <div className="flex gap-4">
-                  <button
-                    onClick={() => setCurrentStep(1)}
-                    className="bg-slate-600 hover:bg-slate-700 text-white px-4 py-2 rounded-lg transition"
-                  >
-                    ← Cambia Pacchetto
-                  </button>
-                  <button
-                    onClick={() => createPaymentIntent(selectedPackage)}
-                    className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-6 py-2 rounded-lg transition font-semibold"
-                  >
-                    Procedi al Pagamento →
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <div>
-                <h3 className="text-lg font-semibold text-white mb-4">
-                  {billingDetails ? 'Modifica Dati di Fatturazione' : 'Inserisci i Dati di Fatturazione'}
-                </h3>
-                <BillingForm initialDetails={billingDetails} onSave={handleSaveBilling} isSaving={isSaving} />
-                
-                <div className="flex gap-4 mt-6">
-                  <button
-                    onClick={() => setCurrentStep(1)}
-                    className="bg-slate-600 hover:bg-slate-700 text-white px-4 py-2 rounded-lg transition"
-                  >
-                    ← Cambia Pacchetto
-                  </button>
-                </div>
-              </div>
-            )}
+    if (userData) {
+      return <CreditRechargeDashboard userData={userData} />;
+    }
+
+    if (account) {
+      return (
+        <div className="flex flex-col items-center justify-center min-h-[60vh] text-center p-6">
+          <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-6 max-w-md">
+            <div className="text-amber-400 text-2xl mb-2">🔒</div>
+            <p className="text-amber-300 text-lg">Account non attivato</p>
+            <p className="text-slate-400 text-sm mt-2">Contatta l'amministratore per attivare il tuo account</p>
           </div>
-        )}
+        </div>
+      );
+    }
 
-        {/* Step 3: Pagamento - stile AziendaPage */}
-        {currentStep === 3 && selectedPackage && clientSecret && (
-          <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-6 border border-slate-700/50 transform transition-all duration-500 ease-in-out">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                Completa il Pagamento
-              </h2>
-              <div className="text-right">
-                <p className="text-slate-400">Importo totale:</p>
-                <p className="text-2xl font-bold text-green-400">{selectedPackage.totalPrice.toFixed(2)} €</p>
-              </div>
-            </div>
-            
-            <div className="mb-6 p-4 bg-slate-700/30 rounded-lg border border-slate-600/50">
-              <h4 className="font-semibold text-white mb-2">Riepilogo Ordine:</h4>
-              <p className="text-slate-300">{selectedPackage.credits} crediti × {selectedPackage.pricePerCredit.toFixed(2)} € = {selectedPackage.totalPrice.toFixed(2)} €</p>
-            </div>
-            
-            <Elements options={{ clientSecret }} stripe={stripePromise}>
-              <PaymentForm />
-            </Elements>
-            
-            <div className="flex gap-4 mt-6">
-              <button
-                onClick={() => setCurrentStep(2)}
-                className="bg-slate-600 hover:bg-slate-700 text-white px-4 py-2 rounded-lg transition"
-              >
-                ← Modifica Dati
-              </button>
-              <button
-                onClick={() => setCurrentStep(1)}
-                className="bg-slate-600 hover:bg-slate-700 text-white px-4 py-2 rounded-lg transition"
-              >
-                ← Cambia Pacchetto
-              </button>
-            </div>
-          </div>
-        )}
-
-        
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center p-6">
+        <div className="bg-slate-800/50 border border-slate-700/50 rounded-lg p-6 max-w-md">
+          <div className="text-slate-400 text-2xl mb-2">🔗</div>
+          <p className="text-slate-300 text-lg">Connetti il wallet per continuare</p>
+          <p className="text-slate-400 text-sm mt-2">Usa il pulsante in alto a destra per connettere il tuo wallet</p>
+        </div>
       </div>
     );
   };
@@ -1081,10 +1291,12 @@ const RicaricaCreditiPage: React.FC = () => {
 
   return (
     <>
-      <RicaricaCreditiStyles />
+      <AziendaPageStyles />
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@400&display=swap" />
+
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex flex-col">
         
-        {/* Header identico ad AziendaPage */}
+        {/* Header moderno con glassmorphism - identico ad AziendaPage */}
         <header className="sticky top-0 z-40 backdrop-blur-xl bg-slate-900/80 border-b border-slate-700/50">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between h-16 lg:h-20">
@@ -1104,73 +1316,35 @@ const RicaricaCreditiPage: React.FC = () => {
 
               {/* Connect Button */}
               <div className="flex items-center space-x-4">
-                <ConnectButton
+                <ConnectButton 
                   client={client}
                   wallets={wallets}
                   chain={polygon}
                   accountAbstraction={{ chain: polygon, sponsorGas: true }}
+                  connectButton={{
+                    label: 'Accedi'
+                  }}
+                  connectModal={{
+                    size: 'wide',
+                    showThirdwebBranding: false,
+                    privacyPolicyUrl: 'https://easychain-gamma.vercel.app/privacy',
+                    termsOfServiceUrl: 'https://easychain-gamma.vercel.app/terms'
+                  }}
                 />
               </div>
             </div>
           </div>
         </header>
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-
-        {/* Barra info azienda - identica ad AziendaPage */}
-        {userData && (
-          <div className="glass-card rounded-3xl p-6 tech-shadow flex flex-col md:flex-row justify-between items-center gap-6">
-            <div>
-              <div className="flex items-center gap-4 flex-wrap">
-                <h2 className="text-2xl md:text-3xl font-extrabold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">{userData.companyName}</h2>
-              </div>
-              <div className="flex flex-col md:flex-row gap-4 items-center">
-                <div className="flex flex-col md:flex-row gap-4 items-center-item">
-                  <span>
-                    <a href="/ricaricacrediti" className="credits-link" style={{ color: 'rgb(255, 255, 255)', textDecoration: 'none', cursor: 'pointer' }}>
-                      Crediti Rimanenti: <strong>{userData.credits}</strong>
-                    </a>
-                  </span>
-                </div>
-                <div className="flex flex-col md:flex-row gap-4 items-center-item">
-                  <span>Stato: <strong className={userData.status === 'active' ? 'status-active-text' : 'status-inactive-text'}>{userData.status === 'active' ? 'ATTIVO' : 'NON ATTIVO'}</strong></span>
-                </div>
-              </div>
-            </div>
-            <button onClick={() => navigate('/azienda')} className="text-white px-4 py-2 rounded-2xl font-semibold hover:scale-105 transition" style={{ backgroundColor: 'rgb(99, 104, 247)' }}>Dashboard</button>
+        {/* Contenuto principale */}
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1">
+          <div className="space-y-8">
+            {renderContent()}
           </div>
-        )}
-
-        {/* Content - stile AziendaPage */}
-        <main className="flex-1">
-          {loading ? (
-            <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-8 text-center border border-slate-700/50">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
-              <p className="text-slate-300">Caricamento dati utente...</p>
-            </div>
-          ) : error ? (
-            <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-8 text-center border border-slate-700/50">
-              <div className="text-red-400 text-6xl mb-4">⚠️</div>
-              <h3 className="text-xl font-semibold text-red-300 mb-2">Errore</h3>
-              <p className="text-red-200">{error}</p>
-            </div>
-          ) : !userData ? (
-            <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-8 text-center border border-slate-700/50">
-              <div className="text-yellow-400 text-6xl mb-4">📭</div>
-              <h3 className="text-xl font-semibold text-yellow-300 mb-2">Nessun Dato</h3>
-              <p className="text-yellow-200">Nessun dato utente trovato per questo wallet.</p>
-            </div>
-          ) : (
-            renderContent()
-          )}
         </main>
-        
-        </div>
 
-        {/* Rimosso rettangolo in basso: ora la barra info è sotto l'header */}
-
-        {/* Footer identico ad AziendaPage */}
-        <Footer />
+        {/* Footer: visibile solo quando loggato */}
+        {account && <Footer />}
 
         {/* Modal Contatto Custom */}
         <CustomContactModal 
