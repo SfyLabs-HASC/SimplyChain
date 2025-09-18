@@ -30,10 +30,10 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 // --- 1. Logica per inviare l'email di registrazione ---
 async function handleSendEmail(req, res) {
   try {
-    const { companyName, contactEmail, sector, walletAddress, ...socials } = req.body;
+    const { companyName, contactEmail, sector, userType, walletAddress, ...socials } = req.body;
     const pendingRef = db.collection('pendingCompanies').doc(walletAddress);
     await pendingRef.set({
-      companyName, contactEmail, sector, walletAddress, status: 'pending',
+      companyName, contactEmail, sector, userType: userType || 'azienda', walletAddress, status: 'pending',
       requestedAt: admin.firestore.FieldValue.serverTimestamp(),
       ...socials,
     });
@@ -42,7 +42,7 @@ async function handleSendEmail(req, res) {
       from: 'Simply Chain <onboarding@resend.dev>',
       to: ['sfy.startup@gmail.com'],
       subject: `${companyName} - Richiesta Attivazione`,
-      html: `<div style="font-family: sans-serif; padding: 20px; border: 1px solid #eee; border-radius: 8px;"><h2>Nuova Richiesta di Attivazione</h2><p>L'azienda "${companyName}" ha richiesto l'attivazione.</p><hr /><h3>Dettagli:</h3><ul><li><strong>Nome Azienda:</strong> ${companyName}</li><li><strong>Email:</strong> ${contactEmail}</li><li><strong>Settore:</strong> ${sector}</li><li><strong>Wallet:</strong> ${walletAddress}</li></ul><h3>Social:</h3><ul><li><strong>Sito Web:</strong> ${socials.website || 'N/D'}</li><li><strong>Facebook:</strong> ${socials.facebook || 'N/D'}</li><li><strong>Instagram:</strong> ${socials.instagram || 'N/D'}</li></ul></div>`,
+      html: `<div style="font-family: sans-serif; padding: 20px; border: 1px solid #eee; border-radius: 8px;"><h2>Nuova Richiesta di Attivazione</h2><p>L'azienda "${companyName}" ha richiesto l'attivazione.</p><hr /><h3>Dettagli:</h3><ul><li><strong>Tipo Utente:</strong> ${userType || 'azienda'}</li><li><strong>Nome Azienda:</strong> ${companyName}</li><li><strong>Email:</strong> ${contactEmail}</li><li><strong>Settore:</strong> ${sector}</li><li><strong>Wallet:</strong> ${walletAddress}</li></ul><h3>Social:</h3><ul><li><strong>Sito Web:</strong> ${socials.website || 'N/D'}</li><li><strong>Facebook:</strong> ${socials.facebook || 'N/D'}</li><li><strong>Instagram:</strong> ${socials.instagram || 'N/D'}</li></ul></div>`,
     });
 
     if (error) return res.status(400).json(error);

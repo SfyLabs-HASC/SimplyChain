@@ -43,10 +43,13 @@ export default async (req, res) => {
     // Carica eventuali dati di fatturazione dalla collection dedicata
     const billingSnap = await db.collection('billingProfiles').doc(walletAddress).get();
     const billingDetails = billingSnap.exists ? (billingSnap.data()?.billingDetails || null) : null;
+    // Verifica se è stata inviata una richiesta pendente
+    const pendingSnap = await db.collection('pendingCompanies').doc(walletAddress).get();
+    const pending = pendingSnap.exists;
 
     // Se il documento non esiste, l'azienda non è attiva
     if (!doc.exists) {
-      return res.status(200).json({ isActive: false });
+      return res.status(200).json({ isActive: false, pending });
     }
 
     // Se il documento esiste, l'azienda è attiva. Restituisci i suoi dati.
@@ -56,6 +59,7 @@ export default async (req, res) => {
       companyName: companyData?.companyName || 'Nome non trovato',
       credits: companyData?.credits !== undefined ? companyData.credits : 0,
       billingDetails,
+      pending: false,
     });
 
   } catch (error) {

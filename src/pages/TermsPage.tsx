@@ -7,13 +7,24 @@ const TermsPage: React.FC = () => {
       <header className="sticky top-0 z-40 backdrop-blur-xl bg-slate-900/80 border-b border-slate-700/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16 lg:h-20">
-            <h1 className="text-xl lg:text-2xl font-bold text-white">Termini e Condizioni</h1>
+            <div className="flex items-center space-x-4">
+              <div className="w-10 h-10 bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl flex items-center justify-center">
+                <span className="text-white font-bold text-lg">S</span>
+              </div>
+              <div>
+                <h1 className="text-xl lg:text-2xl font-bold text-white">SimplyChain</h1>
+                <p className="text-sm text-slate-400 hidden sm:block">Policy</p>
+              </div>
+            </div>
           </div>
         </div>
       </header>
 
       <main className="flex-1">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+          <div className="text-center mb-6">
+            <h1 className="text-3xl font-bold text-white">Termini e Condizioni</h1>
+          </div>
           <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-6 border border-slate-700/50 space-y-6">
             <section>
               <h2 className="text-white text-xl font-semibold mb-2">Titolare del servizio</h2>

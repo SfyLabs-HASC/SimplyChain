@@ -435,21 +435,16 @@ const FormPage: React.FC = () => {
         {/* Main Content */}
         <main className="form-main">
           <div className="form-content">
-            <div className="form-hero">
-              <div className="form-badge">
-                <Sparkles size={16} />
-                Registrazione Aziendale
+            {!hasRequestSent && (
+              <div className="form-hero">
+                <div className="form-badge">
+                  <Sparkles size={16} />
+                  Registrazione Aziendale
+                </div>
+                <h1 className="form-title">Completa la Registrazione</h1>
+                <p className="form-subtitle">Compila il form per richiedere l'attivazione del tuo account aziendale.</p>
               </div>
-              
-              <h1 className="form-title">
-                Completa la Registrazione
-              </h1>
-              
-              <p className="form-subtitle">
-                Compila il form per richiedere l'attivazione del tuo account aziendale 
-                e inizia a utilizzare SimplyChain per la certificazione blockchain.
-              </p>
-            </div>
+            )}
 
             <div className="form-card">
               {!account ? (

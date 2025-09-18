@@ -7147,7 +7147,7 @@ const AziendaPage: React.FC = () => {
           }
         }
 
-        const response = await fetch(`/api/get-company-status?walletAddress=${account.address}`);
+    const response = await fetch(`/api/get-company-status?walletAddress=${account.address}`);
 
         if (!response.ok) {
 
@@ -7155,7 +7155,12 @@ const AziendaPage: React.FC = () => {
 
         }
 
-        const data = await response.json();
+    const data = await response.json();
+    // Se non attivo, reindirizza alla form (senza mostrare il banner in questa pagina)
+    if (!data.isActive) {
+      navigate('/form');
+      return;
+    }
 
         setCompanyStatus({
 
