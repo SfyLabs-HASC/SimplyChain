@@ -10,6 +10,9 @@ import AziendaPage from "./pages/AziendaPage";
 import FormPage from "./pages/FormPage";
 import GestisciPage from "./pages/GestisciPage";
 import RicaricaCreditiPage from "./pages/RicaricaCreditiPage";
+import CookiePolicyPage from './pages/CookiePolicyPage';
+import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
+import TermsPage from './pages/TermsPage';
 import './App.css';
 
 function App() {
@@ -27,6 +30,9 @@ function App() {
       {/* Rotta dinamica per la gestione di una singola iscrizione (questa era già giusta) */}
       <Route path="/gestisci/:batchId" element={<GestisciPage />} />
       <Route path="/ricaricacrediti" element={<RicaricaCreditiPage />} />
+      <Route path="/cookie-policy" element={<CookiePolicyPage />} />
+      <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+      <Route path="/termini-e-condizioni" element={<TermsPage />} />
       </Routes>
   );
 }
