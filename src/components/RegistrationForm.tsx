@@ -12,7 +12,7 @@ interface RegistrationFormProps {
 
 const RegistrationForm: React.FC<RegistrationFormProps> = ({ walletAddress }) => {
   const [formData, setFormData] = useState({
-    companyName: "", contactEmail: "", sector: "", website: "", facebook: "", instagram: "", twitter: "", tiktok: "",
+    companyName: "", contactEmail: "", sector: "", userType: "azienda", website: "", facebook: "", instagram: "", twitter: "", tiktok: "",
   });
   const [status, setStatus] = useState<{ message: string; type: 'error' | 'success' | 'info' } | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -70,13 +70,38 @@ const RegistrationForm: React.FC<RegistrationFormProps> = ({ walletAddress }) =>
 
   return (
     <div className="card" style={{ marginTop: '2rem', maxWidth: '700px', margin: '2rem auto', textAlign: 'left' }}>
-      <h3>Benvenuto su Simply Chain!</h3>
-      <p>Il tuo account non è ancora attivo. Compila il form di registrazione per inviare una richiesta di attivazione all'amministratore.</p>
+      <h3 style={{ color: '#fff' }}>Benvenuto su SimplyChain</h3>
+      <p style={{ color: '#9ca3af' }}>Il tuo account non è ancora attivo. Compila il form di registrazione per inviare una richiesta di attivazione.</p>
       
       <form onSubmit={handleSubmit} style={{ marginTop: '1.5rem' }}>
+        <div className="form-group">
+          <label>Sei un* (obbligatorio)</label>
+          <div style={{ display: 'flex', gap: '1rem' }}>
+            <label><input type="radio" name="userType" value="azienda" checked={formData.userType === 'azienda'} onChange={handleInputChange} /> Azienda</label>
+            <label><input type="radio" name="userType" value="privato" checked={formData.userType === 'privato'} onChange={handleInputChange} /> Privato</label>
+          </div>
+        </div>
         <div className="form-group"><label>Nome Azienda *</label><input type="text" name="companyName" className="form-input" onChange={handleInputChange} required /></div>
         <div className="form-group"><label>Email di Contatto *</label><input type="email" name="contactEmail" className="form-input" onChange={handleInputChange} required /></div>
-        <div className="form-group"><label>Settore di Attività *</label><select name="sector" className="form-input" onChange={handleInputChange} required defaultValue=""><option value="" disabled>Seleziona un settore...</option><option value="Agroalimentare">Agroalimentare</option><option value="Moda e Tessile">Moda e Tessile</option><option value="Arredamento e Design">Arredamento e Design</option><option value="Farmaceutico">Farmaceutico</option><option value="Altro">Altro</option></select></div>
+        <div className="form-group"><label>Settore di Attività *</label>
+          <select name="sector" className="form-input" style={{ background: 'rgba(0,0,0,0.3)', color: '#fff' }} onChange={handleInputChange} required defaultValue="">
+            <option value="" disabled>Seleziona un settore...</option>
+            <option value="Agroalimentare">Agroalimentare</option>
+            <option value="Moda e Tessile">Moda e Tessile</option>
+            <option value="Arredamento e Design">Arredamento e Design</option>
+            <option value="Farmaceutico">Farmaceutico</option>
+            <option value="Logistica e Trasporti">Logistica e Trasporti</option>
+            <option value="Energia e Ambiente">Energia e Ambiente</option>
+            <option value="Chimico e Materiali">Chimico e Materiali</option>
+            <option value="Tecnologia e Elettronica">Tecnologia e Elettronica</option>
+            <option value="Cosmetica e Cura Personale">Cosmetica e Cura Personale</option>
+            <option value="Edilizia e Infrastrutture">Edilizia e Infrastrutture</option>
+            <option value="Servizi Professionali">Servizi Professionali</option>
+            <option value="Turismo e Ospitalità">Turismo e Ospitalità</option>
+            <option value="Arte e Artigianato">Arte e Artigianato</option>
+            <option value="Altro">Altro</option>
+          </select>
+        </div>
         <div className="form-group"><label>Indirizzo Wallet (automatico)</label><input type="text" className="form-input" value={walletAddress} readOnly disabled /></div>
         <hr style={{margin: '2rem 0', borderColor: '#333'}} />
         <h4>Profili Social (Opzionale)</h4>
