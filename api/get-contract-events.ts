@@ -4,6 +4,7 @@
 
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { createThirdwebClient, getContract, getContractEvents } from 'thirdweb';
+import fetch from 'node-fetch';
 import { polygon } from 'thirdweb/chains';
 import { initializeApp, cert, getApps } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
@@ -163,6 +164,59 @@ async function handleBlockchainEvents(userAddress: string, limit?: number) {
 }
 // *** FINE MODIFICA ***
 
+// Prova a usare Thirdweb Insight se configurato
+async function handleInsightEvents(userAddress: string, limit?: number) {
+  const baseUrl = process.env.THIRDWEB_INSIGHT_API_URL;
+  const apiKey = process.env.THIRDWEB_INSIGHT_API_KEY;
+  if (!baseUrl || !apiKey) {
+    throw new Error('Insight non configurato');
+  }
+
+  // Nota: l'endpoint può variare a seconda della tua istanza Insight.
+  // Qui proviamo uno schema generico e facciamo fallback se fallisce.
+  const url = new URL(`${baseUrl.replace(/\/$/, '')}/contracts/${CONTRACT_ADDRESS}/events`);
+  url.searchParams.set('chain', 'polygon');
+  url.searchParams.set('eventName', 'BatchInitialized');
+  url.searchParams.set('contributor', userAddress);
+  if (typeof limit === 'number' && limit > 0) url.searchParams.set('limit', String(limit));
+
+  const res = await fetch(url.toString(), {
+    headers: {
+      'Authorization': `Bearer ${apiKey}`,
+      'Content-Type': 'application/json'
+    }
+  } as any);
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Insight error ${res.status}: ${text}`);
+  }
+
+  const data: any = await res.json();
+  const events = Array.isArray(data?.events) ? data.events : Array.isArray(data) ? data : [];
+
+  // Mappa eventi BatchInitialized e unisci gli step se l'API li fornisce; altrimenti lascia steps vuoti
+  const batchesRaw = events
+    .filter((e: any) => (e.eventName || e.name) === 'BatchInitialized')
+    .map((e: any) => {
+      const args = e.args || e.data || {};
+      const batchId = String(args.batchId ?? args.id ?? '');
+      return {
+        ...args,
+        batchId,
+        transactionHash: e.transactionHash || e.txHash,
+        steps: [],
+        isClosed: false,
+      };
+    });
+
+  // Ordina, limita e sanitizza
+  batchesRaw.sort((a: any, b: any) => Number(b.batchId) - Number(a.batchId));
+  const limited = typeof limit === 'number' && limit > 0 ? batchesRaw.slice(0, limit) : batchesRaw;
+  const sanitized = limited.map(sanitizeBatch);
+  return serializeBigInts(sanitized);
+}
+
 async function handleFirebaseData(address: string) {
   initializeFirebaseAdmin();
   const db = getFirestore();
@@ -210,8 +264,14 @@ export default async function handler(
       result = await handleFirebaseData(targetAddress);
       return res.status(200).json(result);
     } else {
-      result = await handleBlockchainEvents(targetAddress, limitNumber);
-      return res.status(200).json({ events: result });
+      // Prova prima Insight, poi fallback allo SDK
+      try {
+        result = await handleInsightEvents(targetAddress, limitNumber);
+        return res.status(200).json({ events: result, source: 'insight' });
+      } catch (e) {
+        result = await handleBlockchainEvents(targetAddress, limitNumber);
+        return res.status(200).json({ events: result, source: 'sdk' });
+      }
     }
 
   } catch (error: any) {
