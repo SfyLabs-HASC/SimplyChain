@@ -40,6 +40,9 @@ export default async (req, res) => {
     // Cerca un documento nella collezione 'activeCompanies' che abbia come ID il walletAddress
     const companyRef = db.collection('activeCompanies').doc(walletAddress);
     const doc = await companyRef.get();
+    // Carica eventuali dati di fatturazione dalla collection dedicata
+    const billingSnap = await db.collection('billingProfiles').doc(walletAddress).get();
+    const billingDetails = billingSnap.exists ? (billingSnap.data()?.billingDetails || null) : null;
 
     // Se il documento non esiste, l'azienda non è attiva
     if (!doc.exists) {
@@ -52,6 +55,7 @@ export default async (req, res) => {
       isActive: true,
       companyName: companyData?.companyName || 'Nome non trovato',
       credits: companyData?.credits !== undefined ? companyData.credits : 0,
+      billingDetails,
     });
 
   } catch (error) {

@@ -77,11 +77,12 @@ async function handleSaveBillingDetails(req, res) {
     if (!walletAddress || !details) {
       return res.status(400).json({ error: 'Indirizzo wallet o dati di fatturazione mancanti.' });
     }
-    // ASSUMO che la tua collection delle aziende attive si chiami 'companies'
-    const companyRef = db.collection('companies').doc(walletAddress);
-    await companyRef.set({
-      billingDetails: details
-    }, { merge: true }); // 'merge: true' assicura di non sovrascrivere altri dati dell'azienda
+    // Salva i profili di fatturazione in una collection dedicata
+    const billingRef = db.collection('billingProfiles').doc(walletAddress);
+    await billingRef.set({
+      billingDetails: details,
+      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    }, { merge: true });
 
     res.status(200).json({ message: 'Dati di fatturazione salvati con successo.' });
   } catch (error) {

@@ -1050,7 +1050,15 @@ const RicaricaCreditiPage: React.FC = () => {
               <p className="text-slate-300">{selectedPackage.credits} crediti × {selectedPackage.pricePerCredit.toFixed(2)} € = {selectedPackage.totalPrice.toFixed(2)} €</p>
             </div>
             
-            <Elements options={{ clientSecret }} stripe={stripePromise}>
+            <Elements 
+              options={{ 
+                clientSecret,
+                appearance: {
+                  theme: 'night'
+                }
+              }} 
+              stripe={stripePromise}
+            >
               <PaymentForm selectedPackage={selectedPackage} account={account} />
             </Elements>
             
