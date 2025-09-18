@@ -498,7 +498,7 @@ const StripeCheckoutForm: React.FC = () => {
 
 // --- Componente Principale Pagina ---
 // Componente per il form di pagamento Stripe
-const PaymentForm: React.FC<{ selectedPackage: CreditPackage | null; account: any }> = ({ selectedPackage, account }) => {
+const PaymentForm: React.FC<{ selectedPackage: CreditPackage | null; account: any; userData?: UserData | null; billingDetails?: BillingDetails | null }> = ({ selectedPackage, account, userData, billingDetails }) => {
   const stripe = useStripe();
   const elements = useElements();
   const [isProcessing, setIsProcessing] = useState(false);
@@ -555,6 +555,24 @@ const PaymentForm: React.FC<{ selectedPackage: CreditPackage | null; account: an
         } catch (blockchainError) {
           console.error('Blockchain transaction error:', blockchainError);
           // Non bloccare il flusso se la transazione blockchain fallisce
+        }
+        
+        // Invia email di notifica pagamento a SFY
+        try {
+          await fetch('/api/send-email?action=payment-received', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              paymentIntent,
+              walletAddress: account?.address,
+              company: userData?.companyName || 'Azienda',
+              user: userData,
+              billingDetails,
+              package: selectedPackage,
+            })
+          });
+        } catch (notifyErr) {
+          console.error('Errore invio notifica pagamento:', notifyErr);
         }
         
         // Redirect dopo successo
@@ -868,12 +886,12 @@ const RicaricaCreditiPage: React.FC = () => {
 
         {/* Step 1: Pacchetti Crediti - stile AziendaPage */}
         {currentStep === 1 && (
-          <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-6 border border-slate-700/50 transform transition-all duration-500 ease-in-out">
+          <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-6 border border-slate-700/50 transform transition-all duration-500 ease-in-out mx-auto" style={{ maxWidth: '1200px' }}>
             <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
               Seleziona un Pacchetto Crediti
             </h2>
             
-            <div className="grid gap-4">
+            <div className="grid gap-4 md:grid-cols-2">
               {creditPackages.map(pkg => (
                 <div
                   key={pkg.id}
@@ -1086,7 +1104,7 @@ const RicaricaCreditiPage: React.FC = () => {
               }} 
               stripe={stripePromise}
             >
-              <PaymentForm selectedPackage={selectedPackage} account={account} />
+              <PaymentForm selectedPackage={selectedPackage} account={account} userData={userData} billingDetails={billingDetails} />
             </Elements>
             
             <div className="flex gap-4 mt-6">

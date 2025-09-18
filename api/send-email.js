@@ -172,6 +172,76 @@ export default async (req, res) => {
   switch (action) {
     case 'create-payment-intent':
       return await handleCreatePaymentIntent(req, res);
+    case 'payment-received': {
+      try {
+        const { paymentIntent, walletAddress, company, user, billingDetails, package: pkg } = req.body;
+        const subject = `PAGAMENTO RICEVUTO DA "${company || 'Azienda'}"`;
+        const amountEur = paymentIntent?.amount ? (paymentIntent.amount / 100).toFixed(2) + ' €' : 'N/D';
+        const pi = paymentIntent || {};
+        const html = `
+          <div style="font-family: Inter,system-ui,sans-serif; padding:20px; background:#0f172a; color:#e5e7eb;">
+            <h2 style="margin:0 0 12px 0; color:#fff;">Pagamento Ricevuto</h2>
+            <p style="margin:0 0 16px 0; color:#cbd5e1;">Dettagli transazione Stripe completata.</p>
+            <div style="background:#111827; border:1px solid #1f2937; border-radius:12px; padding:16px; margin-bottom:16px;">
+              <h3 style="margin:0 0 8px 0; color:#93c5fd;">Transazione</h3>
+              <ul style="margin:0; padding-left:16px;">
+                <li><strong>ID PaymentIntent:</strong> ${pi.id || 'N/D'}</li>
+                <li><strong>Stato:</strong> ${pi.status || 'N/D'}</li>
+                <li><strong>Importo:</strong> ${amountEur}</li>
+                <li><strong>Metodo:</strong> ${pi.payment_method_types ? pi.payment_method_types.join(', ') : 'N/D'}</li>
+                <li><strong>Creato:</strong> ${pi.created ? new Date(pi.created * 1000).toLocaleString('it-IT') : 'N/D'}</li>
+              </ul>
+            </div>
+            <div style="background:#111827; border:1px solid #1f2937; border-radius:12px; padding:16px; margin-bottom:16px;">
+              <h3 style="margin:0 0 8px 0; color:#a78bfa;">Utente / Azienda</h3>
+              <ul style="margin:0; padding-left:16px;">
+                <li><strong>Azienda:</strong> ${company || 'N/D'}</li>
+                <li><strong>Wallet:</strong> ${walletAddress || 'N/D'}</li>
+                <li><strong>Email:</strong> ${user?.email || 'N/D'}</li>
+              </ul>
+            </div>
+            <div style="background:#111827; border:1px solid #1f2937; border-radius:12px; padding:16px; margin-bottom:16px;">
+              <h3 style="margin:0 0 8px 0; color:#34d399;">Dati di Fatturazione</h3>
+              ${billingDetails ? `
+              <ul style="margin:0; padding-left:16px;">
+                <li><strong>Tipo:</strong> ${billingDetails.type}</li>
+                ${billingDetails.type === 'azienda' ? `
+                  <li><strong>Ragione Sociale:</strong> ${billingDetails.ragioneSociale || 'N/D'}</li>
+                  <li><strong>P.IVA/CF:</strong> ${billingDetails.pIvaCf || 'N/D'}</li>
+                  <li><strong>SDI/PEC:</strong> ${billingDetails.sdiPec || 'N/D'}</li>
+                ` : `
+                  <li><strong>Nome:</strong> ${billingDetails.nome || 'N/D'}</li>
+                  <li><strong>Cognome:</strong> ${billingDetails.cognome || 'N/D'}</li>
+                  <li><strong>Codice Fiscale:</strong> ${billingDetails.cf || 'N/D'}</li>
+                `}
+                <li><strong>Indirizzo:</strong> ${billingDetails.indirizzo || 'N/D'}</li>
+              </ul>
+              ` : '<p style="margin:0; color:#cbd5e1;">Nessun dato di fatturazione disponibile.</p>'}
+            </div>
+            <div style="background:#111827; border:1px solid #1f2937; border-radius:12px; padding:16px;">
+              <h3 style="margin:0 0 8px 0; color:#f472b6;">Pacchetto</h3>
+              ${pkg ? `
+              <ul style="margin:0; padding-left:16px;">
+                <li><strong>Crediti:</strong> ${pkg.credits}</li>
+                <li><strong>Prezzo/Credito:</strong> ${pkg.pricePerCredit.toFixed(2)} €</li>
+                <li><strong>Totale:</strong> ${pkg.totalPrice.toFixed(2)} €</li>
+              </ul>
+              ` : '<p style="margin:0; color:#cbd5e1;">Nessun pacchetto disponibile.</p>'}
+            </div>
+          </div>
+        `;
+        await resend.emails.send({
+          from: 'Simply Chain <payments@resend.dev>',
+          to: ['sfy.startup@gmail.com'],
+          subject,
+          html,
+        });
+        return res.status(200).json({ ok: true });
+      } catch (e) {
+        console.error('payment-received email error', e);
+        return res.status(500).json({ error: 'Failed to send payment email' });
+      }
+    }
     
     // AGGIUNTO: Nuovo caso per il salvataggio dei dati
     case 'save-billing-details':
