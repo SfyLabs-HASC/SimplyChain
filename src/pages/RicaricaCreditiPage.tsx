@@ -1054,7 +1054,34 @@ const RicaricaCreditiPage: React.FC = () => {
               options={{ 
                 clientSecret,
                 appearance: {
-                  theme: 'night'
+                  theme: 'night',
+                  variables: {
+                    colorPrimary: '#8b5cf6', // purple-500
+                    colorBackground: '#0f172a', // slate-900
+                    colorText: '#e5e7eb', // gray-200
+                    colorDanger: '#ef4444',
+                    fontFamily: 'Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif',
+                    spacingUnit: '4px',
+                    borderRadius: '12px'
+                  },
+                  rules: {
+                    '.Input': {
+                      backgroundColor: '#1f2937', // slate-800
+                      border: '1px solid #374151', // slate-700
+                      color: '#e5e7eb'
+                    },
+                    '.Input:focus': {
+                      borderColor: '#8b5cf6',
+                      boxShadow: '0 0 0 1px #8b5cf6'
+                    },
+                    '.Tab, .Block, .PickerItem': {
+                      backgroundColor: '#111827',
+                      borderColor: '#374151'
+                    },
+                    '.Label': {
+                      color: '#cbd5e1'
+                    }
+                  }
                 }
               }} 
               stripe={stripePromise}
