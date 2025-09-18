@@ -84,7 +84,14 @@ const RegistrationForm: React.FC<RegistrationFormProps> = ({ walletAddress }) =>
         <div className="form-group"><label>Nome *</label><input type="text" name="companyName" className="form-input" onChange={handleInputChange} required /></div>
         <div className="form-group"><label>Email di Contatto *</label><input type="email" name="contactEmail" className="form-input" onChange={handleInputChange} required /></div>
         <div className="form-group"><label>Settore di Attività *</label>
-          <select name="sector" className="form-input" style={{ background: 'rgba(0,0,0,0.3)', color: '#fff' }} onChange={handleInputChange} required defaultValue="">
+          <select 
+            name="sector" 
+            className="form-input" 
+            style={{ backgroundColor: '#000', color: '#fff', border: '1px solid rgba(255,255,255,0.2)' }} 
+            onChange={handleInputChange} 
+            required 
+            defaultValue=""
+          >
             <option value="" disabled>Seleziona un settore...</option>
             <option value="Agroalimentare">Agroalimentare</option>
             <option value="Moda e Tessile">Moda e Tessile</option>

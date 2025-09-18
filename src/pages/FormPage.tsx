@@ -393,10 +393,8 @@ const FormPage: React.FC = () => {
       const response = await fetch(`/api/get-company-status?walletAddress=${account.address}`);
       if (response.ok) {
         const data = await response.json();
-        // Se l'utente esiste nel database ma non è attivo, significa che ha già inviato la richiesta
-        if (data.exists && !data.isActive) {
-          setHasRequestSent(true);
-        }
+        // Se pendente, mostra direttamente il box "Richiesta Inviata"
+        if (!data.isActive && data.pending) setHasRequestSent(true);
       }
     } catch (error) {
       console.error('Errore durante il controllo della richiesta:', error);
