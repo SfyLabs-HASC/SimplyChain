@@ -265,12 +265,20 @@ export default async function handler(
       return res.status(200).json(result);
     } else {
       // Prova prima Insight, poi fallback allo SDK
+      const envInsightConfigured = !!process.env.THIRDWEB_INSIGHT_API_URL && !!process.env.THIRDWEB_INSIGHT_API_KEY;
       try {
+        if (!envInsightConfigured) throw new Error('Insight env not configured');
         result = await handleInsightEvents(targetAddress, limitNumber);
-        return res.status(200).json({ events: result, source: 'insight' });
-      } catch (e) {
-        result = await handleBlockchainEvents(targetAddress, limitNumber);
-        return res.status(200).json({ events: result, source: 'sdk' });
+        return res.status(200).json({ events: result, source: 'insight', envInsightConfigured });
+      } catch (e: any) {
+        const fallbackReason = e?.message || String(e);
+        try {
+          result = await handleBlockchainEvents(targetAddress, limitNumber);
+          return res.status(200).json({ events: result, source: 'sdk', envInsightConfigured, fallbackReason });
+        } catch (sdkErr: any) {
+          // Se anche lo SDK fallisce, propaga errore
+          throw sdkErr;
+        }
       }
     }
 
