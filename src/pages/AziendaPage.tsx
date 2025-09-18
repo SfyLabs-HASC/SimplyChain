@@ -7304,8 +7304,8 @@ const AziendaPage: React.FC = () => {
               {/* Logo e titolo */}
               <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 rounded-xl overflow-hidden flex items-center justify-center bg-transparent">
-                  <img src="/logo-simplychain.svg" alt="SimplyChain" className="w-10 h-10 object-cover" />
+                <div className="w-12 h-12 rounded-xl overflow-hidden flex items-center justify-center bg-transparent">
+                  <img src="/logo-simplychain.svg" alt="SimplyChain" className="w-12 h-12 object-cover" />
                 </div>
                   <div>
                     <h1 className="text-xl lg:text-2xl font-bold text-white">SimplyChain</h1>
