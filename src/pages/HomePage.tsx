@@ -507,13 +507,13 @@ export default function HomePage() {
                   </Link>
                 </li>
                 <li>
-                  <Link to="/terms" className="text-muted-foreground hover:text-primary smooth-transition flex items-center gap-3 group text-lg">
+                  <Link to="/terms-conditions" className="text-muted-foreground hover:text-primary smooth-transition flex items-center gap-3 group text-lg">
                     <ArrowRight className="w-5 h-5 group-hover:translate-x-1 smooth-transition" />
                     Termini di Servizio
                   </Link>
                 </li>
                 <li>
-                  <Link to="/cookies" className="text-muted-foreground hover:text-primary smooth-transition flex items-center gap-3 group text-lg">
+                  <Link to="/cookie-policy" className="text-muted-foreground hover:text-primary smooth-transition flex items-center gap-3 group text-lg">
                     <ArrowRight className="w-5 h-5 group-hover:translate-x-1 smooth-transition" />
                     Cookie Policy
                   </Link>

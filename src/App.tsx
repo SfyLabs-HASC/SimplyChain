@@ -30,9 +30,14 @@ function App() {
       {/* Rotta dinamica per la gestione di una singola iscrizione (questa era già giusta) */}
       <Route path="/gestisci/:batchId" element={<GestisciPage />} />
       <Route path="/ricaricacrediti" element={<RicaricaCreditiPage />} />
+      {/* Legal pages and aliases */}
       <Route path="/cookie-policy" element={<CookiePolicyPage />} />
+      <Route path="/cookies" element={<CookiePolicyPage />} />
       <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+      <Route path="/privacy" element={<PrivacyPolicyPage />} />
       <Route path="/termini-e-condizioni" element={<TermsPage />} />
+      <Route path="/terms-conditions" element={<TermsPage />} />
+      <Route path="/terms" element={<TermsPage />} />
       </Routes>
   );
 }
