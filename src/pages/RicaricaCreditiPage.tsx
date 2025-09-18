@@ -891,7 +891,7 @@ const RicaricaCreditiPage: React.FC = () => {
               Seleziona un Pacchetto Crediti
             </h2>
             
-            <div className="grid gap-4 md:grid-cols-2">
+            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-2">
               {creditPackages.map(pkg => (
                 <div
                   key={pkg.id}
