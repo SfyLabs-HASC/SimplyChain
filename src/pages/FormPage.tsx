@@ -395,10 +395,15 @@ const FormPage: React.FC = () => {
       if (response.ok) {
         const data = await response.json();
         // Se pendente, mostra direttamente il box "Richiesta Inviata"
-        if (!data.isActive && data.pending) setHasRequestSent(true);
+        const isPending = !!data?.pending;
+        const isActive = !!data?.isActive;
+        setHasRequestSent(!isActive && isPending);
+      } else {
+        setHasRequestSent(false);
       }
     } catch (error) {
       console.error('Errore durante il controllo della richiesta:', error);
+      setHasRequestSent(false);
     } finally {
       setIsCheckingRequest(false);
     }
