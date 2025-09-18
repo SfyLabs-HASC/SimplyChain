@@ -5982,13 +5982,29 @@ const NewInscriptionModal: React.FC<{
 
       <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={onClose}>
 
-        <div className="bg-slate-800 rounded-2xl shadow-2xl max-w-2xl w-full text-foreground border border-slate-700/50" onClick={(e) => e.stopPropagation()}>
+        <div className="bg-slate-900/90 rounded-2xl shadow-2xl max-w-2xl w-full text-foreground border border-slate-800/60" onClick={(e) => e.stopPropagation()}>
 
-          <div className="sticky top-0 z-10 bg-slate-800/95 backdrop-blur-sm border-b border-slate-700/50 p-5 rounded-t-2xl flex items-center justify-between">
-            <h2 className="text-white font-semibold">Nuova Iscrizione ({currentStep}/6)</h2>
-            <button onClick={onClose} className="text-slate-400 hover:text-white transition-colors p-2 hover:bg-slate-700 rounded-lg">
-              <span className="material-symbols-outlined">close</span>
-            </button>
+          <div className="sticky top-0 z-10 rounded-t-2xl p-5 backdrop-blur-sm border-b border-slate-800/60"
+               style={{ background: 'linear-gradient(135deg, rgba(139,92,246,0.18) 0%, rgba(59,130,246,0.18) 100%)' }}>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center">
+                  <span className="text-white text-lg">✦</span>
+                </div>
+                <div>
+                  <h2 className="text-white font-semibold">Nuova Iscrizione ({currentStep}/6)</h2>
+                  <p className="text-slate-300 text-sm">Registra un nuovo prodotto, servizio o processo</p>
+                </div>
+              </div>
+              <button onClick={onClose} className="text-slate-300 hover:text-white transition-colors p-2 hover:bg-slate-700/60 rounded-lg">
+                <span className="material-symbols-outlined">close</span>
+              </button>
+            </div>
+            <div className="mt-4 h-1 rounded bg-slate-800/60">
+              <div className="h-1 rounded bg-gradient-to-r from-purple-500 to-blue-500"
+                   style={{ width: `${Math.min(Math.max((currentStep/6)*100, 0), 100)}%` }}>
+              </div>
+            </div>
           </div>
 
           <div className="p-5" style={{ minHeight: "350px" }}>
