@@ -2797,7 +2797,7 @@ const Dashboard: React.FC<{ companyData: CompanyData; onLoadingChange?: (isLoadi
       
       // Step 3: Genera URL per il certificato
       // Usa un URL fisso per evitare problemi con window.location.origin
-      const baseUrl = 'https://simplychain-kr64t1v59-sfylabs-hascs-projects.vercel.app';
+      const baseUrl = window.location.origin;
       const certificateUrl = `${baseUrl}/api/qr-system?action=view&id=${certificateId}`;
       
       console.log('🌐 URL certificato:', certificateUrl);
@@ -5138,7 +5138,7 @@ const FinalizeModal: React.FC<{
       
       // Step 3: Genera URL per il certificato
       // Usa un URL fisso per evitare problemi con window.location.origin
-      const baseUrl = 'https://simplychain-kr64t1v59-sfylabs-hascs-projects.vercel.app';
+      const baseUrl = window.location.origin;
       const certUrl = `${baseUrl}/api/qr-system?action=view&id=${certificateId}`;
       setCertificateUrl(certUrl);
       
@@ -7327,8 +7327,8 @@ const AziendaPage: React.FC = () => {
                   connectModal={{
                     size: 'wide',
                     showThirdwebBranding: false,
-                    privacyPolicyUrl: 'https://easychain-gamma.vercel.app/privacy',
-                    termsOfServiceUrl: 'https://easychain-gamma.vercel.app/terms',
+                    privacyPolicyUrl: `${window.location.origin}/privacy`,
+                    termsOfServiceUrl: `${window.location.origin}/terms-conditions`,
                     onClose: () => {
                       forceDisconnectAndRedirectHome();
                     }
