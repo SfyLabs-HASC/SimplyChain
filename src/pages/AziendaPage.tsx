@@ -2533,9 +2533,17 @@ const Dashboard: React.FC<{ companyData: CompanyData; onLoadingChange?: (isLoadi
 
       const sortedBatches = readyBatches.sort((a, b) => parseInt(b.batchId) - parseInt(a.batchId));
 
-
-
-      setBatches(sortedBatches);
+      // Unisci i dati di Firebase con quelli di Thirdweb
+      setBatches(prevBatches => {
+        // Se abbiamo dati di Thirdweb, usali come base e aggiungi quelli di Firebase
+        if (thirdwebBatches.length > 0) {
+          const thirdwebBatchIds = new Set(thirdwebBatches.map(b => b.id.toString()));
+          const firebaseBatches = sortedBatches.filter(batch => !thirdwebBatchIds.has(batch.batchId));
+          return [...prevBatches, ...firebaseBatches];
+        }
+        // Altrimenti usa solo i dati di Firebase
+        return sortedBatches;
+      });
 
       setRefreshCounter(0); // Reset counter dopo il refresh
 
@@ -6941,14 +6949,39 @@ const AziendaPage: React.FC = () => {
 
   // Sincronizza i dati Thirdweb con l'interfaccia
   useEffect(() => {
+    console.log('Dati Thirdweb aggiornati:', {
+      batches: thirdwebBatches.length,
+      credits: thirdwebCredits,
+      loading: isLoadingBatches
+    });
+    
     if (thirdwebBatches.length > 0) {
-      console.log('Dati Thirdweb aggiornati:', {
-        batches: thirdwebBatches.length,
-        credits: thirdwebCredits
-      });
-      // Qui puoi aggiungere logica per sincronizzare i dati Thirdweb con l'interfaccia
+      // Converti i dati Thirdweb nel formato Batch locale
+      const convertedBatches: Batch[] = thirdwebBatches.map((batch, index) => ({
+        batchId: batch.id.toString(),
+        name: batch.productName,
+        description: batch.productDescription,
+        location: 'Blockchain', // Default location per i dati blockchain
+        productionDate: batch.productionDate,
+        expiryDate: batch.expiryDate,
+        batchNumber: batch.batchNumber,
+        qrCodeHash: batch.qrCodeHash,
+        isClosed: batch.isClosed,
+        steps: [], // Gli step verranno caricati separatamente se necessario
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      }));
+      
+      // Aggiorna lo stato locale con i dati di Thirdweb
+      setBatches(convertedBatches);
+      setIsLoadingBatches(false);
+      setErrorBatches(null);
+    } else if (thirdwebBatches.length === 0 && !isLoadingBatches) {
+      // Se non ci sono dati di Thirdweb e non stiamo caricando, 
+      // mantieni i dati esistenti o carica da Firebase
+      console.log('Nessun dato Thirdweb trovato, mantenendo dati esistenti');
     }
-  }, [thirdwebBatches, thirdwebCredits]);
+  }, [thirdwebBatches, thirdwebCredits, isLoadingBatches]);
 
   const forceDisconnectAndRedirectHome = React.useCallback(() => {
     try { disconnect?.(); } catch {}

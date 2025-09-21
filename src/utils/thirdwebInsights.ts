@@ -37,6 +37,8 @@ export interface StepInfo {
  */
 export async function getUserBatches(userAddress: string): Promise<BatchInfo[]> {
   try {
+    console.log('getUserBatches: Inizio per', userAddress);
+    
     // Recuperiamo tutti i batch dell'utente usando getBatchesByContributor
     const batchIds = await readContract({
       contract,
@@ -45,7 +47,10 @@ export async function getUserBatches(userAddress: string): Promise<BatchInfo[]> 
       params: [userAddress]
     });
 
+    console.log('getUserBatches: Batch IDs trovati', batchIds);
+
     if (batchIds.length === 0) {
+      console.log('getUserBatches: Nessun batch trovato');
       return [];
     }
 

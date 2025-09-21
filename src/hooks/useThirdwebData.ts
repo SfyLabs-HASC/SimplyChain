@@ -10,12 +10,16 @@ export function useThirdwebData() {
   const [error, setError] = useState<string | null>(null);
 
   const refreshData = useCallback(async () => {
+    console.log('useThirdwebData: refreshData chiamato', { account: account?.address });
+    
     if (!account?.address) {
+      console.log('useThirdwebData: Nessun account, reset dati');
       setBatches([]);
       setCredits(0);
       return;
     }
 
+    console.log('useThirdwebData: Inizio caricamento dati per', account.address);
     setLoading(true);
     setError(null);
 
@@ -25,10 +29,15 @@ export function useThirdwebData() {
         getUserCredits(account.address)
       ]);
 
+      console.log('useThirdwebData: Dati caricati', { 
+        batches: batchesData.length, 
+        credits: creditsData 
+      });
+
       setBatches(batchesData);
       setCredits(creditsData);
     } catch (err) {
-      console.error('Errore nel caricare i dati:', err);
+      console.error('useThirdwebData: Errore nel caricare i dati:', err);
       setError(err instanceof Error ? err.message : 'Errore sconosciuto');
     } finally {
       setLoading(false);
