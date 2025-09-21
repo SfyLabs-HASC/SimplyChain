@@ -36,6 +36,7 @@ import "../App.css";
 // Importa i componenti esterni
 
 import TransactionStatusModal from "../components/TransactionStatusModal";
+import { useThirdwebData } from "../hooks/useThirdwebData";
 
 
 
@@ -2512,6 +2513,9 @@ const Dashboard: React.FC<{ companyData: CompanyData; onLoadingChange?: (isLoadi
 
 
     try {
+
+      // Aggiorna anche i dati Thirdweb in parallelo
+      refreshThirdwebData();
 
       const response = await fetch(`/api/get-contract-events?userAddress=${account.address}`);
 
@@ -6931,6 +6935,20 @@ const AziendaPage: React.FC = () => {
 
   const navigate = useNavigate();
   const { disconnect } = useDisconnect();
+
+  // Hook per i dati Thirdweb
+  const { batches: thirdwebBatches, credits: thirdwebCredits, refreshData: refreshThirdwebData } = useThirdwebData();
+
+  // Sincronizza i dati Thirdweb con l'interfaccia
+  useEffect(() => {
+    if (thirdwebBatches.length > 0) {
+      console.log('Dati Thirdweb aggiornati:', {
+        batches: thirdwebBatches.length,
+        credits: thirdwebCredits
+      });
+      // Qui puoi aggiungere logica per sincronizzare i dati Thirdweb con l'interfaccia
+    }
+  }, [thirdwebBatches, thirdwebCredits]);
 
   const forceDisconnectAndRedirectHome = React.useCallback(() => {
     try { disconnect?.(); } catch {}
