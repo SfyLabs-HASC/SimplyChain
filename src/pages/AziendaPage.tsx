@@ -2513,7 +2513,7 @@ const Dashboard: React.FC<{ companyData: CompanyData; onLoadingChange?: (isLoadi
 
     try {
 
-      const response = await fetch(`/api/get-contract-events?userAddress=${account.address}`);
+      const response = await fetch(`/api/get-contract-events?userAddress=${account.address}&source=blockchain`);
 
       if (!response.ok) {
 

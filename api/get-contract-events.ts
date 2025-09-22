@@ -263,23 +263,17 @@ export default async function handler(
     if (dataSource === 'firebase') {
       result = await handleFirebaseData(targetAddress);
       return res.status(200).json(result);
-    } else {
-      // Prova prima Insight, poi fallback allo SDK
+    } else if (dataSource === 'insight') {
       const envInsightConfigured = !!process.env.THIRDWEB_INSIGHT_API_URL && !!process.env.THIRDWEB_INSIGHT_API_KEY;
-      try {
-        if (!envInsightConfigured) throw new Error('Insight env not configured');
-        result = await handleInsightEvents(targetAddress, limitNumber);
-        return res.status(200).json({ events: result, source: 'insight', envInsightConfigured });
-      } catch (e: any) {
-        const fallbackReason = e?.message || String(e);
-        try {
-          result = await handleBlockchainEvents(targetAddress, limitNumber);
-          return res.status(200).json({ events: result, source: 'sdk', envInsightConfigured, fallbackReason });
-        } catch (sdkErr: any) {
-          // Se anche lo SDK fallisce, propaga errore
-          throw sdkErr;
-        }
+      if (!envInsightConfigured) {
+        return res.status(400).json({ error: 'Insight non configurato' });
       }
+      result = await handleInsightEvents(targetAddress, limitNumber);
+      return res.status(200).json({ events: result, source: 'insight', envInsightConfigured: true });
+    } else {
+      // Forza SDK on-chain come sorgente primaria
+      result = await handleBlockchainEvents(targetAddress, limitNumber);
+      return res.status(200).json({ events: result, source: 'sdk', envInsightConfigured: !!(process.env.THIRDWEB_INSIGHT_API_URL && process.env.THIRDWEB_INSIGHT_API_KEY) });
     }
 
   } catch (error: any) {
