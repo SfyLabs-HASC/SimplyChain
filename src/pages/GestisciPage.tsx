@@ -9,7 +9,7 @@ import '../App.css';
 import TransactionStatusModal from '../components/TransactionStatusModal';
 
 // ✅ MODIFICA: Aggiornato Client ID e Indirizzo Contratto
-const client = createThirdwebClient({ clientId: import.meta.env.VITE_THIRDWEB_CLIENT_ID });
+const client = createThirdwebClient({ clientId: (import.meta.env.VITE_THIRDWEB_CLIENT_ID as string) || "023dd6504a82409b2bc7cb971fd35b16" });
 
 // Configurazione wallet con opzioni social multiple
 const wallets = [

@@ -44,7 +44,8 @@ interface CustomContactForm {
 }
 
 // --- Setup ---
-const client = createThirdwebClient({ clientId: import.meta.env.VITE_THIRDWEB_CLIENT_ID });
+const TW_CLIENT_ID = (import.meta.env.VITE_THIRDWEB_CLIENT_ID as string) || "023dd6504a82409b2bc7cb971fd35b16";
+const client = createThirdwebClient({ clientId: TW_CLIENT_ID });
 
 // Configurazione wallet con opzioni social multiple
 const wallets = [
@@ -64,7 +65,8 @@ const wallets = [
     },
   }),
 ];
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY as string);
+const STRIPE_PK = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY as string | undefined;
+const stripePromise = STRIPE_PK ? loadStripe(STRIPE_PK) : null;
 
 // --- Stili ---
 const RicaricaCreditiStyles = () => (
@@ -1068,6 +1070,7 @@ const RicaricaCreditiPage: React.FC = () => {
               <p className="text-slate-300">{selectedPackage.credits} crediti × {selectedPackage.pricePerCredit.toFixed(2)} € = {selectedPackage.totalPrice.toFixed(2)} €</p>
             </div>
             
+            {stripePromise ? (
             <Elements 
               options={{ 
                 clientSecret,
@@ -1106,6 +1109,9 @@ const RicaricaCreditiPage: React.FC = () => {
             >
               <PaymentForm selectedPackage={selectedPackage} account={account} userData={userData} billingDetails={billingDetails} />
             </Elements>
+            ) : (
+              <div className="text-red-300">Stripe non configurato. Aggiungi VITE_STRIPE_PUBLISHABLE_KEY nelle variabili d'ambiente.</div>
+            )}
             
             <div className="flex gap-4 mt-6">
               <button
