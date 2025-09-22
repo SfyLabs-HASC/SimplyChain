@@ -2581,25 +2581,7 @@ const Dashboard: React.FC<{ companyData: CompanyData; onLoadingChange?: (isLoadi
 
 
 
-        // 2. Aggiorna Firebase con i crediti corretti
-
-        await fetch('/api/activate-company', {
-
-          method: 'POST',
-
-          headers: { 'Content-Type': 'application/json' },
-
-          body: JSON.stringify({
-
-            action: 'setCredits',
-
-            walletAddress: account.address,
-
-            credits: creditsNumber,
-
-          }),
-
-        });
+        // 2. Rimosso sync Firebase: i crediti restano fonte on-chain
 
 
 
@@ -2839,21 +2821,7 @@ const Dashboard: React.FC<{ companyData: CompanyData; onLoadingChange?: (isLoadi
       );
       
       // Step 7: Salva stato in Firestore (per compatibilità)
-      try {
-        await fetch('/api/qr-system?action=update-status', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            walletAddress: account?.address,
-            batchId: batch.batchId,
-            qrCodeGenerated: true,
-            qrCodeTimestamp: batch.qrCodeTimestamp || timestamp
-          })
-        });
-        console.log('✅ Stato QR salvato in Firestore');
-      } catch (saveError) {
-        console.warn('⚠️ Errore salvando stato QR (non critico):', saveError);
-      }
+      // Rimosso update stato QR su Firestore
       
       setSuccessMessage('QR Code generato con successo!');
       setShowSuccessModal(true);
@@ -4529,65 +4497,8 @@ const AddStepModal: React.FC<{
 
 
 
-        // Aggiungi l'evento al cache Firebase
-
-        try {
-
-          // Ottieni i crediti correnti
-
-          const creditsResponse = await fetch(`/api/get-company-status?walletAddress=${account.address}`);
-
-          const creditsData = creditsResponse.ok ? await creditsResponse.json() : { credits: 0 };
-
-
-
-          await fetch('/api/add-single-event', {
-
-            method: 'POST',
-
-            headers: { 'Content-Type': 'application/json' },
-
-            body: JSON.stringify({
-
-              userAddress: account.address,
-
-              eventType: 'BatchStepAdded',
-
-              eventData: {
-
-                batchId: batch.batchId,
-
-                stepData: {
-
-                  stepIndex: "0", // Verrà aggiornato dall'indexer
-
-                  eventName: formData.eventName,
-
-                  description: formData.description || "",
-
-                  date: formData.date || "",
-
-                  location: formData.location || "",
-
-                  attachmentsIpfsHash: attachmentsIpfsHash,
-
-                  transactionHash: result.transactionHash
-
-                }
-
-              },
-
-              newCredits: creditsData.credits - 1
-
-            }),
-
-          });
-
-        } catch (error) {
-
-          console.error("Errore aggiunta evento al cache:", error);
-
-        }
+        // Rimosso cache Firebase; ricarica dati da blockchain
+        await loadBatches(false);
 
 
 
@@ -5295,29 +5206,7 @@ const FinalizeModal: React.FC<{
 
 
 
-          await fetch('/api/add-single-event', {
-
-            method: 'POST',
-
-            headers: { 'Content-Type': 'application/json' },
-
-            body: JSON.stringify({
-
-              userAddress: account.address,
-
-              eventType: 'BatchClosed',
-
-              eventData: {
-
-                batchId: batch.batchId
-
-              },
-
-              newCredits: creditsData.credits - 1
-
-            }),
-
-          });
+          await loadBatches(false);
 
         } catch (error) {
 
@@ -5874,45 +5763,7 @@ const NewInscriptionModal: React.FC<{
 
 
 
-          await fetch('/api/add-single-event', {
-
-            method: 'POST',
-
-            headers: { 'Content-Type': 'application/json' },
-
-            body: JSON.stringify({
-
-              userAddress: account.address,
-
-              eventType: 'BatchInitialized',
-
-              eventData: {
-
-                batchId: result.transactionHash, // Useremo il tx hash temporaneamente
-
-                name: formData.name,
-
-                description: formData.description || "",
-
-                date: formData.date || "",
-
-                location: formData.location || "",
-
-                imageIpfsHash: imageIpfsHash,
-
-                isClosed: false,
-
-                transactionHash: result.transactionHash,
-
-                steps: []
-
-              },
-
-              newCredits: creditsData.credits - 1
-
-            }),
-
-          });
+          await loadBatches(false);
 
         } catch (error) {
 
