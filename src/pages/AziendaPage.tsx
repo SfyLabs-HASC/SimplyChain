@@ -4498,7 +4498,7 @@ const AddStepModal: React.FC<{
 
 
         // Rimosso cache Firebase; ricarica dati da blockchain
-        await loadBatches(false);
+        // Ricarica gestita dal parent tramite onSuccess
 
 
 
@@ -5206,7 +5206,7 @@ const FinalizeModal: React.FC<{
 
 
 
-          await loadBatches(false);
+          onSuccess();
 
         } catch (error) {
 
@@ -5763,7 +5763,7 @@ const NewInscriptionModal: React.FC<{
 
 
 
-          await loadBatches(false);
+          onSuccess();
 
         } catch (error) {
 
