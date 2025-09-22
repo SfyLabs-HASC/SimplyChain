@@ -4,6 +4,8 @@
 
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { createThirdwebClient, getContract, getContractEvents } from 'thirdweb';
+import { createPublicClient, http, parseAbiItem } from 'viem';
+import { polygon as polygonViem } from 'viem/chains';
 import fetch from 'node-fetch';
 import { polygon } from 'thirdweb/chains';
 import { initializeApp, cert, getApps } from 'firebase-admin/app';
@@ -86,24 +88,51 @@ function sanitizeBatch(raw: any) {
 
 // *** MODIFICA QUI PER RECUPERARE TUTTI GLI EVENTI ***
 async function handleBlockchainEvents(userAddress: string, limit?: number) {
+  // Blocco di deploy del contratto. Aggiorna se necessario
+  const DEPLOY_BLOCK = 50269000;
+
+  let allEvents: any[] = [];
   const secretKey = process.env.THIRDWEB_SECRET_KEY;
-  if (!secretKey) {
-    throw new Error("Variabile d'ambiente del server mancante.");
+  if (secretKey) {
+    const client = createThirdwebClient({ secretKey });
+    const contract = getContract({ client, chain: polygon, address: CONTRACT_ADDRESS, abi: supplyChainABI });
+    allEvents = await getContractEvents({
+      contract,
+      fromBlock: BigInt(DEPLOY_BLOCK),
+      toBlock: 'latest' as const
+    });
+  } else {
+    // Fallback: usa viem con RPC pubblico
+    const publicClient = createPublicClient({
+      chain: polygonViem,
+      transport: http(process.env.POLYGON_RPC_URL || 'https://polygon-rpc.com')
+    });
+
+    const fromBlock = BigInt(DEPLOY_BLOCK);
+    const toBlock: bigint | 'latest' = 'latest';
+
+    const evBatchInitialized = parseAbiItem('event BatchInitialized(address contributor, uint256 batchId, string name, string description, string date, string location, string imageIpfsHash, string contributorName, bool isClosed)');
+    const evBatchStepAdded = parseAbiItem('event BatchStepAdded(uint256 batchId, uint256 stepIndex, string eventName, string description, string date, string location, string attachmentsIpfsHash)');
+    const evBatchClosed = parseAbiItem('event BatchClosed(address contributor, uint256 batchId)');
+
+    const [initLogs, stepLogs, closedLogs] = await Promise.all([
+      publicClient.getLogs({ address: CONTRACT_ADDRESS as `0x${string}`, event: evBatchInitialized, fromBlock, toBlock }),
+      publicClient.getLogs({ address: CONTRACT_ADDRESS as `0x${string}`, event: evBatchStepAdded, fromBlock, toBlock }),
+      publicClient.getLogs({ address: CONTRACT_ADDRESS as `0x${string}`, event: evBatchClosed, fromBlock, toBlock })
+    ]);
+
+    const mapLog = (l: any, name: string) => ({
+      eventName: name,
+      args: l.args,
+      transactionHash: l.transactionHash,
+      blockNumber: l.blockNumber
+    });
+    allEvents = [
+      ...initLogs.map(l => mapLog(l, 'BatchInitialized')),
+      ...stepLogs.map(l => mapLog(l, 'BatchStepAdded')),
+      ...closedLogs.map(l => mapLog(l, 'BatchClosed')),
+    ];
   }
-
-  const client = createThirdwebClient({ secretKey });
-  const contract = getContract({ client, chain: polygon, address: CONTRACT_ADDRESS, abi: supplyChainABI });
-
-  // Blocco di deploy del contratto. Lo puoi trovare su PolygonScan
-  // Sostituisci questo numero con il blocco reale se è diverso.
-  const DEPLOY_BLOCK = 50269000; 
-
-  // Carica tutti gli eventi e filtra
-  const allEvents = await getContractEvents({
-    contract,
-    fromBlock: BigInt(DEPLOY_BLOCK),
-    toBlock: 'latest' as const
-  });
 
   const userBatches = allEvents.filter(event => {
     if (event.eventName !== 'BatchInitialized') {
