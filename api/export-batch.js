@@ -739,7 +739,9 @@ function generatePrintableHTML(batch, companyName) {
 // Funzione per gestire la generazione QR Code con Realtime Database
 async function handleQRCodeGenerationRealtime(batch, companyName, res) {
   try {
-    console.log('🔥 Generando QR Code con Realtime Database per batch:', batch.batchId);
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('🔥 Generando QR Code con Realtime Database per batch:', batch.batchId);
+    }
     
     // Step 1: Genera dati certificato
     const certificateData = {
@@ -777,13 +779,17 @@ async function handleQRCodeGenerationRealtime(batch, companyName, res) {
     const certificateRef = realtimeDb.ref(`certificates/${certificateId}`);
     
     await certificateRef.set(certificateData);
-    console.log('💾 Dati certificato salvati in Realtime Database:', certificateId);
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('💾 Dati certificato salvati in Realtime Database:', certificateId);
+    }
 
     // Step 3: Genera URL per visualizzare il certificato
-    const baseUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000';
+    const baseUrl = process.env.PUBLIC_SITE_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
     const certificateUrl = `${baseUrl}/api/qr-system?action=view&id=${certificateId}`;
     
-    console.log('🌐 URL certificato generato:', certificateUrl);
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('🌐 URL certificato generato:', certificateUrl);
+    }
 
     // Step 4: Genera QR Code
     const QRCode = await import('qrcode');
@@ -798,7 +804,9 @@ async function handleQRCodeGenerationRealtime(batch, companyName, res) {
     });
     
     const qrBuffer = Buffer.from(qrCodeDataUrl.split(',')[1], 'base64');
-    console.log('📱 QR Code generato per URL:', certificateUrl);
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('📱 QR Code generato per URL:', certificateUrl);
+    }
 
     // Step 5: Restituisci il QR Code
     res.setHeader('Content-Type', 'image/png');
@@ -806,10 +814,12 @@ async function handleQRCodeGenerationRealtime(batch, companyName, res) {
     res.setHeader('Content-Disposition', `attachment; filename="${cleanBatchName}_qrcode.png"`);
     res.send(qrBuffer);
     
-    console.log('✅ QR Code creato con successo usando Realtime Database');
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('✅ QR Code creato con successo usando Realtime Database');
+    }
     
   } catch (error) {
-    console.error('❌ Errore generazione QR Code:', error);
+    console.error('❌ Errore generazione QR Code');
     res.status(500).json({ 
       error: 'Errore nella generazione del QR Code',
       details: error.message 
@@ -1025,7 +1035,9 @@ function generateCertificateHTML(batch, companyName) {
 // Funzione per deployare HTML su Firebase Hosting (gratuito)
 async function deployToFirebaseHosting(htmlContent, fileName, companyName, batch) {
   try {
-    console.log('🔥 Deployando certificato su Firebase Hosting:', fileName);
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('🔥 Deployando certificato su Firebase Hosting:', fileName);
+    }
     
     const admin = await import('firebase-admin');
     
@@ -1056,23 +1068,27 @@ async function deployToFirebaseHosting(htmlContent, fileName, companyName, batch
       isPublic: true
     });
     
-    console.log('💾 HTML salvato in Firestore:', certificateId);
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('💾 HTML salvato in Firestore:', certificateId);
+    }
     
     // Deploy immediato su Firebase Hosting
     const cleanCompanyName = companyName.replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, '_');
     
     try {
       // Deploy immediato tramite GitHub API direttamente
-      console.log('🚀 Tentativo deploy Firebase via GitHub API...');
-      console.log('🔑 GITHUB_TOKEN presente:', !!process.env.GITHUB_TOKEN);
-      console.log('📁 GITHUB_REPO:', process.env.GITHUB_REPO);
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('🚀 Tentativo deploy Firebase via GitHub API...');
+      }
       
       if (!process.env.GITHUB_TOKEN || !process.env.GITHUB_REPO) {
         throw new Error('GITHUB_TOKEN o GITHUB_REPO mancanti');
       }
       
       const filePath = `public/certificate/${cleanCompanyName}/${certificateId}.html`;
-      console.log('📁 File path:', filePath);
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('📁 File path:', filePath);
+      }
       
       const githubResponse = await fetch(`https://api.github.com/repos/${process.env.GITHUB_REPO}/contents/${filePath}`, {
         method: 'PUT',
@@ -1088,40 +1104,51 @@ async function deployToFirebaseHosting(htmlContent, fileName, companyName, batch
         })
       });
 
-      console.log('📡 GitHub API response status:', githubResponse.status);
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('📡 GitHub API response status:', githubResponse.status);
+      }
 
       if (!githubResponse.ok) {
         const errorText = await githubResponse.text();
-        console.error('❌ GitHub API error:', errorText);
+        if (process.env.NODE_ENV !== 'production') {
+          console.error('❌ GitHub API error:', errorText);
+        }
         throw new Error(`GitHub API failed: ${githubResponse.status}`);
       }
 
       const githubResult = await githubResponse.json();
-      console.log('✅ File aggiunto al repository:', githubResult.commit?.sha);
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('✅ File aggiunto al repository:', githubResult.commit?.sha);
+      }
       
       const certificateUrl = `https://${process.env.FIREBASE_PROJECT_ID}.web.app/certificate/${cleanCompanyName}/${certificateId}.html`;
       
-      console.log('🔥 URL Firebase Hosting:', certificateUrl);
-      console.log('⏱️ Certificato disponibile tra 1-2 minuti dopo deploy GitHub Actions');
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('🔥 URL Firebase Hosting:', certificateUrl);
+        console.log('⏱️ Certificato disponibile tra 1-2 minuti dopo deploy GitHub Actions');
+      }
       
       return certificateUrl;
       
     } catch (deployError) {
-      console.error('❌ Errore deploy Firebase:', deployError.message);
+      console.error('❌ Errore deploy Firebase');
       
       // Fallback: usa endpoint Vercel
-      console.log('🔄 Fallback: usando endpoint Vercel...');
-      const baseUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000';
+      const baseUrl = process.env.PUBLIC_SITE_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
       const fallbackUrl = `${baseUrl}/api/certificate/${certificateId}`;
-      console.log('🔗 Fallback URL:', fallbackUrl);
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('🔗 Fallback URL:', fallbackUrl);
+      }
       return fallbackUrl;
     }
     
   } catch (error) {
-    console.error('❌ Errore Firebase Hosting:', error);
+    console.error('❌ Errore Firebase Hosting');
     
     // Fallback: usa endpoint Vercel
-    console.log('⚠️ Fallback a endpoint Vercel...');
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('⚠️ Fallback a endpoint Vercel...');
+    }
     
     try {
       const admin = await import('firebase-admin');
@@ -1135,14 +1162,16 @@ async function deployToFirebaseHosting(htmlContent, fileName, companyName, batch
         isPublic: true
       });
       
-      const baseUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000';
+      const baseUrl = process.env.PUBLIC_SITE_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
       const certificateUrl = `${baseUrl}/api/certificate/${certificateId}`;
       
-      console.log('🔄 Fallback completato:', certificateUrl);
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('🔄 Fallback completato:', certificateUrl);
+      }
       return certificateUrl;
       
     } catch (fallbackError) {
-      console.error('❌ Errore anche nel fallback:', fallbackError);
+      console.error('❌ Errore anche nel fallback');
       throw new Error(`Errore nel deploy HTML: ${error.message}`);
     }
   }

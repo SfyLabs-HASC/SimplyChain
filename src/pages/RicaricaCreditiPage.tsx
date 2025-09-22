@@ -44,7 +44,7 @@ interface CustomContactForm {
 }
 
 // --- Setup ---
-const client = createThirdwebClient({ clientId: "023dd6504a82409b2bc7cb971fd35b16" });
+const client = createThirdwebClient({ clientId: import.meta.env.VITE_THIRDWEB_CLIENT_ID });
 
 // Configurazione wallet con opzioni social multiple
 const wallets = [
@@ -64,7 +64,7 @@ const wallets = [
     },
   }),
 ];
-const stripePromise = loadStripe("pk_test_51RrJLQRx6E9RZt5ynBwc2dt3o7RT4YTwwij3O9xj3VdMwNKlI4GA9Yvbzkgwbxi0I5J9XnqPMlgY7bz2xHSgxmz000KCex9EiA");
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY as string);
 
 // --- Stili ---
 const RicaricaCreditiStyles = () => (

@@ -24,9 +24,20 @@ export default async function handler(req, res) {
   }
 }
 
+// Helper per determinare un base URL sicuro
+function getBaseUrl(req) {
+  if (process.env.PUBLIC_SITE_URL) return process.env.PUBLIC_SITE_URL.replace(/\/$/, '');
+  const proto = (req.headers['x-forwarded-proto'] || 'https');
+  const host = req.headers['x-forwarded-host'] || req.headers.host;
+  if (host) return `${proto}://${host}`;
+  return 'http://localhost:3000';
+}
+
 // Gestisce il test delle variabili d'ambiente
 async function handleTest(req, res) {
-  console.log('🧪 Testando variabili d\'ambiente Firebase...');
+  if (process.env.NODE_ENV !== 'production') {
+    console.log('🧪 Testando variabili d\'ambiente Firebase...');
+  }
   
   const envVars = {
     FIREBASE_PROJECT_ID: process.env.FIREBASE_PROJECT_ID,
@@ -77,7 +88,13 @@ async function handleTest(req, res) {
     status: 'success',
     environment: process.env.NODE_ENV,
     timestamp: new Date().toISOString(),
-    envVars,
+    envVars: {
+      FIREBASE_PROJECT_ID: !!envVars.FIREBASE_PROJECT_ID,
+      FIREBASE_PRIVATE_KEY: envVars.FIREBASE_PRIVATE_KEY,
+      FIREBASE_CLIENT_EMAIL: !!envVars.FIREBASE_CLIENT_EMAIL,
+      FIREBASE_DATABASE_URL: !!envVars.FIREBASE_DATABASE_URL,
+      VERCEL_URL: !!envVars.VERCEL_URL
+    },
     firebase: {
       status: firebaseStatus,
       error: firebaseError
@@ -97,7 +114,9 @@ async function handleCreateQR(req, res) {
     return res.status(400).json({ error: 'Missing required fields: batch, companyName, walletAddress' });
   }
 
-  console.log('🔥 Creando QR Code con Realtime Database per batch:', batch.batchId);
+  if (process.env.NODE_ENV !== 'production') {
+    console.log('🔥 Creando QR Code con Realtime Database per batch:', batch.batchId);
+  }
   
   // Step 1: Genera dati certificato
   const certificateData = {
@@ -136,21 +155,17 @@ async function handleCreateQR(req, res) {
   const certificateRef = realtimeDb.ref(`certificates/${certificateId}`);
   
   await certificateRef.set(certificateData);
-  console.log('💾 Dati certificato salvati in Realtime Database:', certificateId);
+  if (process.env.NODE_ENV !== 'production') {
+    console.log('💾 Dati certificato salvati in Realtime Database:', certificateId);
+  }
 
   // Step 3: Genera URL per visualizzare il certificato
-  // Usa l'URL fisso per evitare problemi con VERCEL_URL
-  const baseUrl = 'https://simplychain-kr64t1v59-sfylabs-hascs-projects.vercel.app';
+  const baseUrl = getBaseUrl(req);
   const certificateUrl = `${baseUrl}/api/qr-system?action=view&id=${certificateId}`;
   
-  console.log('🌐 Environment info:');
-  console.log('- VERCEL_URL:', process.env.VERCEL_URL);
-  console.log('- NODE_ENV:', process.env.NODE_ENV);
-  console.log('- Base URL:', baseUrl);
-  console.log('- Certificate URL:', certificateUrl);
-  console.log('- Certificate ID:', certificateId);
-  
-  console.log('🌐 URL certificato generato:', certificateUrl);
+  if (process.env.NODE_ENV !== 'production') {
+    console.log('🌐 URL certificato generato:', certificateUrl);
+  }
 
   // Step 4: Genera QR Code
   const QRCode = await import('qrcode');
@@ -165,7 +180,9 @@ async function handleCreateQR(req, res) {
   });
   
   const qrBuffer = Buffer.from(qrCodeDataUrl.split(',')[1], 'base64');
-  console.log('📱 QR Code generato per URL:', certificateUrl);
+  if (process.env.NODE_ENV !== 'production') {
+    console.log('📱 QR Code generato per URL:', certificateUrl);
+  }
 
   // Step 5: Aggiorna stato batch in Firestore
   try {
@@ -179,7 +196,9 @@ async function handleCreateQR(req, res) {
       qrCodeUrl: certificateUrl
     }, { merge: true });
     
-    console.log('✅ Stato QR Code aggiornato in Firestore');
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('✅ Stato QR Code aggiornato in Firestore');
+    }
   } catch (firestoreError) {
     console.warn('⚠️ Errore aggiornamento Firestore (non critico):', firestoreError.message);
   }
@@ -190,7 +209,9 @@ async function handleCreateQR(req, res) {
   res.setHeader('Content-Disposition', `attachment; filename="${cleanBatchName}_qrcode.png"`);
   res.send(qrBuffer);
   
-  console.log('✅ QR Code creato con successo usando Realtime Database');
+  if (process.env.NODE_ENV !== 'production') {
+    console.log('✅ QR Code creato con successo usando Realtime Database');
+  }
 }
 
 // Gestisce la visualizzazione dei certificati
@@ -201,19 +222,21 @@ async function handleViewCertificate(req, res) {
     return res.status(400).json({ error: 'Certificate ID is required' });
   }
 
-  console.log('🔍 Recuperando certificato dal Realtime Database:', id);
+  if (process.env.NODE_ENV !== 'production') {
+    console.log('🔍 Recuperando certificato dal Realtime Database:', id);
+  }
 
   try {
     const admin = await import('firebase-admin');
     
-    console.log('📋 Variabili d\'ambiente server:');
-    console.log('- FIREBASE_PROJECT_ID:', process.env.FIREBASE_PROJECT_ID ? 'SET' : 'MISSING');
-    console.log('- FIREBASE_CLIENT_EMAIL:', process.env.FIREBASE_CLIENT_EMAIL ? 'SET' : 'MISSING');
-    console.log('- FIREBASE_PRIVATE_KEY:', process.env.FIREBASE_PRIVATE_KEY ? 'SET' : 'MISSING');
-    console.log('- FIREBASE_DATABASE_URL:', process.env.FIREBASE_DATABASE_URL ? 'SET' : 'MISSING');
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('📋 Variabili d\'ambiente server (solo stato SET/MISSING).');
+    }
     
     if (!admin.default.apps.length) {
-      console.log('🔥 Inizializzando Firebase Admin SDK...');
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('🔥 Inizializzando Firebase Admin SDK...');
+      }
       
       // Gestisce sia \n letterali che newline reali
       let privateKey = process.env.FIREBASE_PRIVATE_KEY;
@@ -230,12 +253,7 @@ async function handleViewCertificate(req, res) {
         }
       }
       
-      console.log('🔑 Private Key info:', {
-        originalLength: process.env.FIREBASE_PRIVATE_KEY?.length || 0,
-        processedLength: privateKey?.length || 0,
-        startsWith: privateKey?.substring(0, 20) || 'UNDEFINED',
-        endsWith: privateKey?.substring(privateKey.length - 20) || 'UNDEFINED'
-      });
+      // Non loggare mai porzioni della chiave privata in produzione
       
       if (!privateKey || !privateKey.includes('BEGIN PRIVATE KEY')) {
         throw new Error('FIREBASE_PRIVATE_KEY non è valida. Deve contenere "BEGIN PRIVATE KEY"');
@@ -247,31 +265,39 @@ async function handleViewCertificate(req, res) {
         privateKey: privateKey,
       };
       
-      console.log('🔑 Service Account config:', {
-        projectId: serviceAccount.projectId,
-        clientEmail: serviceAccount.clientEmail,
-        privateKeyLength: serviceAccount.privateKey?.length || 0
-      });
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('🔑 Service Account config inizializzata');
+      }
       
       admin.default.initializeApp({
         credential: admin.default.credential.cert(serviceAccount),
         databaseURL: process.env.FIREBASE_DATABASE_URL
       });
       
-      console.log('✅ Firebase Admin SDK inizializzato');
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('✅ Firebase Admin SDK inizializzato');
+      }
     } else {
-      console.log('✅ Firebase Admin SDK già inizializzato');
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('✅ Firebase Admin SDK già inizializzato');
+      }
     }
 
-    console.log('🔥 Connessione al Realtime Database...');
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('🔥 Connessione al Realtime Database...');
+    }
     const realtimeDb = admin.default.database();
     const certificateRef = realtimeDb.ref(`certificates/${id}`);
     
-    console.log('🔍 Recuperando certificato dal database...');
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('🔍 Recuperando certificato dal database...');
+    }
     const snapshot = await certificateRef.once('value');
     const certificateData = snapshot.val();
     
-    console.log('📄 Dati certificato:', certificateData ? 'TROVATO' : 'NON TROVATO');
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('📄 Dati certificato:', certificateData ? 'TROVATO' : 'NON TROVATO');
+    }
 
     if (!certificateData) {
       return res.status(404).send(generateErrorPage('Certificato non trovato', 'Il certificato richiesto non esiste o è stato rimosso.', '🔍'));
@@ -286,10 +312,14 @@ async function handleViewCertificate(req, res) {
       await certificateRef.child('viewCount').transaction((current) => (current || 0) + 1);
       await certificateRef.child('lastViewed').set(new Date().toISOString());
     } catch (viewError) {
-      console.warn('⚠️ Errore aggiornamento contatore:', viewError.message);
+      if (process.env.NODE_ENV !== 'production') {
+        console.warn('⚠️ Errore aggiornamento contatore:', viewError.message);
+      }
     }
 
-    console.log('✅ Certificato trovato e visualizzato:', id);
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('✅ Certificato trovato e visualizzato:', id);
+    }
 
     const certificateHTML = generateCertificateHTML(certificateData);
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
@@ -388,7 +418,7 @@ function generateErrorPage(title, message, icon) {
 }
 
 function generateCertificateHTML(certificateData) {
-  const siteUrl = process.env.PUBLIC_SITE_URL || 'https://simplychain-kr64t1v59-sfylabs-hascs-projects.vercel.app';
+  const siteUrl = process.env.PUBLIC_SITE_URL || getBaseUrl({ headers: {} });
   return `
     <!DOCTYPE html>
     <html lang="it">

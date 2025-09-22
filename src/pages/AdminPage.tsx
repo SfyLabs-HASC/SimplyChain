@@ -295,9 +295,7 @@ type Company = {
 };
 
 // Configurazione del Client e del Contratto
-const client = createThirdwebClient({ 
-  clientId: "023dd6504a82409b2bc7cb971fd35b16"
-});
+const client = createThirdwebClient({ clientId: import.meta.env.VITE_THIRDWEB_CLIENT_ID });
 
 // Configurazione wallet con opzioni social multiple
 const wallets = [
