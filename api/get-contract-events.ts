@@ -4,7 +4,7 @@
 
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { createThirdwebClient, getContract, getContractEvents } from 'thirdweb';
-import { createPublicClient, http, parseAbiItem } from 'viem';
+import { createPublicClient, http, parseAbi, parseAbiItem } from 'viem';
 import { polygon as polygonViem } from 'viem/chains';
 import fetch from 'node-fetch';
 import { polygon } from 'thirdweb/chains';
@@ -86,7 +86,70 @@ function sanitizeBatch(raw: any) {
   };
 }
 
-// *** MODIFICA QUI PER RECUPERARE TUTTI GLI EVENTI ***
+// Recupero stato on-chain completo via funzioni view (no indexer)
+async function handleBlockchainState(userAddress: string, limit?: number) {
+  const publicClient = createPublicClient({
+    chain: polygonViem,
+    transport: http(process.env.POLYGON_RPC_URL || 'https://polygon-rpc.com')
+  });
+
+  const abi = parseAbi([
+    'function getBatchesByContributor(address _contributor) view returns (uint256[])',
+    'function getBatchInfo(uint256 _batchId) view returns (uint256 id, address contributor, string contributorName, string name, string description, string date, string location, string imageIpfsHash, bool isClosed)',
+    'function getBatchStepCount(uint256 _batchId) view returns (uint256)',
+    'function getBatchStep(uint256 _batchId, uint256 _stepIndex) view returns (string eventName, string description, string date, string location, string attachmentsIpfsHash)'
+  ]);
+
+  const address = CONTRACT_ADDRESS as `0x${string}`;
+
+  const batchIds: bigint[] = await publicClient.readContract({
+    address,
+    abi,
+    functionName: 'getBatchesByContributor',
+    args: [userAddress as `0x${string}`]
+  }) as any;
+
+  const sortedIds = [...batchIds].sort((a, b) => Number(b - a));
+  const limitedIds = typeof limit === 'number' && limit > 0 ? sortedIds.slice(0, limit) : sortedIds;
+
+  const batchesRaw: any[] = [];
+
+  for (const id of limitedIds) {
+    const info: any = await publicClient.readContract({ address, abi, functionName: 'getBatchInfo', args: [id] });
+    const batchId = String(info[0] ?? id);
+
+    const stepCount: bigint = await publicClient.readContract({ address, abi, functionName: 'getBatchStepCount', args: [id] }) as any;
+    const steps: any[] = [];
+    for (let i = 0n; i < stepCount; i++) {
+      const s: any = await publicClient.readContract({ address, abi, functionName: 'getBatchStep', args: [id, i] });
+      steps.push({
+        stepIndex: String(i),
+        eventName: s[0],
+        description: s[1],
+        date: s[2],
+        location: s[3],
+        attachmentsIpfsHash: s[4]
+      });
+    }
+
+    batchesRaw.push({
+      batchId,
+      name: info[3] || '',
+      description: info[4] || '',
+      date: info[5] || '',
+      location: info[6] || '',
+      imageIpfsHash: info[7] || '',
+      isClosed: !!info[8],
+      transactionHash: undefined,
+      steps
+    });
+  }
+
+  const sanitized = batchesRaw.map(sanitizeBatch);
+  return serializeBigInts(sanitized);
+}
+
+// Recupero eventi on-chain (SDK/viem) per fallback
 async function handleBlockchainEvents(userAddress: string, limit?: number) {
   // Blocco di deploy del contratto. Aggiorna se necessario
   const DEPLOY_BLOCK = 50269000;
@@ -300,9 +363,14 @@ export default async function handler(
       result = await handleInsightEvents(targetAddress, limitNumber);
       return res.status(200).json({ events: result, source: 'insight', envInsightConfigured: true });
     } else {
-      // Forza SDK on-chain come sorgente primaria
-      result = await handleBlockchainEvents(targetAddress, limitNumber);
-      return res.status(200).json({ events: result, source: 'sdk', envInsightConfigured: !!(process.env.THIRDWEB_INSIGHT_API_URL && process.env.THIRDWEB_INSIGHT_API_KEY) });
+      // Primario: stato on-chain via view; Fallback: eventi
+      try {
+        result = await handleBlockchainState(targetAddress, limitNumber);
+        return res.status(200).json({ events: result, source: 'state' });
+      } catch (stateErr) {
+        result = await handleBlockchainEvents(targetAddress, limitNumber);
+        return res.status(200).json({ events: result, source: 'events' });
+      }
     }
 
   } catch (error: any) {
